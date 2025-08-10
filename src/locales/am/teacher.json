@@ -1,0 +1,52 @@
+{
+  "dashboard": {
+    "welcome": "እንኳን ደህና መጡ፣ {{name}}!",
+    "subtitle": "የሚቀጥለውን ትውልድ የህክምና ባለሙያዎች ለማነሳሳት ዝግጁ ነዎት?",
+    "activeCourses": "ንቁ ኮርሶች",
+    "totalStudents": "ጠቅላላ ተማሪዎች",
+    "pendingGrades": "በመጠባበቅ ላይ ያሉ ውጤቶች",
+    "averageRating": "አማካይ ደረጃ",
+    "todaysClasses": "የዛሬ ክፍሎች",
+    "recentAssignments": "የቅርብ ጊዜ ተግባራት",
+    "pendingTasks": "በመጠባበቅ ላይ ያሉ ተግባራት",
+    "quickActions": "ፈጣን እርምጃዎች",
+    "createAssignment": "ተግባር ፍጠር",
+    "viewStudents": "ተማሪዎችን ተመልከት",
+    "courseMaterials": "የኮርስ ቁሳቁሶች",
+    "scheduleClass": "ክፍል መርሃ ግብር"
+  },
+  "courses": {
+    "title": "የእኔ ኮርሶች",
+    "createCourse": "ኮርስ ፍጠር",
+    "activeCourses": "ንቁ ኮርሶች",
+    "completedCourses": "የተጠናቀቁ ኮርሶች",
+    "courseProgress": "የኮርስ እድገት",
+    "nextClass": "ቀጣይ ክፍል",
+    "viewCourseReport": "የኮርስ ሪፖርት ተመልከት"
+  },
+  "students": {
+    "title": "ተማሪዎች",
+    "exportList": "ዝርዝር ወደ ውጭ ላክ",
+    "averageGrade": "አማካይ ውጤት",
+    "attendanceRate": "የመገኘት መጠን",
+    "atRisk": "በአደጋ ላይ",
+    "studentList": "የተማሪዎች ዝርዝር",
+    "currentGrade": "አሁን ያለ ውጤት",
+    "attendance": "መገኘት",
+    "assignments": "ተግባራት",
+    "lastActive": "መጨረሻ ንቁ"
+  },
+  "assessments": {
+    "title": "ግምገማዎች",
+    "createAssessment": "ግምገማ ፍጠር",
+    "totalAssessments": "ጠቅላላ ግምገማዎች",
+    "averageScore": "አማካይ ውጤት",
+    "upcoming": "ሊመጣ ያለ",
+    "assessmentManagement": "የግምገማ አስተዳደር",
+    "submissions": "ማስገቢያዎች",
+    "gradingProgress": "የውጤት እድገት",
+    "gradeSubmissions": "ውጤት ማስገቢያዎች",
+    "viewResults": "ውጤቶችን ተመልከት",
+    "editAssessment": "ግምገማ አርም"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "dashboard": "Dashboard",
+  "profile": "Profile",
+  "grades": "Grades",
+  "payments": "Payments",
+  "courses": "Courses",
+  "students": "Students",
+  "teachers": "Teachers",
+  "assessments": "Assessments",
+  "reports": "Reports",
+  "applications": "Applications",
+  "batches": "Batches",
+  "history": "History",
+  "settings": "Settings",
+  "home": "Home",
+  "about": "About",
+  "contact": "Contact",
+  "help": "Help",
+  "portal": {
+    "student": "Student Portal",
+    "teacher": "Teacher Portal",
+    "head": "Department Head",
+    "registrar": "Registrar Portal",
+    "finance": "Finance Portal",
+    "dean": "Dean Portal",
+    "manager": "Manager Portal"
+  }
+}

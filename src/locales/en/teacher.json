@@ -1,0 +1,52 @@
+{
+  "dashboard": {
+    "welcome": "Welcome back, {{name}}!",
+    "subtitle": "Ready to inspire the next generation of medical professionals?",
+    "activeCourses": "Active Courses",
+    "totalStudents": "Total Students",
+    "pendingGrades": "Pending Grades",
+    "averageRating": "Average Rating",
+    "todaysClasses": "Today's Classes",
+    "recentAssignments": "Recent Assignments",
+    "pendingTasks": "Pending Tasks",
+    "quickActions": "Quick Actions",
+    "createAssignment": "Create Assignment",
+    "viewStudents": "View Students",
+    "courseMaterials": "Course Materials",
+    "scheduleClass": "Schedule Class"
+  },
+  "courses": {
+    "title": "My Courses",
+    "createCourse": "Create Course",
+    "activeCourses": "Active Courses",
+    "completedCourses": "Completed Courses",
+    "courseProgress": "Course Progress",
+    "nextClass": "Next Class",
+    "viewCourseReport": "View Course Report"
+  },
+  "students": {
+    "title": "Students",
+    "exportList": "Export List",
+    "averageGrade": "Average Grade",
+    "attendanceRate": "Attendance Rate",
+    "atRisk": "At Risk",
+    "studentList": "Student List",
+    "currentGrade": "Current Grade",
+    "attendance": "Attendance",
+    "assignments": "Assignments",
+    "lastActive": "Last Active"
+  },
+  "assessments": {
+    "title": "Assessments",
+    "createAssessment": "Create Assessment",
+    "totalAssessments": "Total Assessments",
+    "averageScore": "Average Score",
+    "upcoming": "Upcoming",
+    "assessmentManagement": "Assessment Management",
+    "submissions": "Submissions",
+    "gradingProgress": "Grading Progress",
+    "gradeSubmissions": "Grade Submissions",
+    "viewResults": "View Results",
+    "editAssessment": "Edit Assessment"
+  }
+}

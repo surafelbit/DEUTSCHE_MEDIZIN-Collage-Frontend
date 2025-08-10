@@ -1,0 +1,28 @@
+{
+  "dashboard": "ዳሽቦርድ",
+  "profile": "መገለጫ",
+  "grades": "ውጤቶች",
+  "payments": "ክፍያዎች",
+  "courses": "ኮርሶች",
+  "students": "ተማሪዎች",
+  "teachers": "መምህራን",
+  "assessments": "ግምገማዎች",
+  "reports": "ሪፖርቶች",
+  "applications": "ማመልከቻዎች",
+  "batches": "ቡድኖች",
+  "history": "ታሪክ",
+  "settings": "ቅንብሮች",
+  "home": "ቤት",
+  "about": "ስለ እኛ",
+  "contact": "ያግኙን",
+  "help": "እርዳታ",
+  "portal": {
+    "student": "የተማሪ ፖርታል",
+    "teacher": "የመምህር ፖርታል",
+    "head": "የክፍል ኃላፊ",
+    "registrar": "የምዝገባ ፖርታል",
+    "finance": "የፋይናንስ ፖርታል",
+    "dean": "የዲን ፖርታል",
+    "manager": "የሥራ አስኪያጅ ፖርታል"
+  }
+}
