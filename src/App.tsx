@@ -1,63 +1,64 @@
-import { Routes, Route } from "react-router-dom"
-import { ThemeProvider } from "./components/theme-provider"
-import { Toaster } from "sonner"
+import { Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "sonner";
 
 // Public Pages
-import LandingPage from "./pages/public/LandingPage"
-import LoginPage from "./pages/public/LoginPage"
-import RegisterPage from "./pages/public/RegisterPage"
-import ForgotPasswordPage from "./pages/public/ForgotPasswordPage"
-
+import LandingPage from "./pages/public/LandingPage";
+import LoginPage from "./pages/public/LoginPage";
+import RegisterPage from "./pages/public/RegisterPage";
+import ForgotPasswordPage from "./pages/public/ForgotPasswordPage";
+import MultiStepRegistrationForm from "./../src/registeration/MultiStepRegistrationForm";
+import SigningUp from "./../src/registeration/SigningUp";
 // Student Pages
-import StudentLayout from "./layouts/StudentLayout"
-import StudentDashboard from "./pages/student/Dashboard"
-import StudentProfile from "./pages/student/Profile"
-import StudentGrades from "./pages/student/Grades"
-import StudentPayments from "./pages/student/Payments"
+import StudentLayout from "./layouts/StudentLayout";
+import StudentDashboard from "./pages/student/Dashboard";
+import StudentProfile from "./pages/student/Profile";
+import StudentGrades from "./pages/student/Grades";
+import StudentPayments from "./pages/student/Payments";
 
 // Teacher Pages
-import TeacherLayout from "./layouts/TeacherLayout"
-import TeacherDashboard from "./pages/teacher/Dashboard"
-import TeacherCourses from "./pages/teacher/Courses"
-import TeacherStudents from "./pages/teacher/Students"
-import TeacherAssessments from "./pages/teacher/Assessments"
+import TeacherLayout from "./layouts/TeacherLayout";
+import TeacherDashboard from "./pages/teacher/Dashboard";
+import TeacherCourses from "./pages/teacher/Courses";
+import TeacherStudents from "./pages/teacher/Students";
+import TeacherAssessments from "./pages/teacher/Assessments";
 
 // Department Head Pages
-import HeadLayout from "./layouts/HeadLayout"
-import HeadDashboard from "./pages/head/Dashboard"
-import HeadStudents from "./pages/head/Students"
-import HeadTeachers from "./pages/head/Teachers"
-import HeadCourses from "./pages/head/Courses"
-import HeadReports from "./pages/head/Reports"
+import HeadLayout from "./layouts/HeadLayout";
+import HeadDashboard from "./pages/head/Dashboard";
+import HeadStudents from "./pages/head/Students";
+import HeadTeachers from "./pages/head/Teachers";
+import HeadCourses from "./pages/head/Courses";
+import HeadReports from "./pages/head/Reports";
 
 // Registrar Pages
-import RegistrarLayout from "./layouts/RegistrarLayout"
-import RegistrarDashboard from "./pages/registrar/Dashboard"
-import RegistrarApplications from "./pages/registrar/Applications"
-import RegistrarStudents from "./pages/registrar/Students"
-import RegistrarCourses from "./pages/registrar/Courses"
-import RegistrarAssessments from "./pages/registrar/Assessments"
-import RegistrarBatches from "./pages/registrar/Batches"
+import RegistrarLayout from "./layouts/RegistrarLayout";
+import RegistrarDashboard from "./pages/registrar/Dashboard";
+import RegistrarApplications from "./pages/registrar/Applications";
+import RegistrarStudents from "./pages/registrar/Students";
+import RegistrarCourses from "./pages/registrar/Courses";
+import RegistrarAssessments from "./pages/registrar/Assessments";
+import RegistrarBatches from "./pages/registrar/Batches";
 
 // Finance Pages
-import FinanceLayout from "./layouts/FinanceLayout"
-import FinanceDashboard from "./pages/finance/Dashboard"
-import FinancePayments from "./pages/finance/Payments"
-import FinanceHistory from "./pages/finance/History"
-import FinanceReports from "./pages/finance/Reports"
+import FinanceLayout from "./layouts/FinanceLayout";
+import FinanceDashboard from "./pages/finance/Dashboard";
+import FinancePayments from "./pages/finance/Payments";
+import FinanceHistory from "./pages/finance/History";
+import FinanceReports from "./pages/finance/Reports";
 
 // Dean Pages
-import DeanLayout from "./layouts/DeanLayout"
-import DeanDashboard from "./pages/dean/Dashboard"
-import DeanStudents from "./pages/dean/Students"
-import DeanGrades from "./pages/dean/Grades"
-import DeanReports from "./pages/dean/Reports"
+import DeanLayout from "./layouts/DeanLayout";
+import DeanDashboard from "./pages/dean/Dashboard";
+import DeanStudents from "./pages/dean/Students";
+import DeanGrades from "./pages/dean/Grades";
+import DeanReports from "./pages/dean/Reports";
 
 // Manager Pages
-import ManagerLayout from "./layouts/ManagerLayout"
-import ManagerDashboard from "./pages/manager/Dashboard"
-import ManagerReports from "./pages/manager/Reports"
-import ManagerSettings from "./pages/manager/Settings"
+import ManagerLayout from "./layouts/ManagerLayout";
+import ManagerDashboard from "./pages/manager/Dashboard";
+import ManagerReports from "./pages/manager/Reports";
+import ManagerSettings from "./pages/manager/Settings";
 
 function App() {
   return (
@@ -66,8 +67,10 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          {/* <Route path="/login" element={<LoginPage />} /> */}
+          <Route path="/login" element={<SigningUp />} />
+
+          <Route path="/register" element={<MultiStepRegistrationForm />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Student Routes */}
@@ -83,7 +86,10 @@ function App() {
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="courses" element={<TeacherCourses />} />
             <Route path="students/:courseId" element={<TeacherStudents />} />
-            <Route path="assessments/:courseId" element={<TeacherAssessments />} />
+            <Route
+              path="assessments/:courseId"
+              element={<TeacherAssessments />}
+            />
           </Route>
 
           {/* Department Head Routes */}
@@ -131,7 +137,7 @@ function App() {
         <Toaster />
       </div>
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
