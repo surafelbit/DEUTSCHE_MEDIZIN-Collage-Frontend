@@ -4,7 +4,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X, User } from "lucide-react";
+import LightRays from "@/designs/LightRays";
+import { useTranslation } from "react-i18next";
 import DarkVeil from "../designs/DarkVeil";
+
 const PersonalInformationStep = ({ formData, setFormData }) => {
   const [previews, setPreviews] = useState(
     "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg"
@@ -2120,6 +2123,7 @@ const EmploymentInformationStep = ({ formData, setFormData }) => {
                   />
                 </div>
                 <div>
+                  {" "}
                   <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
                     Telephone
                   </label>
@@ -2256,27 +2260,15 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
           6. STATEMENT BY THE APPLICANT
         </h3>
-        <div className="bg-gray-50 dark:bg-black p-4 rounded-md mb-6">
+        <div className=" p-4 rounded-md mb-6">
           <p className="text-sm text-gray-800 dark:text-white leading-relaxed">
-            I hereby certify that all information given in this form is
-            complete, correct and accurate. I fully realize that the college is
-            entitled to take any action on me including dismissal if the
-            information given by me here is found incorrect or misleading at any
-            time. I also realize that I will not be entitled to any
-            reimbursement of whatever fee I might have paid in case where the
-            college takes any action on me as a result of any incorrect or
-            misleading information given by me. I further undertake to observe
-            all the rules and regulations of the college and refrain from any
-            activity which may be contrary to the interest of the Ethiopian
-            broad masses. I shall also take full responsibility for reading and
-            abiding by the rules and regulations of the college student hand
-            book deposited at the college Library system and that of my
-            department.
+            Are you sure you want to submit this form? Please confirm that all
+            information provided is correct.
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 dark:text-gray-100 mb-1">
                 Date
@@ -2314,7 +2306,7 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
                 required
               />
             </div>
-          </div>
+          </div> */}
 
           <div className="flex justify-center">
             <button
@@ -2328,7 +2320,7 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
       </section>
 
       {/* Office Use Only */}
-      <section className="border-2 border-red-200 rounded-lg p-6 bg-red-50">
+      {/* <section className="border-2 border-red-200 rounded-lg p-6 bg-red-50">
         <div className="border-t-2 border-red-400 pt-4">
           <h3 className="text-lg font-semibold text-red-800 mb-4">
             DO NOT WRITE BELOW THIS LINE
@@ -2353,7 +2345,7 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };
@@ -2411,7 +2403,7 @@ const ProgressIndicator = ({ currentStep, totalSteps }) => {
 // Main Multi-Step Form Component
 const MultiStepRegistrationForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 54 - 50;
+  const totalSteps = 4;
 
   // <CHANGE> Added initial form data structure with localStorage persistence
   const [formData, setFormData] = useState(() => {
@@ -2695,12 +2687,12 @@ const MultiStepRegistrationForm = () => {
 
   return (
     // <div className="w-full mx-auto p-6 bg-white dark:bg-black">
-    <div className="relative min-h-screen w-screen bg-gray-50 dark:bg-gray-900 overflow-auto overflow-x-hidden">
+    <div className="relative min-h-screen w-screen bg-gray-50 dark:bg-gray-900 px-6 md:px-16 lg:px-28 overflow-auto overflow-x-hidden">
       <div className="hidden dark:block fixed inset-0">
         <DarkVeil className="w-full h-full object-cover" />
       </div>
       <div className="relative z-10">
-        <header className="container mx-auto px-4 py-6 flex justify-between items-center">
+        <header className="container mx-auto px-4 py-12 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
               <img src="/assets/companylogo.jpg" className="h-[50px] w-full" />
@@ -2740,7 +2732,7 @@ const MultiStepRegistrationForm = () => {
         {renderStep()}
 
         {/* <CHANGE> Added navigation buttons */}
-        {currentStep < totalSteps && (
+        {currentStep <= totalSteps && (
           <div className="flex justify-between mt-8">
             <button
               onClick={prevStep}
@@ -2770,9 +2762,11 @@ const MultiStepRegistrationForm = () => {
 
               <button
                 onClick={nextStep}
-                disabled={!isStepValid(currentStep, formData)}
+                disabled={
+                  !isStepValid(currentStep, formData) || currentStep == 4
+                }
                 className={`px-6 py-2 rounded-lg font-medium transition duration-200 ${
-                  !isStepValid(currentStep, formData)
+                  !isStepValid(currentStep, formData) || currentStep == 4
                     ? "bg-gray-300 text-gray-500 dark:text-gray-100 cursor-not-allowed"
                     : "bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 }`}
@@ -2782,6 +2776,140 @@ const MultiStepRegistrationForm = () => {
             </div>
           </div>
         )}
+      </div>
+      <div
+        id="contact"
+        className="relative w-full mt-5 flex items-center justify-center overflow-hidden"
+      >
+        {/* Light rays absolutely positioned behind content */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <LightRays
+            raysOrigin="top-center"
+            raysColor="#ffffff"
+            raysSpeed={1}
+            lightSpread={1}
+            rayLength={2}
+            pulsating={true}
+            fadeDistance={1}
+            saturation={1}
+            followMouse={true}
+            mouseInfluence={0.1}
+            noiseAmount={0}
+            distortion={0}
+            className="w-full h-full"
+          />
+        </div>
+        {/* <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12"> */}
+
+        <footer className="text-white py-1">
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-4 gap-8">
+              <div>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-12 rounded-full   rounded-lg flex items-center justify-center">
+                    <img
+                      src="/assets/companylogo.jpg"
+                      className="h-[50px] w-full rounded-full "
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">some</h3>
+                    <p className="text-sm text-">thing</p>
+                  </div>
+                </div>
+                <p className="text-gray-400">
+                  Excellence in medical education since 1985.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4">Quick Links</h4>
+                <ul className="space-y-2 text-black">
+                  <li>
+                    <Link
+                      to="/register"
+                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                    >
+                      Apply Now
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/login"
+                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                    >
+                      Student Portal
+                    </Link>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                    >
+                      Programs
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                    >
+                      Research
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4">something</h4>
+                <ul className="space-y-2 ">
+                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    123 Medical Campus Drive
+                  </li>
+                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    Berlin, Germany 10115
+                  </li>
+                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    +49 30 1234 5678
+                  </li>
+                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    info@dhfm-college.de
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-4">Follow Us</h4>
+                <div className="flex space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <span className="sr-only">Facebook</span>📘
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <span className="sr-only">Twitter</span>🐦
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <span className="sr-only">LinkedIn</span>💼
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+              <p>
+                &copy; 2024 Deutsche Hochschule für Medizin College. All rights
+                reserved.
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
