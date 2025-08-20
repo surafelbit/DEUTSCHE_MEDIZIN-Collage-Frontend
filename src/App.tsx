@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "sonner";
 
@@ -59,7 +59,8 @@ import ManagerLayout from "./layouts/ManagerLayout";
 import ManagerDashboard from "./pages/manager/Dashboard";
 import ManagerReports from "./pages/manager/Reports";
 import ManagerSettings from "./pages/manager/Settings";
-
+//
+import StudentDetail from "./pages/registrar/StudentDetail";
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="college-ui-theme">
@@ -71,6 +72,7 @@ function App() {
           <Route path="/login" element={<SigningUp />} />
 
           <Route path="/register" element={<MultiStepRegistrationForm />} />
+          <Route path="/student/:id" element={<StudentDetail />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Student Routes */}
@@ -103,6 +105,8 @@ function App() {
 
           {/* Registrar Routes */}
           <Route path="/registrar" element={<RegistrarLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+
             <Route path="dashboard" element={<RegistrarDashboard />} />
             <Route path="applications" element={<RegistrarApplications />} />
             <Route path="students" element={<RegistrarStudents />} />
