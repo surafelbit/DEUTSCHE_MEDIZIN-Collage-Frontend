@@ -1,5 +1,4 @@
 "use client";
-//testing really niggas then why didnt it worked before man
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
