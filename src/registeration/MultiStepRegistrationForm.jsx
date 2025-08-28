@@ -6,9 +6,48 @@ import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X, User } from "lucide-react";
 import LightRays from "@/designs/LightRays";
 import { useTranslation } from "react-i18next";
+import Select from "react-select";
+import { Combobox } from "@headlessui/react";
+import useApi from "../hooks/useApi";
+import endPoints from "../components/api/endPoints";
 import DarkVeil from "../designs/DarkVeil";
-
+import axios from "axios";
+const DropdownIndicator = (props) => (
+  <components.DropdownIndicator {...props}>
+    <svg
+      className="w-4 h-4 text-gray-500 dark:text-gray-300"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M19 9l-7 7-7-7"
+      />
+    </svg>
+  </components.DropdownIndicator>
+);
 const PersonalInformationStep = ({ formData, setFormData }) => {
+  const countries = [
+    { value: "US", label: "United States" },
+    { value: "CA", label: "Canada" },
+    { value: "GB", label: "United Kingdom" },
+    { value: "DE", label: "Germany" },
+    { value: "FR", label: "France" },
+    { value: "JP", label: "Japan" },
+    { value: "CN", label: "China" },
+    { value: "IN", label: "India" },
+    { value: "BR", label: "Brazil" },
+    { value: "ZA", label: "South Africa" },
+    { value: "ET", label: "Ethiopia" },
+    { value: "KE", label: "Kenya" },
+    { value: "NG", label: "Nigeria" },
+    { value: "AU", label: "Australia" },
+    { value: "RU", label: "Russia" },
+  ];
+
   const [previews, setPreviews] = useState(
     "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg"
   );
@@ -29,6 +68,13 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
       img.onload = () => URL.revokeObjectURL(imageURL);
     }
   }
+  const [selected, setSelected] = useState(null);
+  const [query, setQuery] = useState("");
+
+  const filtered =
+    query === ""
+      ? countries
+      : countries.filter((c) => c.toLowerCase().includes(query.toLowerCase()));
   return (
     <div className="space-y-6 ">
       {/* <CHANGE> Added step title and description */}
@@ -70,7 +116,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
 
       {/* 2. PERSONAL DATA */}
       <section className="border-2 border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
           1. PERSONAL DATA
         </h3>
 
@@ -127,7 +173,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               </label>
               <input
                 type="text"
-                name="firstName"
+                name="firstNameAMH"
                 value={formData.firstNameAMH}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -139,7 +185,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               </label>
               <input
                 type="text"
-                name="middleName"
+                name="middleNameAMH"
                 value={formData.middleNameAMH}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -151,7 +197,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               </label>
               <input
                 type="text"
-                name="lastName"
+                name="lastNameAMH"
                 value={formData.lastNameAMH}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -189,6 +235,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
             <input
               type="number"
               name="age"
+              min="16"
               value={formData.age}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -394,11 +441,11 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
         </div>
         <div className="flex justify-between">
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-800 mb-2">
+            <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
               Select Your Woreda{" (Town)"}
             </label>
             <div className="relative">
-              <select
+              {/* <select
                 name="birthWoreda"
                 value={formData.birthWoreda}
                 onChange={handleInputChange}
@@ -410,7 +457,39 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                 <option value="Distance">Distance</option>
                 <option value="Winter In-service">Winter In-service</option>
                 <option value="Daytime">Daytime</option>
-              </select>
+              </select> */}
+              <Select
+                options={countries}
+                isSearchable
+                placeholder="Select a country..."
+                onChange={(selected) => console.log(selected)}
+                // components={{ DropdownIndicator: null }} // ✅ removes the arrow
+                classNames={{
+                  control: ({ isFocused }) =>
+                    `rounded-lg border px-2 py-1 shadow-sm transition-all ${
+                      isFocused
+                        ? "border-blue-400 ring-2 ring-blue-300"
+                        : "border-gray-300 dark:border-gray-600"
+                    } bg-white dark:bg-black`,
+                  placeholder: () =>
+                    "text-gray-500 dark:text-white font-medium",
+                  input: () => "text-black dark:text-white",
+
+                  dropdownIndicator: ({ isFocused }) => `text-transparent`,
+                  singleValue: () =>
+                    "text-gray-800 dark:text-gray-100 font-semibold",
+                  menu: () =>
+                    "mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-lg",
+                  option: ({ isFocused, isSelected }) =>
+                    `px-3 py-2 cursor-pointer ${
+                      isSelected
+                        ? "dark:bg-black bg-white text-white"
+                        : isFocused
+                        ? "bg-blue-100 dark:bg-black"
+                        : "text-gray-800 dark:text-gray-200"
+                    }`,
+                }}
+              />
 
               {/* Dropdown arrow */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
@@ -435,7 +514,40 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               Select Your Zone
             </label>
             <div className="relative">
-              <select
+              <Select
+                options={countries}
+                isSearchable
+                placeholder="Select a country..."
+                onChange={(selected) => console.log(selected)}
+                // components={{ DropdownIndicator: null }} // ✅ removes the arrow
+                classNames={{
+                  control: ({ isFocused }) =>
+                    `rounded-lg border px-2 py-1 shadow-sm transition-all ${
+                      isFocused
+                        ? "border-blue-400 ring-2 ring-blue-300"
+                        : "border-gray-300 dark:border-gray-600"
+                    } bg-white dark:bg-black`,
+                  placeholder: () =>
+                    "text-gray-500 dark:text-white font-medium",
+                  input: () => "text-black dark:text-white",
+
+                  dropdownIndicator: ({ isFocused }) => `text-transparent`,
+                  singleValue: () =>
+                    "text-gray-800 dark:text-gray-100 font-semibold",
+                  menu: () =>
+                    "mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-lg",
+                  option: ({ isFocused, isSelected }) =>
+                    `px-3 py-2 cursor-pointer ${
+                      isSelected
+                        ? "dark:bg-black bg-white text-white"
+                        : isFocused
+                        ? "bg-blue-100 dark:bg-black"
+                        : "text-gray-800 dark:text-gray-200"
+                    }`,
+                }}
+              />
+
+              {/* <select
                 name="birthZone"
                 value={formData.birthZone}
                 onChange={handleInputChange}
@@ -447,7 +559,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                 <option value="Distance">Distance</option>
                 <option value="Winter In-service">Winter In-service</option>
                 <option value="Daytime">Daytime</option>
-              </select>
+              </select> */}
 
               {/* Dropdown arrow */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
@@ -472,24 +584,37 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               Select Your Region
             </label>
             <div className="relative">
-              <select
-                name="birthRegion"
-                value={formData.birthRegion}
-                onChange={handleInputChange}
-                className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
-              >
-                <option value="Amhara">Amhara</option>
-                <option value="Tigray">Tigray</option>
-                <option value="Somali">Somali</option>
-                <option value="Addis Ababa">Addis Ababa</option>
-                <option value="Oromiya">Oromiya</option>
-                <option value="Benshangul-Gumuz">Benshangul-Gumuz</option>
-                <option value="Afar">Afar</option>
-                <option value="STTP">STTP</option>
-                <option value="Gambela">Gambela</option>
-                <option value="Harar">Harar</option>
-                <option value="Other">Other</option>
-              </select>
+              <Select
+                options={countries}
+                isSearchable
+                placeholder="Select a country..."
+                onChange={(selected) => console.log(selected)}
+                // components={{ DropdownIndicator: null }} // ✅ removes the arrow
+                classNames={{
+                  control: ({ isFocused }) =>
+                    `rounded-lg border px-2 py-1 shadow-sm transition-all ${
+                      isFocused
+                        ? "border-blue-400 ring-2 ring-blue-300"
+                        : "border-gray-300 dark:border-gray-600"
+                    } bg-white dark:bg-black`,
+                  placeholder: () =>
+                    "text-gray-500 dark:text-white font-medium",
+                  input: () => "text-black dark:text-white",
+                  dropdownIndicator: ({ isFocused }) => `text-transparent`,
+                  singleValue: () =>
+                    "text-gray-800 dark:text-white font-semibold",
+                  menu: () =>
+                    "mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-lg",
+                  option: ({ isFocused, isSelected }) =>
+                    `px-3 py-2 cursor-pointer ${
+                      isSelected
+                        ? "dark:bg-black bg-white dark:text-white"
+                        : isFocused
+                        ? "bg-blue-100 dark:bg-black"
+                        : "text-black dark:text-white"
+                    }`,
+                }}
+              />
 
               {/* Dropdown arrow */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
@@ -592,19 +717,38 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                 Select Your Woreda{" (Town)"}
               </label>
               <div className="relative">
-                <select
-                  name="currentWoreda"
-                  value={formData.currentWoreda}
-                  onChange={handleInputChange}
-                  className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
-                >
-                  <option value="Regular">Regular</option>
-                  <option value="Extension/Weekend">Extension/Weekend</option>
-                  <option value="Summer">Summer</option>
-                  <option value="Distance">Distance</option>
-                  <option value="Winter In-service">Winter In-service</option>
-                  <option value="Daytime">Daytime</option>
-                </select>
+                <Select
+                  options={countries}
+                  isSearchable
+                  placeholder="Select a country..."
+                  onChange={(selected) => console.log(selected)}
+                  // components={{ DropdownIndicator: null }} // ✅ removes the arrow
+                  classNames={{
+                    control: ({ isFocused }) =>
+                      `rounded-lg border px-2 py-1 shadow-sm transition-all ${
+                        isFocused
+                          ? "border-blue-400 ring-2 ring-blue-300"
+                          : "border-gray-300 dark:border-gray-600"
+                      } bg-white dark:bg-black`,
+                    placeholder: () =>
+                      "text-gray-500 dark:text-white font-medium",
+                    input: () => "text-black dark:text-white",
+
+                    dropdownIndicator: ({ isFocused }) => `text-transparent`,
+                    singleValue: () =>
+                      "text-gray-800 dark:text-gray-100 font-semibold",
+                    menu: () =>
+                      "mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-lg",
+                    option: ({ isFocused, isSelected }) =>
+                      `px-3 py-2 cursor-pointer ${
+                        isSelected
+                          ? "dark:bg-black bg-white text-white"
+                          : isFocused
+                          ? "bg-blue-100 dark:bg-black"
+                          : "text-gray-800 dark:text-gray-200"
+                      }`,
+                  }}
+                />
 
                 {/* Dropdown arrow */}
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-100">
@@ -629,19 +773,38 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                 Select Your Zone
               </label>
               <div className="relative">
-                <select
-                  name="currentZone"
-                  value={formData.currentZone}
-                  onChange={handleInputChange}
-                  className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
-                >
-                  <option value="Regular">Regular</option>
-                  <option value="Extension/Weekend">Extension/Weekend</option>
-                  <option value="Summer">Summer</option>
-                  <option value="Distance">Distance</option>
-                  <option value="Winter In-service">Winter In-service</option>
-                  <option value="Daytime">Daytime</option>
-                </select>
+                <Select
+                  options={countries}
+                  isSearchable
+                  placeholder="Select a country..."
+                  onChange={(selected) => console.log(selected)}
+                  // components={{ DropdownIndicator: null }} // ✅ removes the arrow
+                  classNames={{
+                    control: ({ isFocused }) =>
+                      `rounded-lg border px-2 py-1 shadow-sm transition-all ${
+                        isFocused
+                          ? "border-blue-400 ring-2 ring-blue-300"
+                          : "border-gray-300 dark:border-gray-600"
+                      } bg-white dark:bg-black`,
+                    placeholder: () =>
+                      "text-gray-500 dark:text-white font-medium",
+                    input: () => "text-black dark:text-white",
+
+                    dropdownIndicator: ({ isFocused }) => `text-transparent`,
+                    singleValue: () =>
+                      "text-gray-800 dark:text-gray-100 font-semibold",
+                    menu: () =>
+                      "mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-lg",
+                    option: ({ isFocused, isSelected }) =>
+                      `px-3 py-2 cursor-pointer ${
+                        isSelected
+                          ? "dark:bg-black bg-white text-white"
+                          : isFocused
+                          ? "bg-blue-100 dark:bg-black"
+                          : "text-gray-800 dark:text-gray-200"
+                      }`,
+                  }}
+                />
 
                 {/* Dropdown arrow */}
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-100">
@@ -666,24 +829,38 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                 Select Your Region
               </label>
               <div className="relative">
-                <select
-                  name="currentRegion"
-                  value={formData.currentRegion}
-                  onChange={handleInputChange}
-                  className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
-                >
-                  <option value="Amhara">Amhara</option>
-                  <option value="Tigray">Tigray</option>
-                  <option value="Somali">Somali</option>
-                  <option value="Addis Ababa">Addis Ababa</option>
-                  <option value="Oromiya">Oromiya</option>
-                  <option value="Benshangul-Gumuz">Benshangul-Gumuz</option>
-                  <option value="Afar">Afar</option>
-                  <option value="STTP">STTP</option>
-                  <option value="Gambela">Gambela</option>
-                  <option value="Harar">Harar</option>
-                  <option value="Other">Other</option>
-                </select>
+                <Select
+                  options={countries}
+                  isSearchable
+                  placeholder="Select a country..."
+                  onChange={(selected) => console.log(selected)}
+                  // components={{ DropdownIndicator: null }} // ✅ removes the arrow
+                  classNames={{
+                    control: ({ isFocused }) =>
+                      `rounded-lg border px-2 py-1 shadow-sm transition-all ${
+                        isFocused
+                          ? "border-blue-400 ring-2 ring-blue-300"
+                          : "border-gray-300 dark:border-gray-600"
+                      } bg-white dark:bg-black`,
+                    placeholder: () =>
+                      "text-gray-500 dark:text-white font-medium",
+                    input: () => "text-black dark:text-white",
+
+                    dropdownIndicator: ({ isFocused }) => `text-transparent`,
+                    singleValue: () =>
+                      "text-gray-800 dark:text-gray-100 font-semibold",
+                    menu: () =>
+                      "mt-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-black shadow-lg",
+                    option: ({ isFocused, isSelected }) =>
+                      `px-3 py-2 cursor-pointer ${
+                        isSelected
+                          ? "dark:bg-black bg-white text-white"
+                          : isFocused
+                          ? "bg-blue-100 dark:bg-black"
+                          : "text-gray-800 dark:text-gray-200"
+                      }`,
+                  }}
+                />
 
                 {/* Dropdown arrow */}
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-100">
@@ -779,8 +956,8 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   </label>
                   <input
                     type="text"
-                    name="firstName"
-                    value={formData.firstName}
+                    name="emergencyfirstName"
+                    value={formData.emergencyfirstName}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -791,8 +968,8 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   </label>
                   <input
                     type="text"
-                    name="middleName"
-                    value={formData.middleName}
+                    name="emergencymiddleName"
+                    value={formData.emergencymiddleName}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -803,8 +980,8 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   </label>
                   <input
                     type="text"
-                    name="lastName"
-                    value={formData.lastName}
+                    name="emergencylastName"
+                    value={formData.emergencylastName}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -820,8 +997,8 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   </label>
                   <input
                     type="text"
-                    name="firstName"
-                    value={formData.firstNameAMH}
+                    name="emergencyfirstNameAMH"
+                    value={formData.emergencyfirstNameAMH}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -832,8 +1009,8 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   </label>
                   <input
                     type="text"
-                    name="middleName"
-                    value={formData.middleNameAMH}
+                    name="emergencymiddleNameAMH"
+                    value={formData.emergencymiddleNameAMH}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -844,8 +1021,8 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   </label>
                   <input
                     type="text"
-                    name="lastName"
-                    value={formData.lastNameAMH}
+                    name="emergencylastNameAMH"
+                    value={formData.emergencylastNameAMH}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -1086,7 +1263,7 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
         {/* Father Information */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Full Name (English):
+            Father Full Name (English):
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -1126,9 +1303,48 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
               />
             </div>
           </div>
-          <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-            Address:
+          <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+            Father Full Name (AMH):
           </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                name="fatherFirstNameAMH"
+                value={formData.fatherFirstNameAMH}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                Middle Name
+              </label>
+              <input
+                type="text"
+                name="middleNameFatherNameAMH"
+                value={formData.middleNameFatherNameAMH}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="fatherlastNameAMH"
+                value={formData.fatherlastNameAMH}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
           {/* <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <input
               type="text"
@@ -1184,7 +1400,7 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
         {/* Mother Information */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Full Name (English):
+            Mothers Full Name (English):
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -1193,7 +1409,7 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
               </label>
               <input
                 type="text"
-                name="firstName"
+                name="motherFirstName"
                 value={formData.motherFirstName}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1205,7 +1421,7 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
               </label>
               <input
                 type="text"
-                name="middleName"
+                name="motherMiddleName"
                 value={formData.motherMiddleName}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1217,8 +1433,49 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
               </label>
               <input
                 type="text"
-                name="lastName"
+                name="motherLastName"
                 value={formData.motherLastName}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+            Mothers Full Name (AMH):
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                name="motherFirstNameAMH"
+                value={formData.motherFirstNameAMH}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                Middle Name
+              </label>
+              <input
+                type="text"
+                name="motherMiddleNameAMH"
+                value={formData.motherMiddleNameAMH}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                name="motherLastNameAMH"
+                value={formData.motherLastNameAMH}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -2192,16 +2449,18 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
     new Date().toISOString().split("T")[0]
   );
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const finalData = {
-      ...formData,
-      applicantName,
-      applicantSignature,
-      submissionDate,
-    };
-    console.log(finalData);
-    onSubmit(finalData);
+  const handleSubmit = async (e) => {
+    try {
+      e.preventDefault();
+      const finalData = {
+        ...formData,
+        // applicantName,
+        // applicantSignature,
+        // submissionDate,
+      };
+      console.log(finalData);
+      onSubmit(finalData);
+    } catch (error) {}
   };
 
   return (
@@ -2248,10 +2507,10 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
           <div>
             <span className="font-medium">Phone:</span> {formData.phoneNo}
           </div>
-          <div>
+          {/* <div>
             <span className="font-medium">Admission Type:</span>{" "}
             {formData.admissionType}
-          </div>
+          </div> */}
         </div>
       </section>
 
@@ -2412,7 +2671,7 @@ const MultiStepRegistrationForm = () => {
       ? JSON.parse(saved)
       : {
           // Application type
-          admissionType: "",
+          // admissionType: "",
 
           // Personal Data
           firstName: "",
@@ -2446,7 +2705,7 @@ const MultiStepRegistrationForm = () => {
           currentSubCity: "",
           currentKebele: "",
           currentHouseNo: "",
-          poBox: "",
+          // poBox: "",
           email: "",
           phoneNo: "",
 
@@ -2454,122 +2713,129 @@ const MultiStepRegistrationForm = () => {
           maritalStatus: "",
 
           // Emergency Contact
-          emergencyName: "",
-          emergencyRelation: "",
-          emergencyHomePhone: "",
-          emergencyOfficePhone: "",
-          emergencyMobile: "",
-          emergencyRegion: "",
-          emergencyZone: "",
-          emergencyWoreda: "",
-          emergencySubCity: "",
-          emergencyKebele: "",
-          emergencyHouseNo: "",
+          emergencyfirstName: "",
+          emergencymiddleName: "",
+          emergencylastName: "",
+          emergencyfirstNameAMH: "",
+          emergencymiddleNameAMH: "",
+          emergencylastNameAMH: "",
+
+          // emergencyName: "",
+          // emergencyRelation: "",
+          // emergencyHomePhone: "",
+          // emergencyOfficePhone: "",
+          // emergencyMobile: "",
+          // emergencyRegion: "",
+          // emergencyZone: "",
+          // emergencyWoreda: "",
+          // emergencySubCity: "",
+          // emergencyKebele: "",
+          // emergencyHouseNo: "",
 
           // Family Background
-          fatherName: "",
-          fatherRegion: "",
-          fatherZone: "",
-          fatherWoreda: "",
-          fatherSubCity: "",
-          fatherKebele: "",
-          fatherHouseNo: "",
-          motherName: "",
-          motherRegion: "",
-          motherZone: "",
-          motherWoreda: "",
-          motherKifleKetema: "",
-          motherKebele: "",
-          motherHouseNo: "",
+          // fatherName: "",
+          // fatherRegion: "",
+          // fatherZone: "",
+          // fatherWoreda: "",
+          // fatherSubCity: "",
+          // fatherKebele: "",
+          // fatherHouseNo: "",
+          // motherName: "",
+          // motherRegion: "",
+          // motherZone: "",
+          // motherWoreda: "",
+          // motherKifleKetema: "",
+          // motherKebele: "",
+          // motherHouseNo: "",
 
           // Educational Information
-          schools: [
-            {
-              name: "",
-              town: "",
-              year: "",
-              grades: { 9: false, 10: false, 11: false, 12: false },
-            },
-            {
-              name: "",
-              town: "",
-              year: "",
-              grades: { 9: false, 10: false, 11: false, 12: false },
-            },
-            {
-              name: "",
-              town: "",
-              year: "",
-              grades: { 9: false, 10: false, 11: false, 12: false },
-            },
-          ],
-          prepStream: "",
-          studyChoice: "",
+          // schools: [
+          //   {
+          //     name: "",
+          //     town: "",
+          //     year: "",
+          //     grades: { 9: false, 10: false, 11: false, 12: false },
+          //   },
+          //   {
+          //     name: "",
+          //     town: "",
+          //     year: "",
+          //     grades: { 9: false, 10: false, 11: false, 12: false },
+          //   },
+          //   {
+          //     name: "",
+          //     town: "",
+          //     year: "",
+          //     grades: { 9: false, 10: false, 11: false, 12: false },
+          //   },
+          // ],
+          // prepStream: "",
+          // studyChoice: "",
 
           // EHEECE Information
-          subjects: [
-            { name: "", regNo: "", year: "", grade: "" },
-            { name: "", regNo: "", year: "", grade: "" },
-            { name: "", regNo: "", year: "", grade: "" },
-            { name: "", regNo: "", year: "", grade: "" },
-            { name: "", regNo: "", year: "", grade: "" },
-            { name: "", regNo: "", year: "", grade: "" },
-            { name: "", regNo: "", year: "", grade: "" },
-          ],
+          // subjects: [
+          //   { name: "", regNo: "", year: "", grade: "" },
+          //   { name: "", regNo: "", year: "", grade: "" },
+          //   { name: "", regNo: "", year: "", grade: "" },
+          //   { name: "", regNo: "", year: "", grade: "" },
+          //   { name: "", regNo: "", year: "", grade: "" },
+          //   { name: "", regNo: "", year: "", grade: "" },
+          //   { name: "", regNo: "", year: "", grade: "" },
+          // ],
 
           // Post Secondary Education
-          hasPostSecondary: "",
-          institutions: [
-            {
-              name: "",
-              country: "",
-              yearFrom: "",
-              yearTo: "",
-              gpa: "",
-              awarded: "",
-            },
-            {
-              name: "",
-              country: "",
-              yearFrom: "",
-              yearTo: "",
-              gpa: "",
-              awarded: "",
-            },
-          ],
+          // hasPostSecondary: "",
+          // institutions: [
+          //   {
+          //     name: "",
+          //     country: "",
+          //     yearFrom: "",
+          //     yearTo: "",
+          //     gpa: "",
+          //     awarded: "",
+          //   },
+          //   {
+          //     name: "",
+          //     country: "",
+          //     yearFrom: "",
+          //     yearTo: "",
+          //     gpa: "",
+          //     awarded: "",
+          //   },
+          // ],
 
-          // Employment
-          currentlyEmployed: "",
-          currentEmployer: "",
-          currentJobType: "",
-          currentEmployerAddress: "",
-          currentEmployerPhone: "",
-          employmentHistory: [
-            {
-              type: "",
-              employer: "",
-              poBox: "",
-              telephone: "",
-              yearFrom: "",
-              yearTo: "",
-            },
-            {
-              type: "",
-              employer: "",
-              poBox: "",
-              telephone: "",
-              yearFrom: "",
-              yearTo: "",
-            },
-            {
-              type: "",
-              employer: "",
-              poBox: "",
-              telephone: "",
-              yearFrom: "",
-              yearTo: "",
-            },
-          ],
+          // // Employment
+          // currentlyEmployed: "",
+          // currentEmployer: "",
+          // currentJobType: "",
+          // currentEmployerAddress: "",
+          // currentEmployerPhone: "",
+          // employmentHistory: [
+          //   {
+          //     type: "",
+          //     employer: "",
+          //     poBox: "",
+          //     telephone: "",
+          //     yearFrom: "",
+          //     yearTo: "",
+          //   },
+          //   {
+          //     type: "",
+          //     employer: "",
+          //     poBox: "",
+          //     telephone: "",
+          //     yearFrom: "",
+          //     yearTo: "",
+          //   },
+          //   {
+          //     type: "",
+          //     employer: "",
+          //     poBox: "",
+          //     telephone: "",
+          //     yearFrom: "",
+          //     yearTo: "",
+          //   },
+          // ],
         };
   });
 
@@ -2603,25 +2869,46 @@ const MultiStepRegistrationForm = () => {
     }
   };
 
-  const handleSubmit = (finalData) => {
-    console.log("Form submitted:", finalData);
-    // <CHANGE> Clear localStorage on successful submission
-    localStorage.removeItem("registrationFormData");
-    localStorage.removeItem("registrationCurrentStep");
-    alert("Registration form submitted successfully!");
+  const handleSubmit = async (finalData) => {
+    try {
+      // avoid the await if there is a problem
+      const { data, error, loading } = await useApi(
+        endPoints.register,
+        "post",
+        {
+          username: "jsdk",
+          password: "djdjjdjd",
+          role: "STUDENT",
+        }
+      );
+      console.log(data, error, loading);
+      // const datas = await axios.post(
+      //   "https://growing-crayfish-firstly.ngrok-free.app/api/auth/register",
+      //   {
+      //     username: "jsdk",
+      //     password: "djdjjdjd",
+      //     role: "STUDENT",
+      //   }
+      //   //finalData
+      // );
+      // console.log(datas);
+      console.log("Form submitted:", finalData);
+
+      // <CHANGE> Clear localStorage on successful submission
+      localStorage.removeItem("registrationFormData");
+      localStorage.removeItem("registrationCurrentStep");
+      alert("Registration form submitted successfully!");
+    } catch (error) {}
   };
   const isStepValid = (step, formData) => {
     switch (step) {
       case 1:
         return (
           formData.firstName &&
-          formData.admissionType &&
-          formData.firstName &&
           formData.middleName &&
           formData.lastName &&
           formData.sex &&
-          formData.sex &&
-          formData.birthTown &&
+          formData.birthWoreda &&
           formData.birthYearEC &&
           formData.birthMonthEC &&
           formData.birthDateEC &&
@@ -2630,9 +2917,8 @@ const MultiStepRegistrationForm = () => {
           formData.birthDateGC &&
           formData.phoneNo &&
           formData.maritalStatus &&
-          formData.emergencyMobile &&
-          formData.emergencyName &&
-          formData.emergencyWoreda
+          formData.emergencyfirstName &&
+          formData.contactPersonPhoneNumber
         );
       case 2:
         return true;
@@ -2687,10 +2973,10 @@ const MultiStepRegistrationForm = () => {
 
   return (
     // <div className="w-full mx-auto p-6 bg-white dark:bg-black">
-    <div className="relative min-h-screen w-screen bg-gray-50 dark:bg-gray-900 px-6 md:px-16 lg:px-28 overflow-auto overflow-x-hidden">
-      <div className="hidden dark:block fixed inset-0">
+    <div className="relative min-h-screen  bg-gray-50 dark:bg-gray-900 px-6 md:px-16 lg:px-28 overflow-auto overflow-x-hidden">
+      {/* <div className="hidden dark:block fixed inset-0">
         <DarkVeil className="w-full h-full object-cover" />
-      </div>
+      </div> */}
       <div className="relative z-10">
         <header className="container mx-auto px-4 py-12 flex justify-between items-center">
           <div className="flex items-center space-x-3">

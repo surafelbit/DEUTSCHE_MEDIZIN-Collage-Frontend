@@ -27,164 +27,190 @@ import EditableTableApplicant, {
 const initialData: DataTypes[] = [
   {
     key: "1",
-    name: "captain 189",
-    year: 32,
-    id: "South Park no. 1",
-    status: "M",
-    AdmissionType: "Regular",
-
+    name: "Surafel",
+    batch: "1",
+    amharicName: "ሱራፌል",
+    year: 23,
+    id: "Addis Park no. 1",
+    status: "Active",
+    department: "Pharmacy",
     photo: "https://i.pravatar.cc/150?img=1",
   },
   {
     key: "2",
-    name: "stu 2",
-    year: 42,
-    status: "F",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 2",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Mekdes",
+    batch: "2",
+    amharicName: "መቅደስ",
+    year: 21,
+    id: "Addis Park no. 2",
+    status: "Active",
+    department: "Medicine",
+    photo: "https://i.pravatar.cc/150?img=2",
   },
   {
     key: "3",
-    name: "Edward 3",
-    year: 28,
-    status: "M",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 3",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Nahom",
+    batch: "3",
+    amharicName: "ናሆም",
+    year: 25,
+    id: "Addis Park no. 3",
+    status: "Graduated",
+    department: "Nurse",
+    photo: "https://i.pravatar.cc/150?img=3",
   },
   {
     key: "4",
-    name: "Edward 1",
-    year: 32,
-    id: "London Park no. 1",
-    status: "M",
-    AdmissionType: "Regular",
-
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Selam",
+    amharicName: "ሰላም",
+    batch: "4",
+    year: 22,
+    id: "Addis Park no. 4",
+    status: "Active",
+    department: "Pharmacy",
+    photo: "https://i.pravatar.cc/150?img=4",
   },
   {
     key: "5",
-    name: "Edward 2",
-    year: 42,
-    status: "F",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 2",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Bereket",
+    batch: "1",
+    amharicName: "በረከት",
+    year: 24,
+    id: "Addis Park no. 5",
+    status: "Suspended",
+    department: "Medicine",
+    photo: "https://i.pravatar.cc/150?img=5",
   },
   {
     key: "6",
-    name: "Edward 3",
-    year: 28,
-    status: "M",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 3",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Hana",
+    amharicName: "ሐና",
+    batch: "2",
+    year: 20,
+    id: "Addis Park no. 6",
+    status: "Active",
+    department: "Nurse",
+    photo: "https://i.pravatar.cc/150?img=6",
   },
   {
     key: "7",
-    name: "Edward 2",
-    year: 42,
-    status: "F",
-    id: "London Park no. 2",
-    AdmissionType: "Regular",
-
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Samuel",
+    amharicName: "ሳሙኤል",
+    year: 27,
+    batch: "3",
+    id: "Addis Park no. 7",
+    status: "Inactive",
+    department: "Pharmacy",
+    photo: "https://i.pravatar.cc/150?img=7",
   },
-
   {
     key: "8",
-    name: "Edward 1",
-    year: 32,
-    id: "London Park no. 1",
-    status: "M",
-    AdmissionType: "Regular",
-
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Mahi",
+    amharicName: "ማሂ",
+    batch: "4",
+    year: 23,
+    id: "Addis Park no. 8",
+    status: "Active",
+    department: "Medicine",
+    photo: "https://i.pravatar.cc/150?img=8",
   },
   {
     key: "9",
-    name: "Edward 2",
-    year: 42,
-    status: "F",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 2",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Bethel",
+    amharicName: "ቤተል",
+    year: 22,
+    batch: "1",
+    id: "Addis Park no. 9",
+    status: "Active",
+    department: "Nurse",
+    photo: "https://i.pravatar.cc/150?img=9",
   },
   {
     key: "10",
-    name: "Edward 3",
-    year: 28,
-    status: "M",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 3",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Yonatan",
+    amharicName: "ዮናታን",
+    batch: "2",
+    year: 24,
+    id: "Addis Park no. 10",
+    status: "Active",
+    department: "Pharmacy",
+    photo: "https://i.pravatar.cc/150?img=10",
   },
   {
     key: "11",
-    name: "Edward 1",
-    year: 32,
-    id: "London Park no. 1",
-    status: "M",
-    AdmissionType: "Regular",
-
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Marta",
+    amharicName: "ማርታ",
+    batch: "3",
+    year: 21,
+    id: "Addis Park no. 11",
+    status: "Inactive",
+    department: "Medicine",
+    photo: "https://i.pravatar.cc/150?img=11",
   },
   {
     key: "12",
-    name: "Edward 2",
-    year: 42,
-    status: "F",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 2",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Eyob",
+    amharicName: "ኢዮብ",
+    batch: "4",
+    year: 25,
+    id: "Addis Park no. 12",
+    status: "Active",
+    department: "Nurse",
+    photo: "https://i.pravatar.cc/150?img=12",
   },
   {
     key: "13",
-    name: "Edward 3",
-    year: 28,
-    status: "M",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 3",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Mikiyas",
+    amharicName: "ሚኪያስ",
+    batch: "1",
+    year: 23,
+    id: "Addis Park no. 13",
+    status: "Suspended",
+    department: "Pharmacy",
+    photo: "https://i.pravatar.cc/150?img=13",
   },
   {
     key: "14",
-    name: "Edward 1",
-    year: 32,
-    id: "London Park no. 1",
-    status: "M",
-    AdmissionType: "Regular",
-
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Rahel",
+    amharicName: "ራሔል",
+    batch: "2",
+    year: 20,
+    id: "Addis Park no. 14",
+    status: "Active",
+    department: "Medicine",
+    photo: "https://i.pravatar.cc/150?img=14",
   },
   {
     key: "15",
-    name: "Edward 2",
-    year: 42,
-    status: "F",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 2",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Dawit",
+    amharicName: "ዳዊት",
+    batch: "3",
+    year: 26,
+    id: "Addis Park no. 15",
+    status: "Graduated",
+    department: "Nurse",
+    photo: "https://i.pravatar.cc/150?img=15",
   },
   {
     key: "16",
-    name: "Edward 3",
-    year: 28,
-    status: "M",
-    AdmissionType: "Regular",
-
-    id: "London Park no. 3",
-    photo: "https://i.pravatar.cc/150?img=1",
+    name: "Ruth",
+    amharicName: "ሩት",
+    batch: "4",
+    year: 22,
+    id: "Addis Park no. 16",
+    status: "Active",
+    department: "Pharmacy",
+    photo: "https://i.pravatar.cc/150?img=16",
+  },
+  {
+    key: "17",
+    name: "Kidus",
+    batch: "1",
+    amharicName: "ቅዱስ",
+    year: 24,
+    id: "Addis Park no. 17",
+    status: "Active",
+    department: "Medicine",
+    photo: "https://i.pravatar.cc/150?img=17",
   },
 ];
 
@@ -292,106 +318,362 @@ const allStudents = [
     avatar: "https://i.pravatar.cc/150?img=6",
   },
 ];
+// export default function RegistrarStudents() {
+//   const [filters, setFilters] = useState({
+//     department: "",
+//     batch: "",
+//     status: "",
+//   });
+//   const [searchText, setSearchText] = useState("");
+//   const [itemStatus, setItemStatus] = useState("");
+//   const filteredData = initialData.filter((item) => {
+//     const search = searchText.toLowerCase();
+//     const matchedStatus = filters.status ? filters.status == item.status : true;
+//     const matchedBatch = filters.batch ? filters.batch === item.batch : true;
+//     const matchedDeparment = filters.department
+//       ? filters.department == item.department
+//       : true;
+//     return (
+//       (item.name?.toString().toLowerCase().includes(search) ||
+//         item.amharicName?.toString().toLowerCase().includes(search) ||
+//         item.id?.toString().toLowerCase().includes(search) ||
+//         item.department?.toString().toLowerCase().includes(search)) &&
+//       matchedStatus &&
+//       matchedBatch &&
+//       matchedDeparment
+//     );
+//   });
+//   console.log(filters.status);
 
+//   return (
+//     <div>
+//       <div className="p-6 space-y-8">
+//         {/* Blue Header */}
+//         <div className="w-full  bg-blue-500 h-90 px-8 flex flex-col justify-center">
+//           <h1 className="text-4xl font-extrabold text-white">
+//             Student Records
+//           </h1>
+
+//           {/* Stats Cards */}
+//           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6 mb-12">
+//             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5">
+//               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+//                 Registration
+//               </p>
+//               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+//                 350,897
+//               </h2>
+//               <p className="text-green-500 text-sm mt-1">
+//                 ↑ 3.48% Since last month
+//               </p>
+//             </div>
+
+//             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5">
+//               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+//                 NEW Students
+//               </p>
+//               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+//                 2,356
+//               </h2>
+//               <p className="text-red-500 text-sm mt-1">
+//                 ↓ 3.48% Since last week
+//               </p>
+//             </div>
+
+//             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5">
+//               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+//                 Graduation
+//               </p>
+//               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+//                 924
+//               </h2>
+//               <p className="text-orange-500 text-sm mt-1">
+//                 ↓ 1.10% Since yesterday
+//               </p>
+//             </div>
+
+//             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-5">
+//               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+//                 Eduaction
+//               </p>
+//               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+//                 49,65%
+//               </h2>
+//               <p className="text-green-500 text-sm mt-1">
+//                 ↑ 12% Since last month
+//               </p>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Page Content */}
+//         <div className="flex-1 px-8 py-10 -mt-24">
+//           <div className="rounded-3xl bg-gray-50 dark:bg-gray-900 p-6">
+//             {/* Filters */}
+//             <div className="flex flex-wrap gap-4 items-center mb-6">
+//               {["department", "status", "batch"].map((filter) => (
+//                 <select
+//                   key={filter}
+//                   onChange={(e) => {
+//                     console.log(e.target.value);
+//                     setFilters((prev) => ({
+//                       ...prev,
+//                       [filter]: e.target.value,
+//                     }));
+//                   }}
+//                   className="px-5 py-3 rounded-2xl border border-gray-300 dark:border-gray-600
+//                          bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200
+//                          focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+//                          transition-all duration-200"
+//                 >
+//                   {filter === "department" && (
+//                     <>
+//                       <option value="">All Departments</option>
+//                       <option value="Pharmacy">Pharmacy</option>
+//                       <option value="Medicine">Medicine</option>
+//                       <option value="Nurse">Nurse</option>
+//                     </>
+//                   )}
+//                   {filter === "status" && (
+//                     <>
+//                       <option value="">All Status</option>
+//                       <option value="Active">Active</option>
+//                       <option value="Graduated">Graduated</option>
+//                       <option value="Suspended">Suspended</option>
+//                       <option value="Inactive">Inactive</option>
+//                     </>
+//                   )}
+//                   {filter === "batch" && (
+//                     <>
+//                       <option value="">All Years</option>
+//                       <option value="1">Year 1</option>
+//                       <option value="2">Year 2</option>
+//                       <option value="3">Year 3</option>
+//                       <option value="4">Year 4</option>
+//                     </>
+//                   )}
+//                 </select>
+//               ))}
+
+//               <input
+//                 onChange={(e) => setSearchText(e.target.value)}
+//                 type="text"
+//                 placeholder="🔍 Search students..."
+//                 className="w-full sm:w-72 md:w-96 mb-6
+//              px-3 sm:px-4 md:px-5
+//              py-2 sm:py-2.5 md:py-3
+//              text-sm sm:text-base md:text-lg
+//              rounded-2xl border border-gray-300 dark:border-gray-600
+//              bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200
+//              placeholder-gray-400 dark:placeholder-gray-500
+//              focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+//              transition-all duration-200 shadow-sm"
+//               />
+//             </div>
+
+//             {/* Table */}
+//             <div className="overflow-x-auto rounded-2xl  ">
+//               <EditableTableApplicant
+//                 initialData={filteredData}
+//                 className="min-w-full divide-y divide-gray-200 dark:divide-gray-700
+//                          transition-all duration-300"
+//               />
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Animations */}
+//         <style jsx>{`
+//           .animate-fadeIn {
+//             animation: fadeIn 0.7s ease-in-out forwards;
+//           }
+//           @keyframes fadeIn {
+//             0% {
+//               opacity: 0;
+//               transform: translateY(10px);
+//             }
+//             100% {
+//               opacity: 1;
+//               transform: translateY(0);
+//             }
+//           }
+//           .EditableTableApplicant tr:hover {
+//             background-color: rgba(59, 130, 246, 0.1);
+//             transition: background-color 0.3s ease;
+//           }
+//         `}</style>
+//       </div>
+//     </div>
+//   );
+// }
 export default function RegistrarStudents() {
   const [filters, setFilters] = useState({
     department: "",
     batch: "",
-    year: "",
+    status: "",
   });
   const [searchText, setSearchText] = useState("");
-
   const filteredData = initialData.filter((item) => {
     const search = searchText.toLowerCase();
+    const matchedStatus = filters.status ? filters.status == item.status : true;
+    const matchedBatch = filters.batch ? filters.batch === item.batch : true;
+    const matchedDeparment = filters.department
+      ? filters.department == item.department
+      : true;
     return (
-      item.name?.toString().toLowerCase().includes(search) ||
-      item.AdmissionType?.toString().toLowerCase().includes(search)
+      (item.name?.toString().toLowerCase().includes(search) ||
+        item.amharicName?.toString().toLowerCase().includes(search) ||
+        item.id?.toString().toLowerCase().includes(search) ||
+        item.department?.toString().toLowerCase().includes(search)) &&
+      matchedStatus &&
+      matchedBatch &&
+      matchedDeparment
     );
   });
+
   return (
-    <div>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Student Records</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle>Student Management</CardTitle>
-            <CardDescription>Manage student academic records</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>Student records interface will be displayed here.</p>
-          </CardContent>
-        </Card>
-      </div>
-      {/* <div>
-        <ul>
-          {allStudents.length > 0 &&
-            allStudents.map((e) => {
-              return (
-                <li key={e.id}>
-                  <div className="flex align-item">
-                    <div>
-                      <img src={e.avatar} />
-                    </div>
-                    <div>
-                      <p>{e.batch}</p>
-                    </div>
-                    <div>
-                      <p>{e.name}</p>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-        </ul>
-      </div> */}
-      <div style={{ padding: 20 }}>
-        <h2>My Team Table</h2>
-        {/* <ReusableTable columns={columns} data={datas} /> */}
-        <div className="flex flex-wrap my-3 gap-4 items-center">
-          <select
-            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-            value={filters.department}
-            onChange={(e) =>
-              setFilters({ ...filters, department: e.target.value })
-            }
-          >
-            <option value="">All Departments</option>
-            <option value="CS">Computer Science</option>
-            <option value="EE">Electrical Engineering</option>
-            <option value="ME">Mechanical Engineering</option>
-          </select>
+    <div className="min-h-screen">
+      <div className="p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8">
+        {/* Blue Header */}
+        <div className="w-full bg-blue-500 px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 flex flex-col justify-center rounded-lg">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white">
+            Student Records
+          </h1>
 
-          <select
-            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-            value={filters.batch}
-            onChange={(e) => setFilters({ ...filters, batch: e.target.value })}
-          >
-            <option value="">All Batches</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-            <option value="2021">2021</option>
-          </select>
-
-          <select
-            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-            value={filters.year}
-            onChange={(e) => setFilters({ ...filters, year: e.target.value })}
-          >
-            <option value="">All Years</option>
-            <option value="1">Year 1</option>
-            <option value="2">Year 2</option>
-            <option value="3">Year 3</option>
-          </select>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-4 sm:mt-6 mb-8 sm:mb-12">
+            {[
+              {
+                title: "Registration",
+                value: "350,897",
+                change: "↑ 3.48% Since last month",
+                color: "text-green-500",
+              },
+              {
+                title: "NEW Students",
+                value: "2,356",
+                change: "↓ 3.48% Since last week",
+                color: "text-red-500",
+              },
+              {
+                title: "Graduation",
+                value: "924",
+                change: "↓ 1.10% Since yesterday",
+                color: "text-orange-500",
+              },
+              {
+                title: "Education",
+                value: "49,65%",
+                change: "↑ 12% Since last month",
+                color: "text-green-500",
+              },
+            ].map((stat, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-5"
+              >
+                <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+                  {stat.title}
+                </p>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {stat.value}
+                </h2>
+                <p className={`text-xs sm:text-sm ${stat.color} mt-1`}>
+                  {stat.change}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-        <input
-          type="text"
-          placeholder="🔍 Search students..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="w-72 mb-4 rounded-lg border border-gray-300 p-2"
-        />
-        <EditableTableApplicant initialData={filteredData} />
-        {/* <SalesTable /> */}
+
+        {/* Page Content */}
+        <div className="flex-1 px-4  sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 -mt-12 sm:-mt-16 md:-mt-20">
+          <div className="rounded-3xl bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 items-start sm:items-center mb-4 sm:mb-6">
+              {["department", "status", "batch"].map((filter) => (
+                <select
+                  key={filter}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      [filter]: e.target.value,
+                    }))
+                  }
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 
+                    bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm sm:text-base
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                >
+                  {filter === "department" && (
+                    <>
+                      <option value="">All Departments</option>
+                      <option value="Pharmacy">Pharmacy</option>
+                      <option value="Medicine">Medicine</option>
+                      <option value="Nurse">Nurse</option>
+                    </>
+                  )}
+                  {filter === "status" && (
+                    <>
+                      <option value="">All Status</option>
+                      <option value="Active">Active</option>
+                      <option value="Graduated">Graduated</option>
+                      <option value="Suspended">Suspended</option>
+                      <option value="Inactive">Inactive</option>
+                    </>
+                  )}
+                  {filter === "batch" && (
+                    <>
+                      <option value="">All Years</option>
+                      <option value="1">Year 1</option>
+                      <option value="2">Year 2</option>
+                      <option value="3">Year 3</option>
+                      <option value="4">Year 4</option>
+                    </>
+                  )}
+                </select>
+              ))}
+
+              <input
+                onChange={(e) => setSearchText(e.target.value)}
+                type="text"
+                placeholder="🔍 Search students..."
+                className="w-full sm:w-64 md:w-80 lg:w-96 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base
+                  rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                  text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+              />
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto rounded-2xl">
+              <EditableTableApplicant
+                initialData={filteredData}
+                className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Animations */}
+        <style jsx>{`
+          .animate-fadeIn {
+            animation: fadeIn 0.7s ease-in-out forwards;
+          }
+          @keyframes fadeIn {
+            0% {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            100% {
+              opacity: 1;
+              transforma: translateY(0);
+            }
+          }
+          .EditableTableApplicant tr:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            transition: background-color 0.3s ease;
+          }
+        `}</style>
       </div>
     </div>
   );

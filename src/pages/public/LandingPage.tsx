@@ -88,11 +88,11 @@ export default function LandingPage() {
   const homeRef = useRef();
 
   return (
-    <div className="relative min-h-screen w-screen overflow-x-hidden">
+    <div className="relative min-h-screen ">
       {/* DarkVeil Background */}
-      <div className="fixed inset-0 w-full h-full z-0 hidden dark:block fixed inset-0 overflow-x-hidden">
+      {/* <div className="fixed inset-0 w-full h-full z-0 hidden dark:block fixed inset-0 overflow-x-hidden">
         <DarkVeil className="w-full h-full object-cover" />
-      </div>
+      </div> */}
       <div className="relative z-10">
         {show && (
           <button
@@ -376,21 +376,18 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section
-          id="hero"
-          className="relative h-screen text-white overflow-hidden"
-        >
+        <section id="hero" className="relative h-screen text-white ">
           {/* Background video */}
 
           {/* this is the video recylce background */}
-          <video
+          {/* <video
             className="absolute inset-0 w-full h-full object-cover"
             src="https://res.cloudinary.com/djz4nl0ic/video/upload/v1755069644/4C5A5181_llhfsl"
             autoPlay
             loop
             muted
             playsInline
-          ></video>
+          ></video> */}
 
           {/* this is the video recylce background */}
 
@@ -747,7 +744,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        <div style={{ height: "600px", position: "relative" }}>
+        <div className="hidden md:block relative h-[600px]">
           <CircularGallery
             bend={3}
             textColor="#ffffff"
@@ -755,6 +752,7 @@ export default function LandingPage() {
             scrollEase={0.02}
           />
         </div>
+
         {/* Call to Action */}
         {/* <section className="bg-blue-600 dark:bg-blue-800 py-16"> */}
 
