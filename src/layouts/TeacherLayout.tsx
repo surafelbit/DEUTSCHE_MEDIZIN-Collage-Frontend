@@ -1,5 +1,5 @@
 "use client";
-//testing really niggas then why didnt it worked before man
+//testing really niggas then why didnt it worked before man before switching to main
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
