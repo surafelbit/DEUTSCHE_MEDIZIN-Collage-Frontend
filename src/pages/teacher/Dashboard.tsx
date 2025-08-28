@@ -1,52 +1,103 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { BookOpen, Users, FileText, Calendar, Clock, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+  BookOpen,
+  Users,
+  FileText,
+  Calendar,
+  Clock,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 
 export default function TeacherDashboard() {
   const todayClasses = [
-    { course: "Human Anatomy", time: "09:00 AM", room: "Room 101", students: 45 },
+    {
+      course: "Human Anatomy",
+      time: "09:00 AM",
+      room: "Room 101",
+      students: 45,
+    },
     { course: "Physiology", time: "11:00 AM", room: "Room 205", students: 38 },
-    { course: "Medical Ethics", time: "02:00 PM", room: "Room 301", students: 52 },
-  ]
+    {
+      course: "Medical Ethics",
+      time: "02:00 PM",
+      room: "Room 301",
+      students: 52,
+    },
+  ];
 
   const recentAssignments = [
-    { course: "Human Anatomy", title: "Skeletal System Quiz", dueDate: "2024-01-20", submitted: 42, total: 45 },
-    { course: "Physiology", title: "Cardiovascular Lab Report", dueDate: "2024-01-18", submitted: 35, total: 38 },
-    { course: "Medical Ethics", title: "Case Study Analysis", dueDate: "2024-01-22", submitted: 48, total: 52 },
-  ]
+    {
+      course: "Human Anatomy",
+      title: "Skeletal System Quiz",
+      dueDate: "2024-01-20",
+      submitted: 42,
+      total: 45,
+    },
+    {
+      course: "Physiology",
+      title: "Cardiovascular Lab Report",
+      dueDate: "2024-01-18",
+      submitted: 35,
+      total: 38,
+    },
+    {
+      course: "Medical Ethics",
+      title: "Case Study Analysis",
+      dueDate: "2024-01-22",
+      submitted: 48,
+      total: 52,
+    },
+  ];
 
   const pendingTasks = [
     { task: "Grade Anatomy Midterm Exams", priority: "high", count: 45 },
     { task: "Review Lab Reports", priority: "medium", count: 23 },
     { task: "Prepare Next Week's Lectures", priority: "low", count: 3 },
-  ]
+  ];
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">Welcome back, Dr. Mueller!</h1>
-        <p className="text-blue-100">Ready to inspire the next generation of medical professionals?</p>
+        <p className="text-blue-100">
+          Ready to inspire the next generation of medical professionals?
+        </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Courses</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Courses
+            </CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">6</div>
-            <p className="text-xs text-muted-foreground">Spring 2024 semester</p>
+            <p className="text-xs text-muted-foreground">
+              Spring 2024 semester
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -57,18 +108,24 @@ export default function TeacherDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Grades</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Pending Grades
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">68</div>
-            <p className="text-xs text-muted-foreground">Assignments to grade</p>
+            <p className="text-xs text-muted-foreground">
+              Assignments to grade
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Average Rating
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -131,11 +188,20 @@ export default function TeacherDashboard() {
                         {assignment.course} • Due: {assignment.dueDate}
                       </div>
                     </div>
-                    <Badge variant={assignment.submitted === assignment.total ? "default" : "secondary"}>
+                    <Badge
+                      variant={
+                        assignment.submitted === assignment.total
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
                       {assignment.submitted}/{assignment.total}
                     </Badge>
                   </div>
-                  <Progress value={(assignment.submitted / assignment.total) * 100} className="h-2" />
+                  <Progress
+                    value={(assignment.submitted / assignment.total) * 100}
+                    className="h-2"
+                  />
                 </div>
               ))}
             </div>
@@ -152,19 +218,34 @@ export default function TeacherDashboard() {
         <CardContent>
           <div className="space-y-4">
             {pendingTasks.map((task, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+              >
                 <div className="flex items-center space-x-3">
-                  {task.priority === "high" && <AlertCircle className="h-5 w-5 text-red-500" />}
-                  {task.priority === "medium" && <Clock className="h-5 w-5 text-yellow-500" />}
-                  {task.priority === "low" && <CheckCircle className="h-5 w-5 text-green-500" />}
+                  {task.priority === "high" && (
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                  )}
+                  {task.priority === "medium" && (
+                    <Clock className="h-5 w-5 text-yellow-500" />
+                  )}
+                  {task.priority === "low" && (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  )}
                   <div>
                     <div className="font-medium">{task.task}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{task.count} items</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {task.count} items
+                    </div>
                   </div>
                 </div>
                 <Badge
                   variant={
-                    task.priority === "high" ? "destructive" : task.priority === "medium" ? "secondary" : "outline"
+                    task.priority === "high"
+                      ? "destructive"
+                      : task.priority === "medium"
+                      ? "secondary"
+                      : "outline"
                   }
                 >
                   {task.priority}
@@ -203,5 +284,5 @@ export default function TeacherDashboard() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

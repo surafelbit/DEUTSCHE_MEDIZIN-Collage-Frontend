@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Calendar,
   LogOut,
+  Layers,
   Menu,
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -40,6 +41,7 @@ export default function RegistrarLayout() {
     { name: "Dashboard", href: "/registrar/dashboard", icon: LayoutDashboard },
     { name: "Applications", href: "/registrar/applications", icon: FileText },
     { name: "Students", href: "/registrar/students", icon: Users },
+    { name: "Departments", href: "/registrar/departments", icon: Layers },
     { name: "Courses", href: "/registrar/courses", icon: BookOpen },
     {
       name: "Assessments",
@@ -47,6 +49,8 @@ export default function RegistrarLayout() {
       icon: ClipboardList,
     },
     { name: "Batches", href: "/registrar/batches", icon: Calendar },
+    { name: "Teachers", href: "/registrar/teachers", icon: Calendar },
+    { name: "Customize Tables", href: "/registrar/tables", icon: Calendar },
   ];
 
   return (
@@ -65,20 +69,49 @@ export default function RegistrarLayout() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 ease-in-out `}
       >
-        <div className="flex items-center justify-center h-16 px-4 bg-blue-600">
+        <div className="flex items-center   justify-between h-16 px-4 bg-blue-600">
           <div className="flex items-center space-x-2">
-            <GraduationCap className="h-8 w-8 text-white" />
+            <img
+              src="/assets/companylogo.jpg"
+              className="h-12 text-white rounded-full"
+            />
+            {/* <GraduationCap className="h-8 w-8 text-white" /> */}
             <div className="text-white">
               <div className="text-sm font-bold">DHFM COLLEGE</div>
               <div className="text-xs opacity-75">Registrar Portal</div>
             </div>
           </div>
+          <svg
+            width="30px"
+            height="30px"
+            viewBox="0 0 48 48"
+            xmlns="http://www.w3.org/2000/svg"
+            onClick={() => {
+              setSidebarOpen(false);
+            }}
+            fill="white"
+          >
+            <title>collapse-horizontal-solid</title>
+            <g id="Layer_2" data-name="Layer 2">
+              <g id="invisible_box" data-name="invisible box">
+                <rect width="48" height="48" fill="none" />
+              </g>
+              <g id="icons_Q2" data-name="icons Q2">
+                <g>
+                  <path d="M32.6,22.6a1.9,1.9,0,0,0,0,2.8l5.9,6a2.1,2.1,0,0,0,2.7.2,1.9,1.9,0,0,0,.2-3L38.8,26H44a2,2,0,0,0,0-4H38.8l2.6-2.6a1.9,1.9,0,0,0-.2-3,2.1,2.1,0,0,0-2.7.2Z" />
+                  <path d="M15.4,25.4a1.9,1.9,0,0,0,0-2.8l-5.9-6a2.1,2.1,0,0,0-2.7-.2,1.9,1.9,0,0,0-.2,3L9.2,22H4a2,2,0,0,0,0,4H9.2L6.6,28.6a1.9,1.9,0,0,0,.2,3,2.1,2.1,0,0,0,2.7-.2Z" />
+                  <path d="M26,6V42a2,2,0,0,0,4,0V6a2,2,0,0,0-4,0Z" />
+                  <path d="M22,42V6a2,2,0,0,0-4,0V42a2,2,0,0,0,4,0Z" />
+                </g>
+              </g>
+            </g>
+          </svg>
         </div>
 
         <nav className="mt-8">
           <div className="px-4 space-y-2">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
+              const isActive = location.pathname.includes(item.href);
               return (
                 <Link
                   key={item.name}
@@ -167,7 +200,8 @@ export default function RegistrarLayout() {
 
         {/* Page content */}
         <main className="py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"> */}
+          <div className="mx-8">
             <Outlet />
           </div>
         </main>

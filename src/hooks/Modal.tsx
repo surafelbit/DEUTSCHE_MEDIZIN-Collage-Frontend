@@ -31,10 +31,9 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
           <div
             onClick={(e) => e.stopPropagation()}
             className="relative bg-white dark:bg-gray-800 object-cover rounded-lg"
-            //  style={{ width: "600px", height: "400px" }}
           >
             <button
-              className="absolute  top-20 right-20 text-gray-700 dark:text-gray-200 font-bold text-xl"
+              className="absolute top-3 right-3 text-gray-700 dark:text-gray-200 font-bold text-xl"
               onClick={closeModal}
             >
               ×

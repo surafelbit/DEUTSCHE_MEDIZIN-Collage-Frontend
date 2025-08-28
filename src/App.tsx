@@ -35,11 +35,15 @@ import HeadReports from "./pages/head/Reports";
 import RegistrarLayout from "./layouts/RegistrarLayout";
 import RegistrarDashboard from "./pages/registrar/Dashboard";
 import RegistrarApplications from "./pages/registrar/Applications";
+import RegistrarDepartments from "./pages/registrar/Departments";
 import RegistrarStudents from "./pages/registrar/Students";
 import RegistrarCourses from "./pages/registrar/Courses";
 import RegistrarAssessments from "./pages/registrar/Assessments";
 import RegistrarBatches from "./pages/registrar/Batches";
-
+import DepartmentDetail from "./pages/registrar/DepartmentDetail";
+import StudentDetail from "./pages/registrar/StudentDetail";
+import RegistrarTeachers from "./pages/registrar/Teachers";
+import CustomStudentTable from "./pages/registrar/CustomStudentTable";
 // Finance Pages
 import FinanceLayout from "./layouts/FinanceLayout";
 import FinanceDashboard from "./pages/finance/Dashboard";
@@ -60,7 +64,6 @@ import ManagerDashboard from "./pages/manager/Dashboard";
 import ManagerReports from "./pages/manager/Reports";
 import ManagerSettings from "./pages/manager/Settings";
 //
-import StudentDetail from "./pages/registrar/StudentDetail";
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="college-ui-theme">
@@ -72,7 +75,6 @@ function App() {
           <Route path="/login" element={<SigningUp />} />
 
           <Route path="/register" element={<MultiStepRegistrationForm />} />
-          <Route path="/student/:id" element={<StudentDetail />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Student Routes */}
@@ -106,13 +108,17 @@ function App() {
           {/* Registrar Routes */}
           <Route path="/registrar" element={<RegistrarLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
-
+            <Route path="departments" element={<RegistrarDepartments />} />
+            <Route path="departments/:id" element={<DepartmentDetail />} />
+            <Route path="applications/:id" element={<StudentDetail />} />
+            <Route path="teachers" element={<RegistrarTeachers />} />
             <Route path="dashboard" element={<RegistrarDashboard />} />
             <Route path="applications" element={<RegistrarApplications />} />
             <Route path="students" element={<RegistrarStudents />} />
-            <Route path="courses" element={<RegistrarCourses />} />
+            <Route path="scores" element={<RegistrarCourses />} />
             <Route path="assessments" element={<RegistrarAssessments />} />
             <Route path="batches" element={<RegistrarBatches />} />
+            <Route path="tables" element={<CustomStudentTable />} />
           </Route>
 
           {/* Finance Routes */}

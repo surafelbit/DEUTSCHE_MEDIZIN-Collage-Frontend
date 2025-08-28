@@ -49,6 +49,7 @@
   /* --background: oklch(1 0 0); */
   --background: hsl(0, 0%, 100%); /* white for light mode */
   --foreground: oklch(0.13 0.028 261.692);
+  /* --foreground: hsl(0, 0%, 100%); */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.13 0.028 261.692);
   --popover: oklch(1 0 0);
