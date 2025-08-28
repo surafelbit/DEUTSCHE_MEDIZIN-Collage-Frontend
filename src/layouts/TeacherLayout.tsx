@@ -1,5 +1,5 @@
 "use client";
-//testing really nigga
+//testing really niggas
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
