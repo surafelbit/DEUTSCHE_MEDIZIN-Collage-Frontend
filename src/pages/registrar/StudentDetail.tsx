@@ -1,228 +1,30 @@
-// import React from "react";
-// import { useNavigate } from "react-router-dom";
-// import { ImageModal } from "@/hooks/ImageModal";
-// import { useModal } from "../../hooks/Modal";
-
-// const StudentProfile: React.FC = () => {
-//   const navigate = useNavigate();
-//   const { openModal } = useModal();
-//   const student = {
-//     admissionType: "Regular",
-//     // Personal Data
-//     firstName: "Abebe",
-//     firstNameAMH: "አበበ",
-//     middleName: "Kebede",
-//     middleNameAMH: "ከበደ",
-//     lastName: "Demeke",
-//     lastNameAMH: "ደምሴ",
-//     sex: "Male",
-//     age: "21",
-//     visionImpairment: "None",
-//     hearingImpairment: "None",
-//     otherImpairment: "None",
-
-//     // Birth Info
-//     birthWoreda: "Adds Ababa",
-//     birthZone: "Addis Ketema",
-//     birthRegion: "Addis Ababa",
-//     birthDateEC: "15",
-//     birthMonthEC: "Yekatit",
-//     birthYearEC: "2014",
-//     birthDateGC: "23",
-//     birthMonthGC: "February",
-//     birthYearGC: "2022",
-
-//     // Current Address
-//     currentRegion: "Addis Ababa",
-//     currentZone: "Bole",
-//     currentWoreda: "06",
-//     email: "abebe@example.com",
-//     phoneNo: "+251912345678",
-
-//     // Marital Status
-//     maritalStatus: "Single",
-
-//     // Emergency Contact
-//     emergencyFirstNameENG: "Tesfaye ",
-//     emergencyLastNameENG: "something ",
-//     emergencyRelation: "Father",
-//     emergencyLastName: "someone",
-//     emergencyFirstNameAMH: "",
-//     emergencyLastNameAMH: "",
-//     emergencyMobile: "+251911223344",
-
-//     // Family Background
-//     fatherName: "Kebede Demeke",
-//     fatherZone: "Bole",
-//     fatherWoreda: "06",
-//     fatherSubCity: "Bole",
-//     fatherKebele: "12",
-//     fatherHouseNo: "34",
-//     motherName: "Mulu Habte",
-//     motherRegion: "Addis Ababa",
-//     motherZone: "Bole",
-//     motherWoreda: "06",
-//     motherKifleKetema: "Bole",
-//     motherKebele: "12",
-//     photo: "https://randomuser.me/api/portraits/men/32.jpg",
-//     certificate:
-//       "https://img.freepik.com/free-vector/diploma-certificate-template_23-2148823004.jpg",
-//   };
-
-//   const renderField = (label: string, value: string) => (
-//     <div className="flex justify-between items-center border-b border-blue-100 py-3 transition-all duration-200 hover:bg-blue-50/50">
-//       <span className="font-semibold text-blue-700">{label}:</span>
-//       <span className="text-gray-800">{value}</span>
-//     </div>
-//   );
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4 sm:px-6 lg:px-12">
-//       {/* Header */}
-//       <div className="flex items-center justify-between mb-8 max-w-5xl mx-auto">
-//         <button
-//           onClick={() => navigate(-1)}
-//           className="px-5 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 shadow-md"
-//         >
-//           ← Back
-//         </button>
-//         <h1 className="text-3xl font-bold text-blue-800">Student Profile</h1>
-//         <div></div>
-//       </div>
-
-//       {/* Profile + Certificate */}
-//       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-//         <div className="flex justify-center">
-//           <img
-//             src={student.photo}
-//             onClick={() =>
-//               openModal(
-//                 <ImageModal
-//                   imageSrc={student.photo}
-//                   title={`${student.firstName} ${student.middleName} ${student.lastName}`}
-//                 />
-//               )
-//             }
-//             alt="Student"
-//             className="w-48 h-48 rounded-full shadow-xl object-cover hover:scale-105 transition-transform duration-300 cursor-pointer border-4 border-blue-200"
-//           />
-//         </div>
-//         <div className="flex justify-center">
-//           <img
-//             src={student.certificate}
-//             onClick={() =>
-//               openModal(<ImageModal imageSrc={student.certificate} />)
-//             }
-//             alt="Certificate"
-//             className="w-72 h-48 rounded-xl shadow-xl object-cover hover:scale-105 transition-transform duration-300 cursor-pointer border-4 border-blue-200"
-//           />
-//         </div>
-//       </div>
-
-//       {/* Student Details */}
-//       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-8">
-//         {/* Personal Data */}
-//         <Section title="Personal Data">
-//           {renderField(
-//             "First Name",
-//             `${student.firstName} (${student.firstNameACMH})`
-//           )}
-//           {renderField(
-//             "Middle Name",
-//             `${student.middleName} (${student.middleNameAMH})`
-//           )}
-//           {renderField(
-//             "Last Name",
-//             `${student.lastName} (${student.lastNameAMH})`
-//           )}
-//           {renderField("Sex", student.sex)}
-//           {renderField("Age", student.age)}
-//           {renderField(
-//             "Impairments",
-//             `${student.visionImpairment}, ${student.hearingImpairment}, ${student.otherImpairment}`
-//           )}
-//         </Section>
-
-//         {/* Birth Info */}
-//         <Section title="Birth Information">
-//           {renderField("Town", student.birthTown)}
-//           {renderField("Woreda", student.birthWoreda)}
-//           {renderField("Zone", student.birthZone)}
-//           {renderField("Region", student.birthRegion)}
-//           {renderField(
-//             "Date (EC)",
-//             `${student.birthDateEC}-${student.birthMonthEC}-${student.birthYearEC}`
-//           )}
-//           {renderField(
-//             "Date (GC)",
-//             `${student.birthDateGC}-${student.birthMonthGC}-${student.birthYearGC}`
-//           )}
-//         </Section>
-
-//         {/* Current Address */}
-//         <Section title="Current Address">
-//           {renderField("Region", student.currentRegion)}
-//           {renderField("Zone", student.currentZone)}
-//           {renderField("Woreda", student.currentWoreda)}
-//           {renderField("Sub City", student.currentSubCity)}
-//           {renderField("Kebele", student.currentKebele)}
-//           {renderField("House No", student.currentHouseNo)}
-//           {renderField("PO Box", student.poBox)}
-//           {renderField("Email", student.email)}
-//           {renderField("Phone", student.phoneNo)}
-//         </Section>
-
-//         {/* Emergency Contact */}
-//         <Section title="Emergency Contact">
-//           {renderField("Name", student.emergencyName)}
-//           {renderField("Relation", student.emergencyRelation)}
-//           {renderField("Home Phone", student.emergencyHomePhone)}
-//           {renderField("Office Phone", student.emergencyOfficePhone)}
-//           {renderField("Mobile", student.emergencyMobile)}
-//           {renderField("Region", student.emergencyRegion)}
-//           {renderField("Zone", student.emergencyZone)}
-//           {renderField("Woreda", student.emergencyWoreda)}
-//           {renderField("Sub City", student.emergencySubCity)}
-//           {renderField("Kebele", student.emergencyKebele)}
-//           {renderField("House No", student.emergencyHouseNo)}
-//         </Section>
-
-//         {/* Family */}
-//         <Section title="Family Background">
-//           {renderField("Father Name", student.fatherName)}
-//           {renderField(
-//             "Father Address",
-//             `${student.fatherRegion}, ${student.fatherZone}, ${student.fatherWoreda}, ${student.fatherSubCity}, Kebele ${student.fatherKebele}, House ${student.fatherHouseNo}`
-//           )}
-//           {renderField("Mother Name", student.motherName)}
-//           {renderField(
-//             "Mother Address",
-//             `${student.motherRegion}, ${student.motherZone}, ${student.motherWoreda}, ${student.motherKifleKetema}, Kebele ${student.motherKebele}`
-//           )}
-//         </Section>
-//       </div>
-//     </div>
-//   );
-// };
-
-// const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
-//   title,
-//   children,
-// }) => (
-//   <div className="space-y-4 bg-blue-50/30 p-6 rounded-xl shadow-sm">
-//     <h2 className="text-xl font-semibold text-blue-700 border-b-2 border-blue-200 pb-2">
-//       {title}
-//     </h2>
-//     <div className="space-y-2">{children}</div>
-//   </div>
-// );
-
-// export default StudentProfile;
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  GraduationCap,
+  Edit,
+  Camera,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-const StudentProfile = () => {
+
+export default function StudentProfile() {
   const navigate = useNavigate();
 
   const studentData = {
@@ -266,14 +68,10 @@ const StudentProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="max-w-5xl w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-xl">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          className="p-4"
-        >
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">My Profile</h1>
+        <div className="flex space-x-2">
           <Link
             onClick={() => navigate(-1)}
             className="inline-flex items-center text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
@@ -281,400 +79,432 @@ const StudentProfile = () => {
             <span className="mr-2">&larr;</span>
             <span>Back to Student List</span>
           </Link>
-        </motion.div>
-        <div className="bg-blue-600 dark:bg-blue-500 p-6 text-white flex items-center justify-between">
-          <div className="text-center flex-1">
-            <h1 className="text-4xl font-extrabold tracking-tight">
-              Student Profile
-            </h1>
-            <p className="mt-2 text-blue-100 dark:text-blue-200">
-              Detailed Information
-            </p>
-          </div>
-        </div>
-
-        <div className="p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-          >
-            <div className="space-y-6">
-              <div className="bg-blue-50/80 dark:bg-gray-700/80 backdrop-blur-md p-6 rounded-lg shadow-sm">
-                <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-                  Personal Information
-                </h2>
-                <div className="space-y-3">
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      First Name (Amharic):
-                    </span>{" "}
-                    {studentData.firstNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      First Name (English):
-                    </span>{" "}
-                    {studentData.firstNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Father's Name (Amharic):
-                    </span>{" "}
-                    {studentData.fatherNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Father's Name (English):
-                    </span>{" "}
-                    {studentData.fatherNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Grandfather's Name (Amharic):
-                    </span>{" "}
-                    {studentData.grandfatherNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Grandfather's Name (English):
-                    </span>{" "}
-                    {studentData.grandfatherNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Mother's Name (Amharic):
-                    </span>{" "}
-                    {studentData.motherNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Mother's Name (English):
-                    </span>{" "}
-                    {studentData.motherNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Mother's Father Name (Amharic):
-                    </span>{" "}
-                    {studentData.motherFatherNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Mother's Father Name (English):
-                    </span>{" "}
-                    {studentData.motherFatherNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Gender:
-                    </span>{" "}
-                    {studentData.gender}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Age:
-                    </span>{" "}
-                    {studentData.age}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Phone Number:
-                    </span>{" "}
-                    {studentData.phoneNumber}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Date of Birth (EC):
-                    </span>{" "}
-                    {studentData.dateOfBirthEC}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Date of Birth (GC):
-                    </span>{" "}
-                    {studentData.dateOfBirthGC}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-blue-50/80 dark:bg-gray-700/80 backdrop-blur-md p-6 rounded-lg shadow-sm">
-                <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-                  Address & Contact Information
-                </h2>
-                <div className="space-y-3">
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Place of Birth (Woreda):
-                    </span>{" "}
-                    {studentData.placeOfBirthWoreda}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Place of Birth (Zone):
-                    </span>{" "}
-                    {studentData.placeOfBirthZone}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Place of Birth (Region):
-                    </span>{" "}
-                    {studentData.placeOfBirthRegion}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Current Address (Woreda):
-                    </span>{" "}
-                    {studentData.currentAddressWoreda}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Current Address (Zone):
-                    </span>{" "}
-                    {studentData.currentAddressZone}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Current Address (Region):
-                    </span>{" "}
-                    {studentData.currentAddressRegion}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Email:
-                    </span>{" "}
-                    {studentData.email}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Marital Status:
-                    </span>{" "}
-                    {studentData.maritalStatus}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Impairment:
-                    </span>{" "}
-                    {studentData.impairment}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      School Background:
-                    </span>{" "}
-                    {studentData.schoolBackground}
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-blue-50/80 dark:bg-gray-700/80 backdrop-blur-md p-6 rounded-lg shadow-sm">
-                <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-                  Contact Person
-                </h2>
-                <div className="space-y-3">
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      First Name (Amharic):
-                    </span>{" "}
-                    {studentData.contactPersonFirstNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      First Name (English):
-                    </span>{" "}
-                    {studentData.contactPersonFirstNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Last Name (Amharic):
-                    </span>{" "}
-                    {studentData.contactPersonLastNameAMH}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Last Name (English):
-                    </span>{" "}
-                    {studentData.contactPersonLastNameENG}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Phone Number:
-                    </span>{" "}
-                    {studentData.contactPersonPhoneNumber}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-200">
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Relation:
-                    </span>{" "}
-                    {studentData.contactPersonRelation}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            className="mt-8 bg-blue-50/80 dark:bg-gray-700/80 backdrop-blur-md p-6 rounded-lg shadow-sm"
-          >
-            <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-              Academic Information
-            </h2>
-            <div className="space-y-3">
-              <p className="text-gray-700 dark:text-gray-200">
-                <span className="font-medium text-blue-600 dark:text-blue-400">
-                  Department Enrolled:
-                </span>{" "}
-                {studentData.departmentEnrolled}
-              </p>
-              <p className="text-gray-700 dark:text-gray-200">
-                <span className="font-medium text-blue-600 dark:text-blue-400">
-                  Program Modality:
-                </span>{" "}
-                {studentData.programModality}
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="mt-8 bg-blue-50/80 dark:bg-gray-700/80 backdrop-blur-md p-6 rounded-lg shadow-sm"
-          >
-            <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-              Academic Progress
-            </h2>
-            <div className="overflow-x-auto">
-              <table
-                className="w-full table-auto border border-gray-200 dark:border-gray-700"
-                role="grid"
-                aria-label="Student Academic Progress"
-              >
-                <thead className="bg-blue-100 dark:bg-gray-600">
-                  <tr>
-                    <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-blue-600 dark:text-blue-400 font-semibold">
-                      Semester
-                    </th>
-                    <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-blue-600 dark:text-blue-400 font-semibold">
-                      Course
-                    </th>
-                    <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-blue-600 dark:text-blue-400 font-semibold">
-                      Grade
-                    </th>
-                    <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-blue-600 dark:text-blue-400 font-semibold">
-                      Credits
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    {
-                      semester: "Fall 2023",
-                      course: "Introduction to Programming",
-                      grade: "A",
-                      credits: 3,
-                    },
-                    {
-                      semester: "Fall 2023",
-                      course: "Calculus I",
-                      grade: "B+",
-                      credits: 4,
-                    },
-                    {
-                      semester: "Spring 2024",
-                      course: "Data Structures",
-                      grade: "A-",
-                      credits: 3,
-                    },
-                    {
-                      semester: "Spring 2024",
-                      course: "Physics I",
-                      grade: "B",
-                      credits: 4,
-                    },
-                    {
-                      semester: "Fall 2024",
-                      course: "Algorithms",
-                      grade: "A",
-                      credits: 3,
-                    },
-                    {
-                      semester: "Spring 2025",
-                      course: "Database Systems",
-                      grade: "B+",
-                      credits: 3,
-                    },
-                  ].map((progress, index) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                    >
-                      <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                        {progress.semester}
-                      </td>
-                      <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                        {progress.course}
-                      </td>
-                      <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                        {progress.grade}
-                      </td>
-                      <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-                        {progress.credits}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-            className="mt-8 bg-blue-50/80 dark:bg-gray-700/80 backdrop-blur-md p-6 rounded-lg shadow-sm"
-          >
-            <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-              Documents
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <p className="text-gray-700 dark:text-gray-200 font-medium text-blue-600 dark:text-blue-400 mb-2">
-                  Student Photo
-                </p>
-                <img
-                  src={studentData.studentPhoto}
-                  alt="Student Photo"
-                  className="w-40 h-40 object-cover rounded-lg border-2 border-blue-200 dark:border-blue-600/30 shadow-sm hover:scale-105 transition-transform"
-                />
-              </div>
-              <div>
-                <p className="text-gray-700 dark:text-gray-200 font-medium text-blue-600 dark:text-blue-400 mb-2">
-                  Grade 12 Exam Result
-                </p>
-                <img
-                  src={studentData.grade12ExamResult}
-                  alt="Grade 12 Exam Result"
-                  className="w-64 h-36 object-cover rounded-lg border-2 border-blue-200 dark:border-blue-600/30 shadow-sm hover:scale-105 transition-transform"
-                />
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        <div className="bg-blue-100/80 dark:bg-gray-900/80 backdrop-blur-md p-4 text-center">
-          <p className="text-blue-600 dark:text-blue-400 text-sm">
-            © 2025 Student Management System
-          </p>
+          <Button>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Profile
+          </Button>
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profile Picture and Basic Info */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="text-center">
+            <div className="relative mx-auto">
+              <Avatar className="w-32 h-32">
+                <AvatarImage src={studentData.studentPhoto} />
+                <AvatarFallback className="text-2xl">
+                  {studentData.firstNameENG[0]}
+                  {studentData.fatherNameENG[0]}
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute bottom-0 right-0 rounded-full"
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+            </div>
+            <CardTitle className="mt-4">
+              {studentData.firstNameENG} {studentData.fatherNameENG}
+            </CardTitle>
+            <CardDescription>
+              {studentData.departmentEnrolled} Student
+            </CardDescription>
+            <Badge variant="secondary" className="mt-2">
+              {studentData.programModality}
+            </Badge>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2 text-sm">
+              <Mail className="h-4 w-4 text-gray-500" />
+              <span>{studentData.email}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <Phone className="h-4 w-4 text-gray-500" />
+              <span>{studentData.phoneNumber}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <span>
+                {studentData.currentAddressWoreda},{" "}
+                {studentData.currentAddressRegion}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 text-sm">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <span>Enrolled: September 2023</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Personal Information */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>
+              Your personal details and contact information
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstNameAMH">First Name (Amharic)</Label>
+                <Input
+                  id="firstNameAMH"
+                  value={studentData.firstNameAMH}
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="firstNameENG">First Name (English)</Label>
+                <Input
+                  id="firstNameENG"
+                  value={studentData.firstNameENG}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fatherNameAMH">Father's Name (Amharic)</Label>
+                <Input
+                  id="fatherNameAMH"
+                  value={studentData.fatherNameAMH}
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fatherNameENG">Father's Name (English)</Label>
+                <Input
+                  id="fatherNameENG"
+                  value={studentData.fatherNameENG}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="grandfatherNameAMH">
+                  Grandfather's Name (Amharic)
+                </Label>
+                <Input
+                  id="grandfatherNameAMH"
+                  value={studentData.grandfatherNameAMH}
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="grandfatherNameENG">
+                  Grandfather's Name (English)
+                </Label>
+                <Input
+                  id="grandfatherNameENG"
+                  value={studentData.grandfatherNameENG}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="motherNameAMH">Mother's Name (Amharic)</Label>
+                <Input
+                  id="motherNameAMH"
+                  value={studentData.motherNameAMH}
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="motherNameENG">Mother's Name (English)</Label>
+                <Input
+                  id="motherNameENG"
+                  value={studentData.motherNameENG}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="motherFatherNameAMH">
+                  Mother's Father Name (Amharic)
+                </Label>
+                <Input
+                  id="motherFatherNameAMH"
+                  value={studentData.motherFatherNameAMH}
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="motherFatherNameENG">
+                  Mother's Father Name (English)
+                </Label>
+                <Input
+                  id="motherFatherNameENG"
+                  value={studentData.motherFatherNameENG}
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirthGC">Date of Birth (GC)</Label>
+                <Input
+                  id="dateOfBirthGC"
+                  value={studentData.dateOfBirthGC}
+                  type="date"
+                  readOnly
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gender">Gender</Label>
+                <Input id="gender" value={studentData.gender} readOnly />
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label htmlFor="currentAddress">Current Address</Label>
+              <Input
+                id="currentAddress"
+                value={`${studentData.currentAddressWoreda}, ${studentData.currentAddressZone}, ${studentData.currentAddressRegion}`}
+                readOnly
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="placeOfBirth">Place of Birth</Label>
+              <Input
+                id="placeOfBirth"
+                value={`${studentData.placeOfBirthWoreda}, ${studentData.placeOfBirthZone}, ${studentData.placeOfBirthRegion}`}
+                readOnly
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Academic Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <GraduationCap className="mr-2 h-5 w-5" />
+            Academic Information
+          </CardTitle>
+          <CardDescription>
+            Your academic details and program information
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="departmentEnrolled">Department Enrolled</Label>
+              <Input
+                id="departmentEnrolled"
+                value={studentData.departmentEnrolled}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="programModality">Program Modality</Label>
+              <Input
+                id="programModality"
+                value={studentData.programModality}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="schoolBackground">School Background</Label>
+              <Input
+                id="schoolBackground"
+                value={studentData.schoolBackground}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="grade12ExamResult">Grade 12 Exam Result</Label>
+            <img
+              src={studentData.grade12ExamResult}
+              alt="Grade 12 Exam Result"
+              className="w-64 h-36 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Emergency Contact */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Emergency Contact</CardTitle>
+          <CardDescription>Emergency contact information</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonFirstNameAMH">
+                Contact First Name (Amharic)
+              </Label>
+              <Input
+                id="contactPersonFirstNameAMH"
+                value={studentData.contactPersonFirstNameAMH}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonFirstNameENG">
+                Contact First Name (English)
+              </Label>
+              <Input
+                id="contactPersonFirstNameENG"
+                value={studentData.contactPersonFirstNameENG}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonLastNameAMH">
+                Contact Last Name (Amharic)
+              </Label>
+              <Input
+                id="contactPersonLastNameAMH"
+                value={studentData.contactPersonLastNameAMH}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonLastNameENG">
+                Contact Last Name (English)
+              </Label>
+              <Input
+                id="contactPersonLastNameENG"
+                value={studentData.contactPersonLastNameENG}
+                readOnly
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonPhoneNumber">Phone Number</Label>
+              <Input
+                id="contactPersonPhoneNumber"
+                value={studentData.contactPersonPhoneNumber}
+                readOnly
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="contactPersonRelation">Relationship</Label>
+              <Input
+                id="contactPersonRelation"
+                value={studentData.contactPersonRelation}
+                readOnly
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Academic Progress */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Academic Progress</CardTitle>
+          <CardDescription>
+            Your academic performance and course history
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full table-auto border border-gray-200 dark:border-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-gray-700 dark:text-gray-300 font-semibold">
+                    Semester
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-gray-700 dark:text-gray-300 font-semibold">
+                    Course
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-gray-700 dark:text-gray-300 font-semibold">
+                    Grade
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-left text-gray-700 dark:text-gray-300 font-semibold">
+                    Credits
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    semester: "Fall 2023",
+                    course: "Introduction to Programming",
+                    grade: "A",
+                    credits: 3,
+                  },
+                  {
+                    semester: "Fall 2023",
+                    course: "Calculus I",
+                    grade: "B+",
+                    credits: 4,
+                  },
+                  {
+                    semester: "Spring 2024",
+                    course: "Data Structures",
+                    grade: "A-",
+                    credits: 3,
+                  },
+                  {
+                    semester: "Spring 2024",
+                    course: "Physics I",
+                    grade: "B",
+                    credits: 4,
+                  },
+                  {
+                    semester: "Fall 2024",
+                    course: "Algorithms",
+                    grade: "A",
+                    credits: 3,
+                  },
+                  {
+                    semester: "Spring 2025",
+                    course: "Database Systems",
+                    grade: "B+",
+                    credits: 3,
+                  },
+                ].map((progress, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                      {progress.semester}
+                    </td>
+                    <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                      {progress.course}
+                    </td>
+                    <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                      {progress.grade}
+                    </td>
+                    <td className="px-6 py-3 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                      {progress.credits}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default StudentProfile;
+}
