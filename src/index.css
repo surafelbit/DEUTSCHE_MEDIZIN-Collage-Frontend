@@ -124,5 +124,29 @@
     @apply bg-background text-foreground;
   }
 }
+/* Light mode header */
+/* Selected row in light mode */
+/* Light mode selected row */
+.custom-table .ant-table-row-selected > td {
+  background-color: #bfdbfe !important; /* Tailwind blue-200 */
+  color: #000 !important;
+}
+
+/* Dark mode selected row */
+.dark .custom-table .ant-table-row-selected > td {
+  background-color: #374151 !important; /* Tailwind gray-700 */
+  color: #f9fafb !important; /* Tailwind gray-100 */
+}
+/* Light mode hover */
+.custom-table .ant-table-tbody > tr:hover > td {
+  background-color: rgba(135, 185, 240, 0.7) !important;
+  color: white !important;
+}
+
+/* Dark mode hover */
+.dark .custom-table .ant-table-tbody > tr:hover > td {
+  background-color: rgba(135, 185, 240, 0.7) !important;
+  color: white !important;
+}
 
 /*=======================================================*/

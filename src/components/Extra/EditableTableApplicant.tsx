@@ -245,7 +245,7 @@ const EditableTableApplicant: React.FC<EditableTableProps> = ({
         }
         onRow={(record) => {
           return {
-            onClick: () => navigate(`/registrar/applications/${record.key}`),
+            onClick: () => navigate(`/registrar/students/${record.key}`),
           };
         }}
         components={{

@@ -1,0 +1,49 @@
+/* table.css */
+
+/* Ensure table container is transparent to avoid conflicts */
+.ant-table {
+  @apply bg-transparent;
+}
+
+.ant-table-container {
+  @apply bg-transparent;
+}
+
+/* Header styles */
+.ant-table-thead > tr > th {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+}
+
+/* Row text and default styles */
+.ant-table-tbody > tr > td {
+  @apply text-gray-900 dark:text-gray-100;
+}
+
+/* Hover styles for rows */
+.ant-table-tbody > tr.ant-table-row:hover > td {
+  @apply bg-blue-100 dark:bg-blue-900;
+}
+
+/* Selected row styles */
+.ant-table-tbody > tr.ant-table-row-selected > td {
+  @apply bg-blue-200 dark:bg-blue-950 !important; /* Override Ant Design's default light blue */
+}
+
+/* Ensure checkbox styles are visible in both modes */
+.ant-checkbox-checked .ant-checkbox-inner {
+  @apply bg-blue-500 dark:bg-blue-700 border-blue-500 dark:border-blue-700;
+}
+
+/* Pagination styles */
+.ant-pagination-item {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+}
+
+.ant-pagination-item-active {
+  @apply bg-blue-500 dark:bg-blue-700 text-white;
+}
+
+.ant-pagination-prev,
+.ant-pagination-next {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100;
+}
