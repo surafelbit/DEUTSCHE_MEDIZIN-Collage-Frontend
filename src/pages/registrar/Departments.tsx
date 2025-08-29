@@ -125,7 +125,8 @@ export default function RegistrarDepartments() {
         {departments.map((dept) => (
           <div
             key={dept.id}
-            onClick={() => navigate(`/registrar/departments/${dept.id}`)}
+            // onClick={() => navigate(`/registrar/departments/${dept.id}`)}
+            onClick={() => navigate(`/registrar/departments/math`)}
             className={`cursor-pointer h-48 rounded-3xl p-6 shadow-xl bg-gradient-to-r ${dept.color} text-white flex flex-col justify-between transform hover:-translate-y-2 hover:shadow-2xl transition`}
           >
             <div className="flex items-center gap-4">

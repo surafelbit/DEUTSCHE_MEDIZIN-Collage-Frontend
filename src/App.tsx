@@ -8,6 +8,7 @@ import LoginPage from "./pages/public/LoginPage";
 import RegisterPage from "./pages/public/RegisterPage";
 import ForgotPasswordPage from "./pages/public/ForgotPasswordPage";
 import MultiStepRegistrationForm from "./../src/registeration/MultiStepRegistrationForm";
+import NotFound from "../src/pages/NotFound/NotFound";
 import SigningUp from "./../src/registeration/SigningUp";
 // Student Pages
 import StudentLayout from "./layouts/StudentLayout";
@@ -42,6 +43,7 @@ import RegistrarAssessments from "./pages/registrar/Assessments";
 import RegistrarBatches from "./pages/registrar/Batches";
 import DepartmentDetail from "./pages/registrar/DepartmentDetail";
 import StudentDetail from "./pages/registrar/StudentDetail";
+import ApplicantDetail from "./pages/registrar/ApplicantDetail";
 import CustomStudentTable from "./pages/registrar/CustomStudentTable";
 // Finance Pages
 import FinanceLayout from "./layouts/FinanceLayout";
@@ -114,7 +116,8 @@ function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="departments" element={<RegistrarDepartments />} />
             <Route path="departments/:id" element={<DepartmentDetail />} />
-            <Route path="applications/:id" element={<StudentDetail />} />
+            <Route path="applications/:id" element={<ApplicantDetail />} />
+            <Route path="students/:id" element={<StudentDetail />} />
             <Route path="dashboard" element={<RegistrarDashboard />} />
             <Route path="applications" element={<RegistrarApplications />} />
             <Route path="students" element={<RegistrarStudents />} />
@@ -147,6 +150,7 @@ function App() {
             <Route path="reports" element={<ManagerReports />} />
             <Route path="settings" element={<ManagerSettings />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
       </div>

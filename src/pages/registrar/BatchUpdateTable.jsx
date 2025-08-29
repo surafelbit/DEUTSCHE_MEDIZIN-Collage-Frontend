@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Table, Input, Button, Select, Switch } from "antd";
-
 const { Option } = Select;
 
 const initialData = [
@@ -254,7 +253,7 @@ export default function StudentCourseScoreTable() {
       </div>
 
       <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm dark:shadow-gray-900 overflow-hidden">
-        <Table
+        {/* <Table
           rowSelection={rowSelection}
           pagination={{
             ...pagination,
@@ -267,7 +266,27 @@ export default function StudentCourseScoreTable() {
           }}
           className="min-w-full bg-gray-100 dark:bg-gray-800"
           rowClassName={() =>
-            "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+            "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 hover:bg-blue-200 dark:hover:bg-gray-900  dark:hover:text-black"
+          }
+          dataSource={filteredData}
+          columns={columns}
+        /> */}
+        <Table
+          rowSelection={rowSelection}
+          pagination={{
+            ...pagination,
+            onChange: (page, pageSize) => {
+              setPagination({ ...pagination, current: page, pageSize });
+            },
+            onShowSizeChange: (current, size) => {
+              setPagination({ ...pagination, current, pageSize: size });
+            },
+          }}
+          className="custom-table min-w-full bg-white dark:bg-gray-800 transition-colors duration-200"
+          rowClassName={(record, index) =>
+            index % 2 === 0
+              ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 hover:bg-blue-100 dark:hover:bg-blue-900 dark:hover:text-black"
+              : "bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-blue-100 dark:hover:bg-blue-900 dark:hover:text-black"
           }
           dataSource={filteredData}
           columns={columns}
