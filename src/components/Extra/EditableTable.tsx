@@ -121,11 +121,6 @@ const EditableTable: React.FC<EditableTableProps> = ({ initialData }) => {
           onClick: () => navigate(`/registrar/applications/${record.key}`),
         };
       }}
-      // pagination={{
-      //   pageSize: 5, // 👈 number of rows per page
-      //   showSizeChanger: true, // 👈 allow user to pick page size
-      //   pageSizeOptions: ["5", "10", "20", "50"], // 👈 dropdown choices
-      // }}
       components={{
         header: {
           cell: (props) => (

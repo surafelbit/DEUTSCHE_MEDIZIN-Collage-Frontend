@@ -42,16 +42,16 @@ export default function RegistrarLayout() {
     { name: "Applications", href: "/registrar/applications", icon: FileText },
     { name: "Students", href: "/registrar/students", icon: Users },
     { name: "Departments", href: "/registrar/departments", icon: Layers },
-    { name: "Courses", href: "/registrar/courses", icon: BookOpen },
+    // { name: "Courses", href: "/registrar/courses", icon: BookOpen },
     {
-      name: "Assessments",
-      href: "/registrar/assessments",
+      name: "Scores",
+      href: "/registrar/scores",
       icon: ClipboardList,
     },
     { name: "Batches", href: "/registrar/batches", icon: Calendar },
-    { name: "Teachers", href: "/registrar/teachers", icon: Calendar },
     { name: "Customize Tables", href: "/registrar/tables", icon: Calendar },
   ];
+  const [extra, setExtra] = useState(false);
 
   return (
     <div className=" flex min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -65,50 +65,48 @@ export default function RegistrarLayout() {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out `}
+        className={`fixed inset-y-0 left-0 z-50 w-64 
+              bg-white dark:bg-gray-800 shadow-xl 
+              transform transition-transform duration-300 ease-in-out
+              border-r border-gray-200 dark:border-gray-700
+              ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center   justify-between h-16 px-4 bg-blue-600">
-          <div className="flex items-center space-x-2">
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between h-16 px-4 bg-blue-600 shadow-md">
+          <div className="flex items-center space-x-3">
             <img
               src="/assets/companylogo.jpg"
-              className="h-12 text-white rounded-full"
+              alt="Logo"
+              className="h-12 w-12 rounded-full object-cover"
             />
-            {/* <GraduationCap className="h-8 w-8 text-white" /> */}
             <div className="text-white">
               <div className="text-sm font-bold">DHFM COLLEGE</div>
               <div className="text-xs opacity-75">Registrar Portal</div>
             </div>
           </div>
-          <svg
-            width="30px"
-            height="30px"
-            viewBox="0 0 48 48"
-            xmlns="http://www.w3.org/2000/svg"
-            onClick={() => {
-              setSidebarOpen(false);
-            }}
-            fill="white"
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1 rounded hover:bg-blue-500 transition"
           >
-            <title>collapse-horizontal-solid</title>
-            <g id="Layer_2" data-name="Layer 2">
-              <g id="invisible_box" data-name="invisible box">
-                <rect width="48" height="48" fill="none" />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 48 48"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="white"
+            >
+              <g>
+                <path d="M32.6,22.6a1.9,1.9,0,0,0,0,2.8l5.9,6a2.1,2.1,0,0,0,2.7.2,1.9,1.9,0,0,0,.2-3L38.8,26H44a2,2,0,0,0,0-4H38.8l2.6-2.6a1.9,1.9,0,0,0-.2-3,2.1,2.1,0,0,0-2.7.2Z" />
+                <path d="M15.4,25.4a1.9,1.9,0,0,0,0-2.8l-5.9-6a2.1,2.1,0,0,0-2.7-.2,1.9,1.9,0,0,0-.2,3L9.2,22H4a2,2,0,0,0,0,4H9.2L6.6,28.6a1.9,1.9,0,0,0,.2,3,2.1,2.1,0,0,0,2.7-.2Z" />
+                <path d="M26,6V42a2,2,0,0,0,4,0V6a2,2,0,0,0-4,0Z" />
+                <path d="M22,42V6a2,2,0,0,0-4,0V42a2,2,0,0,0,4,0Z" />
               </g>
-              <g id="icons_Q2" data-name="icons Q2">
-                <g>
-                  <path d="M32.6,22.6a1.9,1.9,0,0,0,0,2.8l5.9,6a2.1,2.1,0,0,0,2.7.2,1.9,1.9,0,0,0,.2-3L38.8,26H44a2,2,0,0,0,0-4H38.8l2.6-2.6a1.9,1.9,0,0,0-.2-3,2.1,2.1,0,0,0-2.7.2Z" />
-                  <path d="M15.4,25.4a1.9,1.9,0,0,0,0-2.8l-5.9-6a2.1,2.1,0,0,0-2.7-.2,1.9,1.9,0,0,0-.2,3L9.2,22H4a2,2,0,0,0,0,4H9.2L6.6,28.6a1.9,1.9,0,0,0,.2,3,2.1,2.1,0,0,0,2.7-.2Z" />
-                  <path d="M26,6V42a2,2,0,0,0,4,0V6a2,2,0,0,0-4,0Z" />
-                  <path d="M22,42V6a2,2,0,0,0-4,0V42a2,2,0,0,0,4,0Z" />
-                </g>
-              </g>
-            </g>
-          </svg>
+            </svg>
+          </button>
         </div>
 
-        <nav className="mt-8">
+        {/* Navigation */}
+        <nav className="mt-6 flex-1 overflow-y-auto">
           <div className="px-4 space-y-2">
             {navigation.map((item) => {
               const isActive = location.pathname.includes(item.href);
@@ -121,30 +119,84 @@ export default function RegistrarLayout() {
                       ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
                       : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                   }`}
-                  onClick={() => {
-                    window.innerWidth <= 1024 && setSidebarOpen(false);
-                  }}
+                  onClick={() =>
+                    window.innerWidth <= 1024 && setSidebarOpen(false)
+                  }
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
                 </Link>
               );
             })}
+
+            {/* Extra collapsible section */}
+            <div className="mt-2 space-y-1">
+              <button
+                className={`flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  extra
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
+                onClick={() => {
+                  setExtra(!extra);
+                  window.innerWidth <= 1024 && setSidebarOpen(false);
+                }}
+              >
+                <svg
+                  className={`mr-3 h-5 w-5 transition-transform duration-200 ${
+                    extra ? "rotate-90" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+                Something
+              </button>
+
+              {extra && (
+                <div className="pl-6 space-y-1">
+                  <Link
+                    to="/something/a1"
+                    className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      location.pathname.includes("/something/a1")
+                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-100"
+                        : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
+                    }`}
+                    onClick={() =>
+                      window.innerWidth <= 1024 && setSidebarOpen(false)
+                    }
+                  >
+                    A1
+                  </Link>
+                  <Link
+                    to="/something/a2"
+                    className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      location.pathname.includes("/something/a2")
+                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-100"
+                        : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
+                    }`}
+                    onClick={() =>
+                      window.innerWidth <= 1024 && setSidebarOpen(false)
+                    }
+                  >
+                    A2
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </nav>
-        <div className="absolute bottom-20 w-full p-4">
-          <Button
-            onClick={() => {
-              setSidebarOpen(false);
-              console.log(sidebarOpen);
-            }}
-            variant="ghost"
-            className="w-full justify-start text-gray-600 dark:text-gray-300"
-          >
-            collapse
-          </Button>
-        </div>
-        <div className="absolute bottom-0 w-full p-4">
+
+        {/* Footer Sign Out */}
+        <div className="absolute bottom-0 w-full p-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600 dark:text-gray-300"

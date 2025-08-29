@@ -42,7 +42,6 @@ import RegistrarAssessments from "./pages/registrar/Assessments";
 import RegistrarBatches from "./pages/registrar/Batches";
 import DepartmentDetail from "./pages/registrar/DepartmentDetail";
 import StudentDetail from "./pages/registrar/StudentDetail";
-import RegistrarTeachers from "./pages/registrar/Teachers";
 import CustomStudentTable from "./pages/registrar/CustomStudentTable";
 // Finance Pages
 import FinanceLayout from "./layouts/FinanceLayout";
@@ -63,7 +62,8 @@ import ManagerLayout from "./layouts/ManagerLayout";
 import ManagerDashboard from "./pages/manager/Dashboard";
 import ManagerReports from "./pages/manager/Reports";
 import ManagerSettings from "./pages/manager/Settings";
-//
+import BatchUpdateTable from "./pages/registrar/BatchUpdateTable";
+import TenColumnEditableTablePage from "./TenColumnEditableTablePage";
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="college-ui-theme">
@@ -73,12 +73,14 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           {/* <Route path="/login" element={<LoginPage />} /> */}
           <Route path="/login" element={<SigningUp />} />
-
+          <Route path="/some" element={<TenColumnEditableTablePage />} />
           <Route path="/register" element={<MultiStepRegistrationForm />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Student Routes */}
           <Route path="/student" element={<StudentLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="profile" element={<StudentProfile />} />
             <Route path="grades" element={<StudentGrades />} />
@@ -87,6 +89,8 @@ function App() {
 
           {/* Teacher Routes */}
           <Route path="/teacher" element={<TeacherLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="courses" element={<TeacherCourses />} />
             <Route path="students/:courseId" element={<TeacherStudents />} />
@@ -111,12 +115,12 @@ function App() {
             <Route path="departments" element={<RegistrarDepartments />} />
             <Route path="departments/:id" element={<DepartmentDetail />} />
             <Route path="applications/:id" element={<StudentDetail />} />
-            <Route path="teachers" element={<RegistrarTeachers />} />
             <Route path="dashboard" element={<RegistrarDashboard />} />
             <Route path="applications" element={<RegistrarApplications />} />
             <Route path="students" element={<RegistrarStudents />} />
-            <Route path="scores" element={<RegistrarCourses />} />
             <Route path="assessments" element={<RegistrarAssessments />} />
+            <Route path="scores" element={<BatchUpdateTable />} />
+
             <Route path="batches" element={<RegistrarBatches />} />
             <Route path="tables" element={<CustomStudentTable />} />
           </Route>
