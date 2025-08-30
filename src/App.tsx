@@ -45,6 +45,7 @@ import DepartmentDetail from "./pages/registrar/DepartmentDetail";
 import StudentDetail from "./pages/registrar/StudentDetail";
 import ApplicantDetail from "./pages/registrar/ApplicantDetail";
 import CustomStudentTable from "./pages/registrar/CustomStudentTable";
+import RejectedApplications from "./pages/registrar/RejectedApplications";
 // Finance Pages
 import FinanceLayout from "./layouts/FinanceLayout";
 import FinanceDashboard from "./pages/finance/Dashboard";
@@ -120,6 +121,14 @@ function App() {
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="dashboard" element={<RegistrarDashboard />} />
             <Route path="applications" element={<RegistrarApplications />} />
+            <Route
+              path="rejected-applications"
+              element={<RejectedApplications />}
+            />
+            <Route
+              path="rejected-applications/:id"
+              element={<ApplicantDetail />}
+            />
             <Route path="students" element={<RegistrarStudents />} />
             <Route path="assessments" element={<RegistrarAssessments />} />
             <Route path="scores" element={<BatchUpdateTable />} />

@@ -90,9 +90,13 @@ export default function DepartmentDetail() {
   const dept = id ? departmentData[id] : null;
   const [searchTerm, setSearchTerm] = useState("");
   const [department, setDepartment] = useState(dept);
-  const [isFormOpen, setIsFormOpen] = useState(false); // State for collapsible form
-
-  // New course form state
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
+  const [editValues, setEditValues] = useState({
+    code: "",
+    name: "",
+    creditHours: "",
+  });
   const [newCourse, setNewCourse] = useState({
     yearId: "",
     semesterId: "",
@@ -146,7 +150,6 @@ export default function DepartmentDetail() {
       ),
     }));
 
-    // Reset form
     setNewCourse({
       yearId: "",
       semesterId: "",
@@ -154,7 +157,62 @@ export default function DepartmentDetail() {
       name: "",
       creditHours: "",
     });
-    setIsFormOpen(false); // Close form after adding
+    setIsFormOpen(false);
+  };
+
+  // Handle start editing
+  const handleEditCourse = (yearId, semesterId, course) => {
+    setEditingCourse({ yearId, semesterId, id: course.id });
+    setEditValues({
+      code: course.code,
+      name: course.name,
+      creditHours: course.creditHours.toString(),
+    });
+  };
+
+  // Handle update course
+  const handleUpdateCourse = (yearId, semesterId, courseId) => {
+    if (!editValues.code || !editValues.name || !editValues.creditHours) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    setDepartment((prev) => ({
+      ...prev,
+      years: prev.years.map((year) =>
+        year.id === yearId
+          ? {
+              ...year,
+              semesters: year.semesters.map((sem) =>
+                sem.id === semesterId
+                  ? {
+                      ...sem,
+                      courses: sem.courses.map((course) =>
+                        course.id === courseId
+                          ? {
+                              ...course,
+                              code: editValues.code,
+                              name: editValues.name,
+                              creditHours: parseInt(editValues.creditHours),
+                            }
+                          : course
+                      ),
+                    }
+                  : sem
+              ),
+            }
+          : year
+      ),
+    }));
+
+    setEditingCourse(null);
+    setEditValues({ code: "", name: "", creditHours: "" });
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingCourse(null);
+    setEditValues({ code: "", name: "", creditHours: "" });
   };
 
   return (
@@ -193,7 +251,6 @@ export default function DepartmentDetail() {
             Add New Course
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            {/* Year */}
             <select
               value={newCourse.yearId}
               onChange={(e) =>
@@ -212,8 +269,6 @@ export default function DepartmentDetail() {
                 </option>
               ))}
             </select>
-
-            {/* Semester */}
             <select
               value={newCourse.semesterId}
               onChange={(e) =>
@@ -232,8 +287,6 @@ export default function DepartmentDetail() {
                     </option>
                   ))}
             </select>
-
-            {/* Course Code */}
             <input
               type="text"
               placeholder="Course Code"
@@ -243,8 +296,6 @@ export default function DepartmentDetail() {
               }
               className="border px-3 py-2 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700"
             />
-
-            {/* Course Name */}
             <input
               type="text"
               placeholder="Course Name"
@@ -254,8 +305,6 @@ export default function DepartmentDetail() {
               }
               className="border px-3 py-2 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700"
             />
-
-            {/* Credit Hours */}
             <input
               type="number"
               placeholder="Credit Hours"
@@ -305,19 +354,98 @@ export default function DepartmentDetail() {
                       <th className="p-3 border">Course Code</th>
                       <th className="p-3 border">Course Name</th>
                       <th className="p-3 border">Credit Hours</th>
+                      <th className="p-3 border">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredCourses.map((course) => (
                       <tr
                         key={course.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                        className={`transition-all duration-300 ease-in-out ${
+                          editingCourse && editingCourse.id === course.id
+                            ? "scale-105 bg-blue-50 dark:bg-blue-900/30 shadow-lg border border-blue-200 dark:border-blue-700 z-10 relative"
+                            : "hover:scale-102 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md hover:z-10"
+                        }`}
                       >
-                        <td className="p-3 border font-mono">{course.code}</td>
-                        <td className="p-3 border">{course.name}</td>
-                        <td className="p-3 border text-center">
-                          {course.creditHours}
-                        </td>
+                        {editingCourse && editingCourse.id === course.id ? (
+                          <>
+                            <td className="p-3 border">
+                              <input
+                                type="text"
+                                value={editValues.code}
+                                onChange={(e) =>
+                                  setEditValues({
+                                    ...editValues,
+                                    code: e.target.value,
+                                  })
+                                }
+                                className="w-full border px-2 py-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                              />
+                            </td>
+                            <td className="p-3 border">
+                              <input
+                                type="text"
+                                value={editValues.name}
+                                onChange={(e) =>
+                                  setEditValues({
+                                    ...editValues,
+                                    name: e.target.value,
+                                  })
+                                }
+                                className="w-full border px-2 py-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                              />
+                            </td>
+                            <td className="p-3 border">
+                              <input
+                                type="number"
+                                value={editValues.creditHours}
+                                onChange={(e) =>
+                                  setEditValues({
+                                    ...editValues,
+                                    creditHours: e.target.value,
+                                  })
+                                }
+                                className="w-full border px-2 py-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                              />
+                            </td>
+                            <td className="p-3 border flex space-x-2">
+                              <button
+                                onClick={() =>
+                                  handleUpdateCourse(year.id, sem.id, course.id)
+                                }
+                                className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition dark:bg-blue-500 dark:hover:bg-blue-600"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700 transition dark:bg-gray-500 dark:hover:bg-gray-600"
+                              >
+                                Cancel
+                              </button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="p-3 border font-mono">
+                              {course.code}
+                            </td>
+                            <td className="p-3 border">{course.name}</td>
+                            <td className="p-3 border text-center">
+                              {course.creditHours}
+                            </td>
+                            <td className="p-3 border">
+                              <button
+                                onClick={() =>
+                                  handleEditCourse(year.id, sem.id, course)
+                                }
+                                className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition dark:bg-yellow-400 dark:hover:bg-yellow-500"
+                              >
+                                Edit
+                              </button>
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
