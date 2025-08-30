@@ -148,5 +148,53 @@
   background-color: rgba(135, 185, 240, 0.7) !important;
   color: white !important;
 }
+/* CustomTable.css */
 
+/* Light mode hover styles */
+.custom-table .ant-table-tbody > tr:not(.ant-table-row-editing):hover > td,
+.custom-table .ant-table-thead > tr:hover > th {
+  padding: 16px !important; /* Larger padding on hover */
+  font-size: 16px !important; /* Larger text on hover */
+  background-color: rgba(
+    39,
+    129,
+    170,
+    0.5
+  ) !important; /* Tailwind: bg-emerald-100/50 */
+}
+
+.custom-table .ant-table-tbody > tr:not(.ant-table-row-editing):hover {
+  transform: scale(1.02); /* Tailwind: scale-102 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Tailwind: shadow-md */
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+    padding 0.3s ease-in-out, font-size 0.3s ease-in-out;
+  position: relative;
+  z-index: 10; /* Tailwind: z-10 */
+}
+
+/* Dark mode hover styles */
+.dark
+  .custom-table
+  .ant-table-tbody
+  > tr:not(.ant-table-row-editing):hover
+  > td,
+.dark .custom-table .ant-table-thead > tr:hover > th {
+  padding: 16px !important; /* Larger padding on hover */
+  font-size: 16px !important; /* Larger text on hover */
+  background-color: rgba(
+    45,
+    78,
+    94,
+    0.5
+  ) !important; /* Tailwind: bg-teal-900/50 */
+}
+
+.dark .custom-table .ant-table-tbody > tr:not(.ant-table-row-editing):hover {
+  transform: scale(1.02); /* Tailwind: scale-102 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Tailwind: shadow-md with darker tone */
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+    padding 0.3s ease-in-out, font-size 0.3s ease-in-out;
+  position: relative;
+  z-index: 10; /* Tailwind: z-10 */
+}
 /*=======================================================*/

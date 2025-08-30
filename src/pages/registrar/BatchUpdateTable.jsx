@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Table, Input, Button, Select, Switch } from "antd";
 const { Option } = Select;
-
 const initialData = [
   {
     key: "1",
@@ -19,6 +18,42 @@ const initialData = [
     batchClassYearSemester: { batch: "CS", year: "2025", semester: "1" },
     courseSource: { name: "Exchange" },
     score: 92,
+    isReleased: false,
+  },
+  {
+    key: "3",
+    studentId: { id: "std003" },
+    course: { name: "Chemistry" },
+    batchClassYearSemester: { batch: "IT", year: "2025", semester: "2" },
+    courseSource: { name: "Normal" },
+    score: 76,
+    isReleased: true,
+  },
+  {
+    key: "4",
+    studentId: { id: "std004" },
+    course: { name: "Biology" },
+    batchClassYearSemester: { batch: "IT", year: "2024", semester: "2" },
+    courseSource: { name: "Transfer" },
+    score: 88,
+    isReleased: false,
+  },
+  {
+    key: "5",
+    studentId: { id: "std005" },
+    course: { name: "English" },
+    batchClassYearSemester: { batch: "CS", year: "2024", semester: "1" },
+    courseSource: { name: "Normal" },
+    score: 95,
+    isReleased: true,
+  },
+  {
+    key: "6",
+    studentId: { id: "std006" },
+    course: { name: "History" },
+    batchClassYearSemester: { batch: "EE", year: "2025", semester: "1" },
+    courseSource: { name: "Exchange" },
+    score: 67,
     isReleased: false,
   },
 ];

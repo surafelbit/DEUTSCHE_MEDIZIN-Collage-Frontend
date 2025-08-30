@@ -13,7 +13,10 @@ import { useState } from "react";
 // import EditableTableApplicant, {
 //   DataTypes,
 // } from "@/components/Extra/EditableTableApplicant";
-import EditableTable, { DataTypes } from "@/components/Extra/EditableTable";
+// import EditableTable, { DataTypes } from "@/components/Extra/EditableTable";
+import EditableTableRejected, {
+  DataTypes,
+} from "@/components/Extra/EditableTableRejected";
 import { init } from "node_modules/i18next";
 const something = [
   {
@@ -34,7 +37,8 @@ const initialData: DataTypes[] = [
     amharicName: "ሱራፌል",
     department: "Medicine",
 
-    year: 4,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=1",
   },
@@ -42,7 +46,8 @@ const initialData: DataTypes[] = [
     key: "2",
     name: "Mekdes",
     amharicName: "መቅደስ",
-    year: 2,
+    age: 1,
+    registeredYear: 24,
     department: "Medicine",
 
     gender: "F",
@@ -52,7 +57,8 @@ const initialData: DataTypes[] = [
     key: "3",
     name: "Nahom",
     amharicName: "ናሆም",
-    year: 5,
+    age: 1,
+    registeredYear: 24,
     department: "Medicine",
 
     gender: "M",
@@ -64,7 +70,8 @@ const initialData: DataTypes[] = [
     amharicName: "ሰላም",
     department: "Medicine",
 
-    year: 5,
+    age: 1,
+    registeredYear: 24,
     gender: "F",
     photo: "https://i.pravatar.cc/150?img=4",
   },
@@ -74,7 +81,8 @@ const initialData: DataTypes[] = [
     amharicName: "በረከት",
     department: "Medicine",
 
-    year: 1,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=5",
   },
@@ -84,7 +92,8 @@ const initialData: DataTypes[] = [
     amharicName: "ሐና",
     department: "Medicine",
 
-    year: 2,
+    age: 1,
+    registeredYear: 24,
     gender: "F",
     photo: "https://i.pravatar.cc/150?img=6",
   },
@@ -94,7 +103,8 @@ const initialData: DataTypes[] = [
     amharicName: "ሳሙኤል",
     department: "Medicine",
 
-    year: 2,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=7",
   },
@@ -104,7 +114,8 @@ const initialData: DataTypes[] = [
     amharicName: "ማሂ",
     department: "Medicine",
 
-    year: 3,
+    age: 1,
+    registeredYear: 24,
     gender: "F",
     photo: "https://i.pravatar.cc/150?img=8",
   },
@@ -114,7 +125,8 @@ const initialData: DataTypes[] = [
     amharicName: "ቤተል",
     department: "Medicine",
 
-    year: 1,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=9",
   },
@@ -124,7 +136,8 @@ const initialData: DataTypes[] = [
     amharicName: "ዮናታን",
     department: "Medicine",
 
-    year: 4,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=10",
   },
@@ -134,7 +147,8 @@ const initialData: DataTypes[] = [
     amharicName: "ማርታ",
     department: "Medicine",
 
-    year: 1,
+    age: 1,
+    registeredYear: 24,
     gender: "F",
     photo: "https://i.pravatar.cc/150?img=11",
   },
@@ -144,7 +158,8 @@ const initialData: DataTypes[] = [
     amharicName: "ኢዮብ",
     department: "Medicine",
 
-    year: 5,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=12",
   },
@@ -154,7 +169,8 @@ const initialData: DataTypes[] = [
     amharicName: "ሚኪያስ",
     department: "Medicine",
 
-    year: 3,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=13",
   },
@@ -164,7 +180,8 @@ const initialData: DataTypes[] = [
     amharicName: "ራሔል",
     department: "Medicine",
 
-    year: 2,
+    age: 1,
+    registeredYear: 24,
     gender: "F",
     photo: "https://i.pravatar.cc/150?img=14",
   },
@@ -172,7 +189,8 @@ const initialData: DataTypes[] = [
     key: "15",
     name: "Dawit",
     amharicName: "ዳዊት",
-    year: 4,
+    age: 1,
+    registeredYear: 24,
     department: "Medicine",
 
     gender: "M",
@@ -182,7 +200,8 @@ const initialData: DataTypes[] = [
     key: "16",
     name: "Ruth",
     amharicName: "ሩት",
-    year: 2,
+    age: 1,
+    registeredYear: 24,
     department: "Medicine",
 
     gender: "F",
@@ -193,12 +212,13 @@ const initialData: DataTypes[] = [
     name: "Kidus",
     amharicName: "ቅዱስ",
     department: "Medicine",
-    year: 2,
+    age: 1,
+    registeredYear: 24,
     gender: "M",
     photo: "https://i.pravatar.cc/150?img=17",
   },
 ];
-export default function RegistrarApplications() {
+export default function RejectedApplications() {
   const [searchText, setSearchText] = useState("");
   const [filteredDepartment, setFilteredDepartment] = useState("");
   const filteredData = initialData.filter((item) => {
@@ -217,7 +237,7 @@ export default function RegistrarApplications() {
         {/* Blue Header */}
         <div className="w-full  bg-blue-500 px-4 h-40 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 w-full rounded-lg">
           <h1 className="text-2xl  sm:text-3xl md:text-4xl font-extrabold text-white">
-            New Applicants
+            Rejected Applicants
           </h1>
         </div>
         {/* Content */}
@@ -230,15 +250,15 @@ export default function RegistrarApplications() {
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 className="w-full sm:w-64 md:w-72 lg:w-80 px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base
-                rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
-                text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
-                focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
+                  rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800
+                  text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm"
               />
               <select
                 onChange={(e) => setFilteredDepartment(e.target.value)}
                 className="w-full sm:w-auto px-4 py-2 sm:py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 
-                bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm sm:text-base
-                focus:ring-2 focus:ring-blue-500 focus:border(border-blue-500 transition-all duration-200"
+                  bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm sm:text-base
+                  focus:ring-2 focus:ring-blue-500 focus:border(border-blue-500 transition-all duration-200"
               >
                 <option value="">All Departments</option>
                 <option value="Medicine">Medicine</option>
@@ -247,7 +267,11 @@ export default function RegistrarApplications() {
               </select>
             </div>
             <div className="overflow-x-auto rounded-lg">
-              <EditableTable
+              {/* <EditableTable
+                initialData={filteredData}
+                className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300"
+              /> */}
+              <EditableTableRejected
                 initialData={filteredData}
                 className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300"
               />

@@ -39,7 +39,7 @@ export default function RegistrarLayout() {
   }, []);
   const navigation = [
     { name: "Dashboard", href: "/registrar/dashboard", icon: LayoutDashboard },
-    { name: "Applications", href: "/registrar/applications", icon: FileText },
+    // { name: "Applications", href: "/registrar/applications", icon: FileText },
     { name: "Students", href: "/registrar/students", icon: Users },
     { name: "Departments", href: "/registrar/departments", icon: Layers },
     // { name: "Courses", href: "/registrar/courses", icon: BookOpen },
@@ -133,8 +133,10 @@ export default function RegistrarLayout() {
             <div className="mt-2 space-y-1">
               <button
                 className={`flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  extra
-                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+                  extra ||
+                  location.pathname.includes("/registrar/applications") ||
+                  location.pathname.includes("/registrar/rejected-applications")
+                    ? "bg-gray-100 dark:text-gray-300 dark:bg-gray-700"
                     : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                 }`}
                 onClick={() => {
@@ -142,52 +144,57 @@ export default function RegistrarLayout() {
                   window.innerWidth <= 1024 && setSidebarOpen(false);
                 }}
               >
-                <svg
-                  className={`mr-3 h-5 w-5 transition-transform duration-200 ${
-                    extra ? "rotate-90" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-                Something
+                <FileText className="mr-3 h-5 w-5" />
+                <div className="flex">
+                  Applications
+                  <svg
+                    className={`mr-3 h-5 w-5 transition-transform duration-200 ${
+                      extra ? "rotate-90" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </div>
               </button>
 
               {extra && (
                 <div className="pl-6 space-y-1">
                   <Link
-                    to="/something/a1"
+                    to="/registrar/applications"
                     className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      location.pathname.includes("/something/a1")
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-100"
+                      location.pathname.includes("/registrar/applications")
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
                         : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
                     }`}
                     onClick={() =>
                       window.innerWidth <= 1024 && setSidebarOpen(false)
                     }
                   >
-                    A1
+                    New Applicants
                   </Link>
                   <Link
-                    to="/something/a2"
+                    to="/registrar/rejected-applications"
                     className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                      location.pathname.includes("/something/a2")
-                        ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-100"
+                      location.pathname.includes(
+                        "/registrar/rejected-applications"
+                      )
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
                         : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
                     }`}
                     onClick={() =>
                       window.innerWidth <= 1024 && setSidebarOpen(false)
                     }
                   >
-                    A2
+                    Rejected Applicants
                   </Link>
                 </div>
               )}

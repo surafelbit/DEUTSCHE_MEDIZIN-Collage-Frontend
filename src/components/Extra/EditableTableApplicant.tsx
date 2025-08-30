@@ -115,6 +115,7 @@ const EditableTableApplicant: React.FC<EditableTableProps> = ({
       ),
     },
     { title: "Batch", dataIndex: "batch", width: "12%" },
+    { title: "Year", dataIndex: "year", width: "10%" },
     { title: "Department", dataIndex: "department", width: "11%" },
 
     // {
