@@ -205,6 +205,7 @@ const initialData: DataTypes[] = [
     department: "Medicine",
 
     gender: "F",
+
     photo: "https://i.pravatar.cc/150?img=16",
   },
   {
@@ -267,10 +268,6 @@ export default function RejectedApplications() {
               </select>
             </div>
             <div className="overflow-x-auto rounded-lg">
-              {/* <EditableTable
-                initialData={filteredData}
-                className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300"
-              /> */}
               <EditableTableRejected
                 initialData={filteredData}
                 className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300"
@@ -279,7 +276,6 @@ export default function RejectedApplications() {
           </div>
         </div>
       </div>
-      {/* Animations */}
       <style jsx>{`
         .animate-fadeIn {
           animation: fadeIn 0.7s ease-in-out forwards;
