@@ -13,6 +13,7 @@ export interface DataTypes {
   department: string;
   gender: string; // e.g., "Male", "Female", "Other"
   age: number;
+  status: string;
   photo?: string;
 }
 
@@ -94,7 +95,25 @@ const EditableTableRejected: React.FC<EditableTableProps> = ({
     {
       title: "Department",
       dataIndex: "department",
-      width: "20%",
+      width: "14%",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (text: string) => (
+        <span
+          className={`
+        px-3 py-1 rounded-full text-sm font-medium
+        
+       
+             bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100
+           
+        
+      `}
+        >
+          rejected{" "}
+        </span>
+      ),
     },
     {
       title: "Gender",
