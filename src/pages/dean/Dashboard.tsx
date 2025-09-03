@@ -1,7 +1,31 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-// Charts removed per request
+import { Bar, Line, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 const totals = {
   students: 1260,
@@ -10,14 +34,41 @@ const totals = {
   faculty: 215,
 };
 
-// Replacements: KPI lists
-const deptKpis = [
-  { dept: "Medicine", avgGpa: 3.21, attendance: 90 },
-  { dept: "Pharmacy", avgGpa: 3.05, attendance: 88 },
-  { dept: "Radiology", avgGpa: 3.46, attendance: 92 },
-  { dept: "Nursing", avgGpa: 3.12, attendance: 89 },
-  { dept: "Dentistry", avgGpa: 2.98, attendance: 87 },
-];
+const avgGpaByDept = {
+  labels: ["Medicine", "Pharmacy", "Radiology", "Nursing", "Dentistry"],
+  datasets: [
+    {
+      label: "Average GPA",
+      data: [3.21, 3.05, 3.46, 3.12, 2.98],
+      backgroundColor: "#3B82F6",
+    },
+  ],
+};
+
+const attendanceTrend = {
+  labels: ["Wk1", "Wk2", "Wk3", "Wk4", "Wk5", "Wk6", "Wk7", "Wk8"],
+  datasets: [
+    {
+      label: "Attendance %",
+      data: [88, 86, 90, 92, 89, 91, 87, 93],
+      borderColor: "#10B981",
+      backgroundColor: "rgba(16,185,129,0.2)",
+      fill: true,
+      tension: 0.4,
+    },
+  ],
+};
+
+const gradeDistribution = {
+  labels: ["A", "B", "C", "D", "F"],
+  datasets: [
+    {
+      label: "Share",
+      data: [35, 40, 15, 7, 3],
+      backgroundColor: ["#16A34A", "#3B82F6", "#F59E0B", "#EF4444", "#6B7280"],
+    },
+  ],
+};
 
 const upcomingEvents = [
   { id: 1, title: "Midterm Exams", date: "Oct 12", note: "All departments" },
@@ -94,31 +145,29 @@ export default function DeanDashboard() {
           </Card>
         </div>
 
-        {/* Analytics (Replaced with tabular summaries) */}
+        {/* Analytics */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Department KPIs</h2>
-          <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-            <CardContent className="p-4 overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-gray-600 dark:text-gray-400">
-                    <th className="p-2">Department</th>
-                    <th className="p-2">Average GPA</th>
-                    <th className="p-2">Attendance Avg</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deptKpis.map((k) => (
-                    <tr key={k.dept} className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700">
-                      <td className="p-2">{k.dept}</td>
-                      <td className="p-2 text-blue-600 dark:text-blue-400 font-semibold">{k.avgGpa.toFixed(2)}</td>
-                      <td className="p-2">{k.attendance}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
+          <h2 className="text-2xl font-bold text-blue-600 dark:text-blue-400">Analytics</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Average GPA by Department</h3>
+                <Bar data={avgGpaByDept} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+              </CardContent>
+            </Card>
+            <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Attendance Trend</h3>
+                <Line data={attendanceTrend} options={{ responsive: true, plugins: { legend: { display: true } } }} />
+              </CardContent>
+            </Card>
+            <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="p-4">
+                <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Grade Distribution</h3>
+                <Pie data={gradeDistribution} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Top/Bottom performers */}

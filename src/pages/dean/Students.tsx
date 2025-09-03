@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 type Student = {
   id: number;
@@ -118,60 +119,62 @@ export default function DeanStudents() {
           </CardContent>
         </Card>
 
-        {/* Limited Student Detail Drawer/Panel */}
-        {selected && (
-          <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-blue-600 dark:text-blue-400">{selected.name} • {selected.id}</h3>
-                <Button variant="outline" className="border-gray-300 dark:border-gray-700" onClick={() => setSelected(undefined)}>Close</Button>
+        {/* Student Detail Modal (Sheet) */}
+        <Sheet open={!!selected} onOpenChange={(o) => !o && setSelected(undefined)}>
+          <SheetContent side="right" className="w-[85vw] sm:max-w-3xl lg:max-w-4xl pl-8 pr-6 data-[state=open]:duration-150 data-[state=closed]:duration-150">
+            {selected && (
+              <div className="space-y-4">
+                <SheetHeader>
+                  <SheetTitle className="text-blue-600 dark:text-blue-400">{selected.name} • {selected.id}</SheetTitle>
+                </SheetHeader>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Department</p>
+                    <p className="font-medium">{selected.dept}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Semester</p>
+                    <p className="font-medium">{selected.semester}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                    <p className="font-medium">{selected.enrollmentStatus}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <h4 className="text-lg font-semibold">Academic History</h4>
+                    <ul className="list-disc ml-5 space-y-1 text-sm">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <li key={i}>Course {(i + 1)} • Grade {["A","B","C","B"][i]}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-lg font-semibold">Current Semester Courses</h4>
+                    <ul className="list-disc ml-5 space-y-1 text-sm">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <li key={i}>Current Course {(i + 1)} • Instructor {(i + 1)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="bg-white dark:bg-gray-800"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">GPA</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selected.gpa.toFixed(2)}</p></CardContent></Card>
+                  <Card className="bg-white dark:bg-gray-800"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Attendance</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selected.attendance}%</p></CardContent></Card>
+                  <Card className="bg-white dark:bg-gray-800"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Flags</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p></CardContent></Card>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Department</p>
-                  <p className="font-medium">{selected.dept}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Semester</p>
-                  <p className="font-medium">{selected.semester}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                  <p className="font-medium">{selected.enrollmentStatus}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <h4 className="text-lg font-semibold">Academic History</h4>
-                  <ul className="list-disc ml-5 space-y-1 text-sm">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <li key={i}>Course {(i + 1)} • Grade {(["A","B","C","B"][i])}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-lg font-semibold">Current Semester Courses</h4>
-                  <ul className="list-disc ml-5 space-y-1 text-sm">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <li key={i}>Current Course {(i + 1)} • Instructor {(i + 1)}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="bg-white dark:bg-gray-800"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">GPA</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selected.gpa.toFixed(2)}</p></CardContent></Card>
-                <Card className="bg-white dark:bg-gray-800"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Attendance</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selected.attendance}%</p></CardContent></Card>
-                <Card className="bg-white dark:bg-gray-800"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Flags</p><p className="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p></CardContent></Card>
-              </div>
-        </CardContent>
-      </Card>
-        )}
+            )}
+          </SheetContent>
+        </Sheet>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <Card className="bg-white dark:bg-gray-800 shadow-lg"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Total Students</p><p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{studentsMock.length}</p></CardContent></Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Avg GPA (Filtered)</p><p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{(filtered.reduce((a,c)=>a+c.gpa,0)/Math.max(1,filtered.length)).toFixed(2)}</p></CardContent></Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">Attendance Avg</p><p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{Math.round(filtered.reduce((a,c)=>a+c.attendance,0)/Math.max(1,filtered.length))}%</p></CardContent></Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg"><CardContent className="p-4"><p className="text-sm text-gray-600 dark:text-gray-400">New Enrollments (30d)</p><p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{Math.floor(studentsMock.length * 0.12)}</p></CardContent></Card>
         </div>
       </div>
     </div>

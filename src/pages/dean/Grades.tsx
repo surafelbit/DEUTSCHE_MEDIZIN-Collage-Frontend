@@ -2,7 +2,19 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-// Charts removed per request
+import { Bar, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const departments = ["Medicine", "Pharmacy", "Radiology", "Nursing", "Dentistry"] as const;
 const semesters = ["Sem 1", "Sem 2", "Sem 3", "Sem 4"] as const;
@@ -86,52 +98,43 @@ export default function DeanGrades() {
           </CardContent>
         </Card>
 
-        {/* Summaries instead of charts */}
-        <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-          <CardContent className="p-4 overflow-x-auto">
-            <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Average GPA by Dept/Semester</h3>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-gray-600 dark:text-gray-400">
-                  <th className="p-2">Department</th>
-                  <th className="p-2">Semester</th>
-                  <th className="p-2">Avg GPA</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((r, idx) => (
-                  <tr key={idx} className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700">
-                    <td className="p-2">{r.dept}</td>
-                    <td className="p-2">{r.semester}</td>
-                    <td className="p-2 text-blue-600 dark:text-blue-400 font-semibold">{r.avgGpa.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-          <CardContent className="p-4 overflow-x-auto">
-            <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Grade Distribution Summary</h3>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-gray-600 dark:text-gray-400">
-                  {Object.keys(totals).map((k) => (
-                    <th key={k} className="p-2">{k}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-gray-200 dark:border-gray-700">
-                  {Object.values(totals).map((v, i) => (
-                    <td key={i} className="p-2">{v}</td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </CardContent>
-        </Card>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-lg transition-shadow lg:col-span-2">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Average GPA by Course/Dept/Semester</h3>
+              <Bar
+                data={{
+                  labels: filtered.map((r) => `${r.dept} • ${r.semester}`),
+                  datasets: [
+                    {
+                      label: "Average GPA",
+                      data: filtered.map((r) => Number(r.avgGpa.toFixed(2))),
+                      backgroundColor: "#3B82F6",
+                    },
+                  ],
+                }}
+                options={{ responsive: true, plugins: { legend: { display: false } } }}
+              />
+            </CardContent>
+          </Card>
+          <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-md hover:shadow-lg transition-shadow">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-2">Grade Distribution</h3>
+              <Pie
+                data={{
+                  labels: Object.keys(totals),
+                  datasets: [
+                    {
+                      data: Object.values(totals),
+                      backgroundColor: ["#16A34A", "#3B82F6", "#F59E0B", "#EF4444", "#6B7280"],
+                    },
+                  ],
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Approval queue + Risk */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
