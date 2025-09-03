@@ -16,6 +16,7 @@ import StudentDashboard from "./pages/student/Dashboard";
 import StudentProfile from "./pages/student/Profile";
 import StudentGrades from "./pages/student/Grades";
 import StudentPayments from "./pages/student/Payments";
+import StudentSetting from "./pages/student/Setting";
 
 // Teacher Pages
 import TeacherLayout from "./layouts/TeacherLayout";
@@ -88,6 +89,7 @@ function App() {
             <Route path="profile" element={<StudentProfile />} />
             <Route path="grades" element={<StudentGrades />} />
             <Route path="payments" element={<StudentPayments />} />
+            <Route path="settings" element={<StudentSetting />} />
           </Route>
 
           {/* Teacher Routes */}
