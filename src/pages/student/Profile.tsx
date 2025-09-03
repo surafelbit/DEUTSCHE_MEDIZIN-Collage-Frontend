@@ -1,22 +1,32 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Mail, Phone, MapPin, Calendar, GraduationCap, Edit, Camera } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  GraduationCap,
+  Edit,
+  Camera,
+} from "lucide-react";
 
 export default function StudentProfile() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">My Profile</h1>
-        <Button>
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Profile
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -28,7 +38,11 @@ export default function StudentProfile() {
                 <AvatarImage src="/placeholder.svg?height=128&width=128" />
                 <AvatarFallback className="text-2xl">JS</AvatarFallback>
               </Avatar>
-              <Button size="icon" variant="secondary" className="absolute bottom-0 right-0 rounded-full">
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute bottom-0 right-0 rounded-full"
+              >
                 <Camera className="h-4 w-4" />
               </Button>
             </div>
@@ -62,7 +76,9 @@ export default function StudentProfile() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Your personal details and contact information</CardDescription>
+            <CardDescription>
+              Your personal details and contact information
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,7 +106,12 @@ export default function StudentProfile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input id="dateOfBirth" value="1998-05-15" type="date" readOnly />
+                <Input
+                  id="dateOfBirth"
+                  value="1998-05-15"
+                  type="date"
+                  readOnly
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nationality">Nationality</Label>
@@ -102,7 +123,11 @@ export default function StudentProfile() {
 
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Input id="address" value="Musterstraße 123, 10115 Berlin, Germany" readOnly />
+              <Input
+                id="address"
+                value="Musterstraße 123, 10115 Berlin, Germany"
+                readOnly
+              />
             </div>
           </CardContent>
         </Card>
@@ -115,7 +140,9 @@ export default function StudentProfile() {
             <GraduationCap className="mr-2 h-5 w-5" />
             Academic Information
           </CardTitle>
-          <CardDescription>Your academic details and program information</CardDescription>
+          <CardDescription>
+            Your academic details and program information
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -136,11 +163,21 @@ export default function StudentProfile() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="enrollmentDate">Enrollment Date</Label>
-              <Input id="enrollmentDate" value="2023-09-01" type="date" readOnly />
+              <Input
+                id="enrollmentDate"
+                value="2023-09-01"
+                type="date"
+                readOnly
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="expectedGraduation">Expected Graduation</Label>
-              <Input id="expectedGraduation" value="2029-07-31" type="date" readOnly />
+              <Input
+                id="expectedGraduation"
+                value="2029-07-31"
+                type="date"
+                readOnly
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="advisor">Academic Advisor</Label>
@@ -187,11 +224,15 @@ export default function StudentProfile() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="emergencyEmail">Email Address</Label>
-              <Input id="emergencyEmail" value="maria.smith@email.com" readOnly />
+              <Input
+                id="emergencyEmail"
+                value="maria.smith@email.com"
+                readOnly
+              />
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -12,6 +12,7 @@ import {
   CreditCard,
   LogOut,
   Menu,
+  Settings,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -60,6 +61,7 @@ export default function StudentLayout() {
     { name: t("profile"), href: "/student/profile", icon: User },
     { name: t("grades"), href: "/student/grades", icon: ClipboardList },
     { name: t("payments"), href: "/student/payments", icon: CreditCard },
+    { name: t("settings"), href: "/student/settings", icon: Settings },
   ];
 
   return (
