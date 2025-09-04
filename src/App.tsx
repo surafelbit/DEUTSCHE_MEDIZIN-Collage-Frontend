@@ -24,6 +24,7 @@ import TeacherDashboard from "./pages/teacher/Dashboard";
 import TeacherCourses from "./pages/teacher/Courses";
 import TeacherStudents from "./pages/teacher/Students";
 import TeacherAssessments from "./pages/teacher/Assessments";
+import AssessmentPage from "./pages/teacher/AssessmentPage";
 
 // Department Head Pages
 import HeadLayout from "./layouts/HeadLayout";
@@ -47,6 +48,10 @@ import StudentDetail from "./pages/registrar/StudentDetail";
 import ApplicantDetail from "./pages/registrar/ApplicantDetail";
 import CustomStudentTable from "./pages/registrar/CustomStudentTable";
 import RejectedApplications from "./pages/registrar/RejectedApplications";
+import LocationEditor from "./pages/registrar/settings/LocationEditor";
+import AcademicYearEditor from "./pages/registrar/settings/AcademicYearEditor";
+import ImpairmentEditor from "./pages/registrar/settings/ImpairmentEditor";
+import CourseCategoriesEditor from "./pages/registrar/settings/CourseCategoriesEditor";
 // Finance Pages
 import FinanceLayout from "./layouts/FinanceLayout";
 import FinanceDashboard from "./pages/finance/Dashboard";
@@ -68,6 +73,9 @@ import ManagerReports from "./pages/manager/Reports";
 import ManagerSettings from "./pages/manager/Settings";
 import BatchUpdateTable from "./pages/registrar/BatchUpdateTable";
 import TenColumnEditableTablePage from "./TenColumnEditableTablePage";
+import BatchesEditor from "./pages/registrar/settings/BatchesEditor";
+import ProgramModalitiesEditor from "./pages/registrar/settings/ProgramModalitiesEditor";
+import AttritionCausesEditor from "./pages/registrar/settings/AttritionCausesEditor";
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="college-ui-theme">
@@ -77,7 +85,8 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           {/* <Route path="/login" element={<LoginPage />} /> */}
           <Route path="/login" element={<SigningUp />} />
-          <Route path="/some" element={<TenColumnEditableTablePage />} />
+          {/* <Route path="/some" element={<TenColumnEditableTablePage />} /> */}
+          <Route path="/some" element={<LocationEditor />} />
           <Route path="/register" element={<MultiStepRegistrationForm />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
@@ -99,10 +108,8 @@ function App() {
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="courses" element={<TeacherCourses />} />
             <Route path="students/:courseId" element={<TeacherStudents />} />
-            <Route
-              path="assessments/:courseId"
-              element={<TeacherAssessments />}
-            />
+            <Route path="assessments" element={<TeacherAssessments />} />
+            <Route path="assessments/:courseId" element={<AssessmentPage />} />
           </Route>
 
           {/* Department Head Routes */}
@@ -123,6 +130,26 @@ function App() {
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="dashboard" element={<RegistrarDashboard />} />
             <Route path="applications" element={<RegistrarApplications />} />
+            <Route path="settings/location" element={<LocationEditor />} />
+
+            <Route
+              path="settings/academic-years"
+              element={<AcademicYearEditor />}
+            />
+            <Route path="settings/batches" element={<BatchesEditor />} />
+            <Route path="settings/impairments" element={<ImpairmentEditor />} />
+            <Route
+              path="settings/program-modality"
+              element={<ProgramModalitiesEditor />}
+            />
+            <Route
+              path="settings/course-category"
+              element={<CourseCategoriesEditor />}
+            />
+            <Route
+              path="settings/attritions"
+              element={<AttritionCausesEditor />}
+            />
             <Route
               path="rejected-applications"
               element={<RejectedApplications />}

@@ -10,6 +10,7 @@ import {
   FileText,
   LogOut,
   Menu,
+  Clock,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -21,7 +22,8 @@ export default function TeacherLayout() {
     { name: "Dashboard", href: "/teacher/dashboard", icon: LayoutDashboard },
     { name: "Courses", href: "/teacher/courses", icon: BookOpen },
     { name: "Students", href: "/teacher/students/all", icon: Users },
-    { name: "Assessments", href: "/teacher/assessments/all", icon: FileText },
+    { name: "Assessments", href: "/teacher/assessments", icon: FileText },
+    { name: "History", href: "/teacher/history", icon: Clock },
   ];
   useEffect(() => {
     // Update when resizing
@@ -37,7 +39,7 @@ export default function TeacherLayout() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   return (
-    <div className=" flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className=" flex min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div

@@ -440,16 +440,24 @@ const CustomStudentTable = () => {
   const [visibleColumns, setVisibleColumns] = useState(defaultColumns);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGender, setSelectGender] = useState("");
+  const filteredGender = fakeStudents.filter((student) =>
+    selectedGender ? student.gender == selectedGender : true
+  );
 
-  const filteredStudents = fakeStudents.filter((student) =>
-    searchTerm
+  const filteredStudents = fakeStudents.filter((student) => {
+    const matchedSearch = searchTerm
       ? Object.values(student).some(
           (value) =>
             value &&
             value.toString().toLowerCase().includes(searchTerm.toLowerCase())
         )
-      : true
-  );
+      : true;
+    const matchedGender = selectedGender
+      ? student.gender == selectedGender
+      : true;
+    return matchedGender && matchedSearch;
+  });
 
   const filter = filteredStudents.map((el) => {
     return Object.fromEntries(
@@ -596,9 +604,19 @@ const CustomStudentTable = () => {
           <option value="single">Single</option>
           <option value="married">Married</option>
         </select>
+        <select
+          onChange={(e) => setSelectGender(e.target.value)}
+          className="px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
+        >
+          <option value="">All Gender</option>
+          <option value="FEMALE">Women</option>
+          <option value="MALE">Men</option>
+        </select>
       </div>
 
       <div className="overflow-x-auto max-w-[960px] mx-auto">
+        {/* <div className="overflow-x-auto w-full max-w-[960px] lg:max-w-none mx-auto"> */}
+
         <table
           ref={tableRef}
           className="w-full table-auto border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-2xl shadow-lg"
