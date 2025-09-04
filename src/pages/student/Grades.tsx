@@ -477,9 +477,9 @@ export default function StudentGrades() {
             onChange={(e) => setSelectedGradingSystem(e.target.value)}
             className="w-full max-w-[180px] sm:max-w-[200px] px-3 py-1.5 border border-blue-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-gray-500 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 transition-colors duration-200 text-xs sm:text-sm"
           >
-            <option value="system1">System 1 (A for 80+)</option>
-            <option value="system2">System 2 (A- for 80-84)</option>
-            <option value="system3">System 3 (No A+)</option>
+            <option value="system1">System 1</option>
+            <option value="system2">System 2</option>
+            <option value="system3">System 3</option>
           </select>
         </div>
         {displayedResult.map((ele, index) => (
