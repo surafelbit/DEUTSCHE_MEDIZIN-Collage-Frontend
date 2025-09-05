@@ -1,32 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus, FaList, FaTh } from "react-icons/fa";
 
-const CourseCategoriesEditor = () => {
-  // Initial data for Course Categories
-  const initialCategories = [
-    { catID: "1", catName: "Science & Technology" },
-    { catID: "2", catName: "Engineering" },
-    { catID: "3", catName: "Business & Economics" },
-    { catID: "4", catName: "Arts & Humanities" },
-    { catID: "5", catName: "Health Sciences" },
+const ClassYearsEditor = () => {
+  const initialClassYears = [
+    { code: "CY001", name: "Class of 2023" },
+    { code: "CY002", name: "Class of 2024" },
+    { code: "CY003", name: "Class of 2025" },
   ];
 
-  const [categories, setCategories] = useState(initialCategories);
+  const [classYears, setClassYears] = useState(initialClassYears);
 
   return (
     <div className="min-h-screen p-6 transition-colors duration-300 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="mb-10">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-          <h1 className="text-4xl font-extrabold bg-blue-500 dark:bg-white bg-clip-text text-transparent animate-gradient">
-            DHFM Course Categories Editor
+          <h1 className="text-4xl font-extrabold bg-blue-500 bg-clip-text text-transparent">
+            DHFM Class Years Editor
           </h1>
         </div>
       </header>
       <main>
         <CrudSection
-          title="Course Categories"
-          data={categories}
-          setData={setCategories}
+          title="Class Years"
+          data={classYears}
+          setData={setClassYears}
         />
       </main>
     </div>
@@ -36,10 +33,7 @@ const CourseCategoriesEditor = () => {
 const CrudSection = ({ title, data, setData }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({
-    catID: "",
-    catName: "",
-  });
+  const [formData, setFormData] = useState({ code: "", name: "" });
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,8 +43,8 @@ const CrudSection = ({ title, data, setData }) => {
 
   const filteredData = data.filter(
     (item) =>
-      item.catID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.catName.toLowerCase().includes(searchTerm.toLowerCase())
+      item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -69,10 +63,13 @@ const CrudSection = ({ title, data, setData }) => {
   }, [filteredData.length, currentPage, totalPages, showAll]);
 
   const handleOpenModal = (item = null) => {
-    if (item && !window.confirm(`Are you sure you want to edit this category?`))
+    if (
+      item &&
+      !window.confirm(`Are you sure you want to edit this class year?`)
+    )
       return;
     setEditingItem(item);
-    setFormData(item ? { ...item } : { catID: "", catName: "" });
+    setFormData(item ? { ...item } : { code: "", name: "" });
     setError("");
     setShowModal(true);
   };
@@ -88,17 +85,13 @@ const CrudSection = ({ title, data, setData }) => {
   };
 
   const validateForm = () => {
-    if (!formData.catID.trim() || !formData.catName.trim()) {
-      setError("Category ID and Category Name are required.");
+    if (!formData.code.trim() || !formData.name.trim()) {
+      setError("All fields are required.");
       return false;
     }
-    const existing = data.find(
-      (d) =>
-        d.catID === formData.catID &&
-        (!editingItem || d.catID !== editingItem.catID)
-    );
-    if (existing) {
-      setError("Category ID must be unique.");
+    const existing = data.find((d) => d.code === formData.code);
+    if (existing && (!editingItem || editingItem.code !== formData.code)) {
+      setError("Code must be unique.");
       return false;
     }
     return true;
@@ -108,13 +101,13 @@ const CrudSection = ({ title, data, setData }) => {
     if (!validateForm()) return;
     if (
       !editingItem &&
-      !window.confirm(`Are you sure you want to add this category?`)
+      !window.confirm(`Are you sure you want to add this class year?`)
     )
       return;
 
     if (editingItem) {
       setData(
-        data.map((d) => (d.catID === editingItem.catID ? { ...formData } : d))
+        data.map((d) => (d.code === editingItem.code ? { ...formData } : d))
       );
     } else {
       setData([...data, { ...formData }]);
@@ -122,20 +115,20 @@ const CrudSection = ({ title, data, setData }) => {
     handleCloseModal();
   };
 
-  const handleDelete = (catID) => {
+  const handleDelete = (code) => {
     if (
       !window.confirm(
-        `Are you sure you want to delete this category? This action cannot be undone.`
+        `Are you sure you want to delete this class year? This action cannot be undone.`
       )
     )
       return;
-    setData(data.filter((d) => d.catID !== catID));
+    setData(data.filter((d) => d.code !== code));
   };
 
   return (
     <div className="p-6 rounded-2xl shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h2 className="text-2xl font-bold bg-blue-500 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold bg-blue-500 dark:bg-white bg-clip-text text-transparent">
           {title}
         </h2>
         <div className="flex gap-3 flex-wrap">
@@ -143,7 +136,7 @@ const CrudSection = ({ title, data, setData }) => {
             onClick={() => handleOpenModal()}
             className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold transition-transform duration-200 transform hover:scale-105 bg-blue-500 dark:bg-blue-700 hover:bg-blue-600 dark:hover:bg-blue-800 text-white shadow-md"
           >
-            <FaPlus /> Add Category
+            <FaPlus /> Add Class Year
           </button>
           <button
             onClick={() => setShowAll(!showAll)}
@@ -162,7 +155,7 @@ const CrudSection = ({ title, data, setData }) => {
       </div>
       <input
         type="text"
-        placeholder="Search Categories by ID or name"
+        placeholder="Search Class Years by code or name"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full border p-3 mb-6 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
@@ -173,10 +166,10 @@ const CrudSection = ({ title, data, setData }) => {
             <thead>
               <tr>
                 <th className="p-4 text-left font-semibold bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                  Category ID
+                  Code
                 </th>
                 <th className="p-4 text-left font-semibold bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
-                  Category Name
+                  Name
                 </th>
                 <th className="p-4 text-right font-semibold bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                   Actions
@@ -186,13 +179,13 @@ const CrudSection = ({ title, data, setData }) => {
             <tbody>
               {paginatedData.map((item) => (
                 <tr
-                  key={item.catID}
+                  key={item.code}
                   className="group transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 animate-slide-up"
                 >
-                  <td className="p-4">{item.catID}</td>
-                  <td className="p-4">{item.catName}</td>
+                  <td className="p-4">{item.code}</td>
+                  <td className="p-4">{item.name}</td>
                   <td className="p-4 text-right">
-                    <div className="flex justify-end gap-3 ">
+                    <div className="flex justify-end gap-3">
                       <button
                         onClick={() => handleOpenModal(item)}
                         className="p-2 rounded-full transform hover:scale-110 transition-all duration-200 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-600/50 dark:hover:bg-yellow-800/50"
@@ -200,7 +193,7 @@ const CrudSection = ({ title, data, setData }) => {
                         <FaEdit className="text-lg" />
                       </button>
                       <button
-                        onClick={() => handleDelete(item.catID)}
+                        onClick={() => handleDelete(item.code)}
                         className="p-2 rounded-full transform hover:scale-110 transition-all duration-200 text-red-500 dark:text-red-400 hover:bg-red-600/50 dark:hover:bg-red-800/50"
                       >
                         <FaTrash className="text-lg" />
@@ -216,12 +209,12 @@ const CrudSection = ({ title, data, setData }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {paginatedData.map((item) => (
             <div
-              key={item.catID}
+              key={item.code}
               className="p-5 rounded-lg shadow-md group transition-all duration-200 transform hover:scale-105 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 animate-slide-up"
             >
-              <h3 className="font-bold text-lg">{item.catID}</h3>
-              <p>{item.catName}</p>
-              <div className="flex justify-end gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <h3 className="font-bold text-lg">{item.code}</h3>
+              <p>{item.name}</p>
+              <div className="flex justify-end gap-3 mt-3 ">
                 <button
                   onClick={() => handleOpenModal(item)}
                   className="p-2 rounded-full transform hover:scale-110 transition-all duration-200 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-600/50 dark:hover:bg-yellow-800/50"
@@ -229,7 +222,7 @@ const CrudSection = ({ title, data, setData }) => {
                   <FaEdit className="text-lg" />
                 </button>
                 <button
-                  onClick={() => handleDelete(item.catID)}
+                  onClick={() => handleDelete(item.code)}
                   className="p-2 rounded-full transform hover:scale-110 transition-all duration-200 text-red-500 dark:text-red-400 hover:bg-red-600/50 dark:hover:bg-red-800/50"
                 >
                   <FaTrash className="text-lg" />
@@ -266,7 +259,7 @@ const CrudSection = ({ title, data, setData }) => {
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           <div className="p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-500 scale-95 animate-modal-in bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
             <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-500 to-teal-400 bg-clip-text text-transparent">
-              {editingItem ? "Edit" : "Add"} Category
+              {editingItem ? "Edit" : "Add"} Class Year
             </h3>
             {error && (
               <p className="text-red-500 mb-4 bg-red-100 dark:bg-red-900/50 p-3 rounded-lg animate-pulse">
@@ -275,18 +268,19 @@ const CrudSection = ({ title, data, setData }) => {
             )}
             <input
               type="text"
-              name="catID"
-              value={formData.catID}
+              name="code"
+              value={formData.code}
               onChange={handleChange}
-              placeholder="Category ID (e.g., 1)"
+              placeholder="Code (e.g., CY001)"
               className="w-full border p-3 mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+              disabled={!!editingItem}
             />
             <input
               type="text"
-              name="catName"
-              value={formData.catName}
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              placeholder="Category Name (e.g., Science & Technology)"
+              placeholder="Name (e.g., Class of 2023)"
               className="w-full border p-3 mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
             />
             <div className="flex justify-end gap-3">
@@ -310,4 +304,4 @@ const CrudSection = ({ title, data, setData }) => {
   );
 };
 
-export default CourseCategoriesEditor;
+export default ClassYearsEditor;
