@@ -16,18 +16,26 @@ const departmentData = {
             id: "sem1",
             name: "Semester 1",
             courses: [
-              { id: "c1", name: "Calculus I", code: "MATH101", creditHours: 3 },
+              {
+                id: "c1",
+                name: "Calculus I",
+                code: "MATH101",
+                creditHours: 3,
+                prerequisites: [],
+              },
               {
                 id: "c2",
                 name: "Linear Algebra I",
                 code: "MATH102",
                 creditHours: 3,
+                prerequisites: [],
               },
               {
                 id: "c3",
                 name: "Intro to Programming",
                 code: "CS101",
                 creditHours: 2,
+                prerequisites: [],
               },
             ],
           },
@@ -40,18 +48,21 @@ const departmentData = {
                 name: "Calculus II",
                 code: "MATH201",
                 creditHours: 3,
+                prerequisites: ["MATH101"],
               },
               {
                 id: "c5",
                 name: "Linear Algebra II",
                 code: "MATH202",
                 creditHours: 3,
+                prerequisites: ["MATH102"],
               },
               {
                 id: "c6",
                 name: "Probability",
                 code: "STAT101",
                 creditHours: 2,
+                prerequisites: [],
               },
             ],
           },
@@ -70,12 +81,14 @@ const departmentData = {
                 name: "Real Analysis I",
                 code: "MATH301",
                 creditHours: 3,
+                prerequisites: ["MATH201"],
               },
               {
                 id: "c8",
                 name: "Abstract Algebra I",
                 code: "MATH302",
                 creditHours: 3,
+                prerequisites: [],
               },
             ],
           },
@@ -96,6 +109,7 @@ export default function DepartmentDetail() {
     code: "",
     name: "",
     creditHours: "",
+    prerequisites: [],
   });
   const [newCourse, setNewCourse] = useState({
     yearId: "",
@@ -103,6 +117,7 @@ export default function DepartmentDetail() {
     code: "",
     name: "",
     creditHours: "",
+    prerequisites: [],
   });
 
   if (!department) {
@@ -115,11 +130,17 @@ export default function DepartmentDetail() {
     );
   }
 
+  // Get all courses for prerequisite selection
+  const allCourses = department.years.flatMap((year) =>
+    year.semesters.flatMap((sem) => sem.courses)
+  );
+
   // Handle adding course
   const handleAddCourse = () => {
-    const { yearId, semesterId, code, name, creditHours } = newCourse;
+    const { yearId, semesterId, code, name, creditHours, prerequisites } =
+      newCourse;
     if (!yearId || !semesterId || !code || !name || !creditHours) {
-      alert("Please fill in all fields");
+      alert("Please fill in all required fields");
       return;
     }
 
@@ -140,6 +161,7 @@ export default function DepartmentDetail() {
                           code,
                           name,
                           creditHours: parseInt(creditHours),
+                          prerequisites,
                         },
                       ],
                     }
@@ -156,6 +178,7 @@ export default function DepartmentDetail() {
       code: "",
       name: "",
       creditHours: "",
+      prerequisites: [],
     });
     setIsFormOpen(false);
   };
@@ -167,13 +190,14 @@ export default function DepartmentDetail() {
       code: course.code,
       name: course.name,
       creditHours: course.creditHours.toString(),
+      prerequisites: course.prerequisites,
     });
   };
 
   // Handle update course
   const handleUpdateCourse = (yearId, semesterId, courseId) => {
     if (!editValues.code || !editValues.name || !editValues.creditHours) {
-      alert("Please fill in all fields");
+      alert("Please fill in all required fields");
       return;
     }
 
@@ -194,6 +218,7 @@ export default function DepartmentDetail() {
                               code: editValues.code,
                               name: editValues.name,
                               creditHours: parseInt(editValues.creditHours),
+                              prerequisites: editValues.prerequisites,
                             }
                           : course
                       ),
@@ -206,13 +231,13 @@ export default function DepartmentDetail() {
     }));
 
     setEditingCourse(null);
-    setEditValues({ code: "", name: "", creditHours: "" });
+    setEditValues({ code: "", name: "", creditHours: "", prerequisites: [] });
   };
 
   // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingCourse(null);
-    setEditValues({ code: "", name: "", creditHours: "" });
+    setEditValues({ code: "", name: "", creditHours: "", prerequisites: [] });
   };
 
   return (
@@ -314,6 +339,35 @@ export default function DepartmentDetail() {
               }
               className="border px-3 py-2 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700"
             />
+            <div className="relative">
+              <select
+                multiple
+                value={newCourse.prerequisites}
+                onChange={(e) =>
+                  setNewCourse({
+                    ...newCourse,
+                    prerequisites: Array.from(
+                      e.target.selectedOptions,
+                      (option) => option.value
+                    ).filter((val) => val !== ""),
+                  })
+                }
+                className="border px-3 py-2 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="" disabled>
+                  Hold Ctrl/Cmd to select multiple prerequisites
+                </option>
+                <option value="">No Prerequisites</option>
+                {allCourses.map((course) => (
+                  <option key={course.id} value={course.code}>
+                    {course.code} - {course.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Hold Ctrl (Windows) or Cmd (Mac) to select multiple courses
+              </p>
+            </div>
           </div>
           <button
             onClick={handleAddCourse}
@@ -354,6 +408,7 @@ export default function DepartmentDetail() {
                       <th className="p-3 border">Course Code</th>
                       <th className="p-3 border">Course Name</th>
                       <th className="p-3 border">Credit Hours</th>
+                      <th className="p-3 border">Prerequisites</th>
                       <th className="p-3 border">Actions</th>
                     </tr>
                   </thead>
@@ -408,6 +463,44 @@ export default function DepartmentDetail() {
                                 className="w-full border px-2 py-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
                               />
                             </td>
+                            <td className="p-3 border">
+                              <div className="relative">
+                                <select
+                                  multiple
+                                  value={editValues.prerequisites}
+                                  onChange={(e) => {
+                                    const selected = Array.from(
+                                      e.target.selectedOptions,
+                                      (option) => option.value
+                                    );
+                                    setEditValues({
+                                      ...editValues,
+                                      prerequisites: selected.includes("")
+                                        ? []
+                                        : selected.filter((val) => val !== ""),
+                                    });
+                                  }}
+                                  className="w-full border px-2 py-1 rounded bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="" disabled>
+                                    Hold Ctrl/Cmd to select multiple
+                                    prerequisites
+                                  </option>
+                                  <option value="">No Prerequisites</option>
+                                  {allCourses
+                                    .filter((c) => c.id !== course.id)
+                                    .map((c) => (
+                                      <option key={c.id} value={c.code}>
+                                        {c.code} - {c.name}
+                                      </option>
+                                    ))}
+                                </select>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                  Hold Ctrl (Windows) or Cmd (Mac) to select
+                                  multiple courses
+                                </p>
+                              </div>
+                            </td>
                             <td className="p-3 border flex space-x-2">
                               <button
                                 onClick={() =>
@@ -433,6 +526,11 @@ export default function DepartmentDetail() {
                             <td className="p-3 border">{course.name}</td>
                             <td className="p-3 border text-center">
                               {course.creditHours}
+                            </td>
+                            <td className="p-3 border">
+                              {course.prerequisites.length > 0
+                                ? course.prerequisites.join(", ")
+                                : "None"}
                             </td>
                             <td className="p-3 border">
                               <button

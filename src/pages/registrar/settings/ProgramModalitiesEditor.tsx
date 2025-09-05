@@ -192,7 +192,7 @@ const CrudSection = ({ title, data, setData }) => {
                   <td className="p-4">{item.modalityCode}</td>
                   <td className="p-4">{item.modality}</td>
                   <td className="p-4 text-right">
-                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="flex justify-end gap-3 ">
                       <button
                         onClick={() => handleOpenModal(item)}
                         className="p-2 rounded-full transform hover:scale-110 transition-all duration-200 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-600/50 dark:hover:bg-yellow-800/50"
@@ -221,7 +221,7 @@ const CrudSection = ({ title, data, setData }) => {
             >
               <h3 className="font-bold text-lg">{item.modalityCode}</h3>
               <p>{item.modality}</p>
-              <div className="flex justify-end gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="flex justify-end gap-3 mt-3">
                 <button
                   onClick={() => handleOpenModal(item)}
                   className="p-2 rounded-full transform hover:scale-110 transition-all duration-200 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-600/50 dark:hover:bg-yellow-800/50"

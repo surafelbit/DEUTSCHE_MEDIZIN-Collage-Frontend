@@ -76,6 +76,8 @@ import TenColumnEditableTablePage from "./TenColumnEditableTablePage";
 import BatchesEditor from "./pages/registrar/settings/BatchesEditor";
 import ProgramModalitiesEditor from "./pages/registrar/settings/ProgramModalitiesEditor";
 import AttritionCausesEditor from "./pages/registrar/settings/AttritionCausesEditor";
+import SemestersEditor from "./pages/registrar/settings/SemestersEditor";
+import ClassYearsEditor from "./pages/registrar/settings/ClassYearsEditor";
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="college-ui-theme">
@@ -136,7 +138,10 @@ function App() {
               path="settings/academic-years"
               element={<AcademicYearEditor />}
             />
+
             <Route path="settings/batches" element={<BatchesEditor />} />
+            <Route path="settings/semesters" element={<SemestersEditor />} />
+            <Route path="settings/class-years" element={<ClassYearsEditor />} />
             <Route path="settings/impairments" element={<ImpairmentEditor />} />
             <Route
               path="settings/program-modality"
