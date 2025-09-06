@@ -1,8 +1,21 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { BookOpen, Users, FileText, Calendar, Plus, MoreHorizontal } from "lucide-react"
-import { Link } from "react-router-dom"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  BookOpen,
+  Users,
+  FileText,
+  Calendar,
+  Plus,
+  MoreHorizontal,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function TeacherCourses() {
   const courses = [
@@ -96,39 +109,39 @@ export default function TeacherCourses() {
       assignments: 10,
       pendingGrades: 0,
     },
-  ]
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "default"
+        return "default";
       case "completed":
-        return "secondary"
+        return "secondary";
       case "upcoming":
-        return "outline"
+        return "outline";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
-  const activeCourses = courses.filter((course) => course.status === "active")
-  const completedCourses = courses.filter((course) => course.status === "completed")
+  const activeCourses = courses.filter((course) => course.status === "active");
+  const completedCourses = courses.filter(
+    (course) => course.status === "completed"
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">My Courses</h1>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Course
-        </Button>
       </div>
 
       {/* Course Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Courses</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Courses
+            </CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -139,25 +152,36 @@ export default function TeacherCourses() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeCourses.reduce((sum, course) => sum + course.students, 0)}</div>
+            <div className="text-2xl font-bold">
+              {activeCourses.reduce((sum, course) => sum + course.students, 0)}
+            </div>
             <p className="text-xs text-muted-foreground">Enrolled students</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Grades</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Pending Grades
+            </CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {activeCourses.reduce((sum, course) => sum + course.pendingGrades, 0)}
+              {activeCourses.reduce(
+                (sum, course) => sum + course.pendingGrades,
+                0
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">Assignments to grade</p>
+            <p className="text-xs text-muted-foreground">
+              Assignments to grade
+            </p>
           </CardContent>
         </Card>
 
@@ -167,7 +191,9 @@ export default function TeacherCourses() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeCourses.reduce((sum, course) => sum + course.credits, 0)}</div>
+            <div className="text-2xl font-bold">
+              {activeCourses.reduce((sum, course) => sum + course.credits, 0)}
+            </div>
             <p className="text-xs text-muted-foreground">Teaching load</p>
           </CardContent>
         </Card>
@@ -175,17 +201,19 @@ export default function TeacherCourses() {
 
       {/* Active Courses */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Active Courses</h2>
+        <h2 className="text-xl font-semibold">Your Courses</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeCourses.map((course) => (
             <Card key={course.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge variant={getStatusColor(course.status)}>{course.status}</Badge>
+                {/* <div className="flex items-center justify-between">
+                  <Badge variant={getStatusColor(course.status)}>
+                    {course.status}
+                  </Badge>
                   <Button variant="ghost" size="icon">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
-                </div>
+                </div> */}
                 <CardTitle className="text-lg">{course.name}</CardTitle>
                 <CardDescription>
                   {course.code} • {course.semester}
@@ -203,7 +231,7 @@ export default function TeacherCourses() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     <strong>Schedule:</strong> {course.schedule}
                   </div>
@@ -212,12 +240,13 @@ export default function TeacherCourses() {
                   </div>
                   {course.nextClass && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      <strong>Next Class:</strong> {new Date(course.nextClass).toLocaleString()}
+                      <strong>Next Class:</strong>{" "}
+                      {new Date(course.nextClass).toLocaleString()}
                     </div>
                   )}
-                </div>
+                </div> */}
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Course Progress</span>
                     <span>{course.progress}%</span>
@@ -228,22 +257,38 @@ export default function TeacherCourses() {
                       style={{ width: `${course.progress}%` }}
                     ></div>
                   </div>
-                </div>
+                </div> */}
 
-                <div className="flex justify-between text-sm">
+                {/* <div className="flex justify-between text-sm">
                   <span>Assignments: {course.assignments}</span>
-                  <span className="text-orange-600">Pending: {course.pendingGrades}</span>
-                </div>
+                  <span className="text-orange-600">
+                    Pending: {course.pendingGrades}
+                  </span>
+                </div> */}
 
                 <div className="flex space-x-2">
-                  <Link to={`/teacher/students/${course.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
+                  <Link
+                    to={`/teacher/students/${course.id}`}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                    >
                       <Users className="mr-2 h-4 w-4" />
                       Students
                     </Button>
                   </Link>
-                  <Link to={`/teacher/assessments/${course.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
+                  <Link
+                    to={`/teacher/assessments/${course.id}`}
+                    className="flex-1"
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                    >
                       <FileText className="mr-2 h-4 w-4" />
                       Assessments
                     </Button>
@@ -256,7 +301,7 @@ export default function TeacherCourses() {
       </div>
 
       {/* Completed Courses */}
-      {completedCourses.length > 0 && (
+      {/* {completedCourses.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Completed Courses</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -295,7 +340,7 @@ export default function TeacherCourses() {
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
-  )
+  );
 }

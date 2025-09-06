@@ -43,11 +43,11 @@ const AssessmentPage = () => {
   }, []);
 
   // Toggle theme
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
+  // const toggleTheme = () => {
+  //   const newTheme = theme === "light" ? "dark" : "light";
+  //   setTheme(newTheme);
+  //   document.documentElement.classList.toggle("dark", newTheme === "dark");
+  // };
 
   // Handle mark input
   const handleMarkChange = (studentId, assessId, value) => {
@@ -108,13 +108,13 @@ const AssessmentPage = () => {
                 Computer Science 101 (CS101) - Fall 2025
               </h1>
             </div>
-            <button
+            {/* <button
               onClick={toggleTheme}
               className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
               aria-label="Toggle theme"
             >
               {theme === "light" ? "🌙" : "☀️"}
-            </button>
+            </button> */}
           </div>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Assessment weights sum to 100%. Enter or edit raw marks (e.g., 8/10
