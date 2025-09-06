@@ -364,12 +364,12 @@ const TeacherAssessments = () => {
   const navigate = useNavigate();
 
   // Sync with system theme preference on mount
-  useEffect(() => {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    setTheme(prefersDark ? "dark" : "light");
-  }, []);
+  // useEffect(() => {
+  //   const prefersDark = window.matchMedia(
+  //     "(prefers-color-scheme: dark)"
+  //   ).matches;
+  //   setTheme(prefersDark ? "dark" : "light");
+  // }, []);
 
   // Toggle theme
   const toggleTheme = () => {

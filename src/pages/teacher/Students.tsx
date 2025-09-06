@@ -1,15 +1,22 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Mail, Phone, Download, Filter, MoreHorizontal } from "lucide-react"
-import { useParams } from "react-router-dom"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Search, Mail, Phone, Download, Filter, Users } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
 
 export default function TeacherStudents() {
-  const { courseId } = useParams()
+  const { courseId } = useParams();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const students = [
     {
@@ -18,12 +25,6 @@ export default function TeacherStudents() {
       email: "john.smith@dhfm-college.de",
       phone: "+49 123 456 7890",
       avatar: "/placeholder.svg?height=40&width=40",
-      currentGrade: "A-",
-      gpa: 1.3,
-      attendance: 95,
-      assignments: { completed: 8, total: 8 },
-      lastActive: "2024-01-16",
-      status: "active",
     },
     {
       id: "2024002",
@@ -31,12 +32,6 @@ export default function TeacherStudents() {
       email: "emma.mueller@dhfm-college.de",
       phone: "+49 123 456 7891",
       avatar: "/placeholder.svg?height=40&width=40",
-      currentGrade: "B+",
-      gpa: 1.7,
-      attendance: 92,
-      assignments: { completed: 7, total: 8 },
-      lastActive: "2024-01-16",
-      status: "active",
     },
     {
       id: "2024003",
@@ -44,12 +39,6 @@ export default function TeacherStudents() {
       email: "michael.weber@dhfm-college.de",
       phone: "+49 123 456 7892",
       avatar: "/placeholder.svg?height=40&width=40",
-      currentGrade: "A",
-      gpa: 1.0,
-      attendance: 98,
-      assignments: { completed: 8, total: 8 },
-      lastActive: "2024-01-15",
-      status: "active",
     },
     {
       id: "2024004",
@@ -57,12 +46,6 @@ export default function TeacherStudents() {
       email: "sarah.fischer@dhfm-college.de",
       phone: "+49 123 456 7893",
       avatar: "/placeholder.svg?height=40&width=40",
-      currentGrade: "B",
-      gpa: 2.0,
-      attendance: 88,
-      assignments: { completed: 6, total: 8 },
-      lastActive: "2024-01-14",
-      status: "at-risk",
     },
     {
       id: "2024005",
@@ -70,144 +53,119 @@ export default function TeacherStudents() {
       email: "david.hoffmann@dhfm-college.de",
       phone: "+49 123 456 7894",
       avatar: "/placeholder.svg?height=40&width=40",
-      currentGrade: "A-",
-      gpa: 1.3,
-      attendance: 94,
-      assignments: { completed: 8, total: 8 },
-      lastActive: "2024-01-16",
-      status: "active",
     },
-  ]
+  ];
 
   const courseInfo = {
     name: courseId === "all" ? "All Courses" : "Human Anatomy",
     code: courseId === "all" ? "" : "MED101",
     totalStudents: courseId === "all" ? 247 : 45,
-  }
+  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "default"
-      case "at-risk":
-        return "destructive"
-      case "inactive":
-        return "secondary"
-      default:
-        return "outline"
-    }
-  }
-
-  const getGradeColor = (grade: string) => {
-    if (grade.startsWith("A")) return "text-green-600"
-    if (grade.startsWith("B")) return "text-blue-600"
-    if (grade.startsWith("C")) return "text-yellow-600"
-    return "text-red-600"
-  }
+  // Filter students based on search term
+  const filteredStudents = students.filter(
+    (student) =>
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Students</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {courseInfo.name} {courseInfo.code && `(${courseInfo.code})`} • {courseInfo.totalStudents} students
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export List
-          </Button>
-          <Button variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
-            Filter
-          </Button>
-        </div>
-      </div>
-
-      {/* Student Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{students.length}</div>
-            <p className="text-xs text-muted-foreground">Enrolled in course</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Grade</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">B+</div>
-            <p className="text-xs text-muted-foreground">Class average</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">93%</div>
-            <p className="text-xs text-muted-foreground">Average attendance</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">At Risk</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {students.filter((s) => s.status === "at-risk").length}
-            </div>
-            <p className="text-xs text-muted-foreground">Students need attention</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filter */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Student List</CardTitle>
-          <CardDescription>Manage and view student information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search students..." className="pl-8" />
-            </div>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 animate-fade-in">
+          <div>
+            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">
+              Students
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
+              {courseInfo.name} {courseInfo.code && `(${courseInfo.code})`} •{" "}
+              {courseInfo.totalStudents} students
+            </p>
           </div>
+          <div className="flex space-x-3">
+            <Button className="bg-gray-600 dark:bg-gray-400 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300 transform transition-transform hover:scale-105">
+              <Download className="mr-2 h-5 w-5" />
+              Export List
+            </Button>
+            <Button
+              variant="outline"
+              className="border-gray-600 dark:border-gray-400 text-gray-600 dark:text-gray-400 hover:bg-gray-600 hover:text-white dark:hover:bg-gray-400 dark:hover:text-gray-900 transition-colors"
+            >
+              <Filter className="mr-2 h-5 w-5" />
+              Filter
+            </Button>
+          </div>
+        </div>
 
-          {/* Student Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        {/* Student Statistics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="bg-gray-100 dark:bg-gray-900 shadow-md hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 border-2 border-gray-300 dark:border-gray-700">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                Total Students
+              </CardTitle>
+              <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {students.length}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Enrolled in course
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search and Student List */}
+        <Card className="bg-gray-100 dark:bg-gray-900 shadow-xl rounded-xl overflow-hidden group border-2 border-gray-300 dark:border-gray-700">
+          <CardHeader className="relative z-10">
+            <CardTitle className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Student List
+            </CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">
+              Manage and view student information for {courseInfo.name}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="relative z-10 p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <Input
+                  placeholder="Search students by name, ID, or email..."
+                  className="pl-10 bg-gray-100 dark:bg-gray-900 border-2 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-300 rounded-lg"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Student Table */}
+            <table className="w-full border-t-2 border-b-2 border-gray-300 dark:border-gray-700 rounded-lg">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-2">Student</th>
-                  <th className="text-left py-3 px-2">Contact</th>
-                  <th className="text-center py-3 px-2">Current Grade</th>
-                  <th className="text-center py-3 px-2">GPA</th>
-                  <th className="text-center py-3 px-2">Attendance</th>
-                  <th className="text-center py-3 px-2">Assignments</th>
-                  <th className="text-center py-3 px-2">Status</th>
-                  <th className="text-center py-3 px-2">Actions</th>
+                <tr className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-b border-gray-300 dark:border-gray-700">
+                  <th className="text-left py-4 px-6 font-semibold">Student</th>
+                  <th className="text-left py-4 px-6 font-semibold">Contact</th>
+                  <th className="text-center py-4 px-6 font-semibold">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
-                  <tr key={student.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <td className="py-4 px-2">
-                      <div className="flex items-center space-x-3">
-                        <Avatar>
-                          <AvatarImage src={student.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>
+                {filteredStudents.map((student) => (
+                  <tr
+                    key={student.id}
+                    className="border-b border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all duration-300 transform hover:scale-[1.01]"
+                  >
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={student.avatar || "/placeholder.svg"}
+                          />
+                          <AvatarFallback className="bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
                             {student.name
                               .split(" ")
                               .map((n) => n[0])
@@ -215,66 +173,131 @@ export default function TeacherStudents() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{student.name}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">ID: {student.id}</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {student.name}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            ID: {student.id}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-2">
-                      <div className="space-y-1">
+                    <td className="py-4 px-6">
+                      <div className="space-y-2">
                         <div className="flex items-center text-sm">
-                          <Mail className="mr-1 h-3 w-3" />
-                          <a href={`mailto:${student.email}`} className="text-blue-600 hover:underline">
+                          <Mail className="mr-2 h-4 w-4 text-gray-600 dark:text-gray-400" />
+                          <a
+                            href={`mailto:${student.email}`}
+                            className="text-gray-700 dark:text-gray-300 hover:underline"
+                          >
                             {student.email}
                           </a>
                         </div>
                         <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                          <Phone className="mr-1 h-3 w-3" />
+                          <Phone className="mr-2 h-4 w-4 text-gray-600 dark:text-gray-400" />
                           {student.phone}
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-2 text-center">
-                      <span className={`font-bold ${getGradeColor(student.currentGrade)}`}>{student.currentGrade}</span>
-                    </td>
-                    <td className="py-4 px-2 text-center font-mono">{student.gpa}</td>
-                    <td className="py-4 px-2 text-center">
-                      <div className="flex flex-col items-center">
-                        <span className={student.attendance >= 90 ? "text-green-600" : "text-red-600"}>
-                          {student.attendance}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-2 text-center">
-                      <div className="flex flex-col items-center">
-                        <span>
-                          {student.assignments.completed}/{student.assignments.total}
-                        </span>
-                        <div className="w-12 bg-gray-200 rounded-full h-1 mt-1 dark:bg-gray-700">
-                          <div
-                            className="bg-blue-600 h-1 rounded-full"
-                            style={{
-                              width: `${(student.assignments.completed / student.assignments.total) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-2 text-center">
-                      <Badge variant={getStatusColor(student.status)}>{student.status}</Badge>
-                    </td>
-                    <td className="py-4 px-2 text-center">
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                    <td className="py-4 px-6 text-center">
+                      <Link to={`/teacher/students/${courseId}/${student.id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-transparent text-gray-600 dark:text-gray-400 border-gray-600 dark:border-gray-400 hover:bg-gray-600 hover:text-white dark:hover:bg-gray-400 dark:hover:text-gray-900 transition-colors"
+                        >
+                          View Profile
+                        </Button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </CardContent>
-      </Card>
+            {filteredStudents.length === 0 && (
+              <div className="text-center py-6 text-gray-600 dark:text-gray-400">
+                No students found matching your search.
+              </div>
+            )}
+          </CardContent>
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-300 dark:bg-gray-700 opacity-0 group-hover:opacity-100 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+        </Card>
+      </div>
     </div>
-  )
+  );
 }
+// import { Link } from "react-router-dom";
+// import { FaBook, FaClock, FaArrowRight } from "react-icons/fa";
+
+// // Sample course data (in a real app, this could come from a prop or API)
+// const courses = [
+//   {
+//     id: 1,
+//     name: "Introduction to Computer Science",
+//     code: "CS101",
+//     semester: "Fall 2025",
+//   },
+//   {
+//     id: 2,
+//     name: "Data Structures and Algorithms",
+//     code: "CS201",
+//     semester: "Fall 2025",
+//   },
+//   {
+//     id: 3,
+//     name: "Web Development Fundamentals",
+//     code: "CS301",
+//     semester: "Fall 2025",
+//   },
+// ];
+
+// // CourseCard component
+// const CourseCard = ({ course }) => {
+//   return (
+//     <Link
+//       to={`/students/${course.id}`}
+//       className="relative bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-6 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-2xl group overflow-hidden"
+//     >
+//       <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+//       <div className="relative z-10">
+//         <h2 className="text-2xl font-bold mb-2 flex items-center">
+//           <FaBook className="mr-2" /> {course.name}
+//         </h2>
+//         <p className="text-sm opacity-90 flex items-center">
+//           <FaClock className="mr-2" /> {course.semester}
+//         </p>
+//         <p className="text-sm opacity-90">Course Code: {course.code}</p>
+//         <div className="mt-4 flex justify-end">
+//           <span className="inline-flex items-center text-sm font-semibold group-hover:pr-2 transition-all duration-300">
+//             View Students{" "}
+//             <FaArrowRight className="ml-2 transform group-hover:translate-x-1" />
+//           </span>
+//         </div>
+//       </div>
+//       <div className="absolute bottom-0 left-0 w-full h-1 bg-white opacity-0 group-hover:opacity-100 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+//     </Link>
+//   );
+// };
+
+// // Main TeacherCourses component
+// const TeacherStudents = () => {
+//   return (
+//     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+//       <div className="max-w-6xl mx-auto">
+//         <h1 className="text-4xl font-extrabold text-center text-gray-900 dark:text-white mb-8 animate-fade-in">
+//           My Courses
+//         </h1>
+//         <p className="text-center text-gray-600 dark:text-gray-300 mb-12 animate-fade-in-up">
+//           Explore your current courses and manage student rosters with ease.
+//         </p>
+//         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+//           {courses.map((course) => (
+//             <CourseCard key={course.id} course={course} />
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default TeacherStudents;

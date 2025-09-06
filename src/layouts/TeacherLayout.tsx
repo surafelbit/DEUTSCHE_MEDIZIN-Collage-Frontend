@@ -39,7 +39,7 @@ export default function TeacherLayout() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   return (
-    <div className=" flex min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
+    <div className=" flex min-h-screen bg-gray-50 dark:bg-gray-900 ">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -131,6 +131,7 @@ export default function TeacherLayout() {
       </div>
 
       {/* Main content */}
+
       <div
         className={`inset-0 w-full transition-all duration-300 ${
           sidebarOpen && window.innerWidth >= 1024 ? "ml-64" : "ml-0"
