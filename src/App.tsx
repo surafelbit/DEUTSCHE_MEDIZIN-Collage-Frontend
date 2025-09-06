@@ -33,6 +33,8 @@ import HeadStudents from "./pages/head/Students";
 import HeadTeachers from "./pages/head/Teachers";
 import HeadCourses from "./pages/head/Courses";
 import HeadReports from "./pages/head/Reports";
+import HeadGrades from "./pages/head/Grades";
+import CreateTeacher from "./pages/head/CreateTeacher";
 
 // Registrar Pages
 import RegistrarLayout from "./layouts/RegistrarLayout";
@@ -65,6 +67,7 @@ import DeanDashboard from "./pages/dean/Dashboard";
 import DeanStudents from "./pages/dean/Students";
 import DeanGrades from "./pages/dean/Grades";
 import DeanReports from "./pages/dean/Reports";
+import CreateDepartmentHead from "./pages/dean/CreateDepartmentHead";
 
 // Manager Pages
 import ManagerLayout from "./layouts/ManagerLayout";
@@ -116,9 +119,12 @@ function App() {
 
           {/* Department Head Routes */}
           <Route path="/head" element={<HeadLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<HeadDashboard />} />
             <Route path="students" element={<HeadStudents />} />
             <Route path="teachers" element={<HeadTeachers />} />
+            <Route path="create-teacher" element={<CreateTeacher />} />
+            <Route path="grades" element={<HeadGrades />} />
             <Route path="courses" element={<HeadCourses />} />
             <Route path="reports" element={<HeadReports />} />
           </Route>
@@ -181,7 +187,9 @@ function App() {
 
           {/* Dean Routes */}
           <Route path="/dean" element={<DeanLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DeanDashboard />} />
+            <Route path="create-department-head" element={<CreateDepartmentHead />} />
             <Route path="students" element={<DeanStudents />} />
             <Route path="grades" element={<DeanGrades />} />
             <Route path="reports" element={<DeanReports />} />

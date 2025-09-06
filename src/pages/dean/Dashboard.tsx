@@ -1,6 +1,8 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { UserPlus } from "lucide-react";
 import { Bar, Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -99,7 +101,15 @@ export default function DeanDashboard() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Dean Dashboard</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Dean Dashboard</h1>
+          <Link to="/dean/create-department-head">
+            <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+              <UserPlus className="h-4 w-4" />
+              Create Department Head
+            </Button>
+          </Link>
+        </div>
 
         {/* Totals */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

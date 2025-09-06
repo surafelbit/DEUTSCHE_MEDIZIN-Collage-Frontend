@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useMemo, useState } from "react"
+import { Link } from "react-router-dom"
+import { UserPlus } from "lucide-react"
 
 type Teacher = { id: string; name: string; qualification: string; courses: number }
 
@@ -19,7 +21,15 @@ export default function HeadTeachers() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Department Teachers</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Department Teachers</h1>
+        <Link to="/head/create-teacher">
+          <Button className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Create Teacher
+          </Button>
+        </Link>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Teacher Management</CardTitle>

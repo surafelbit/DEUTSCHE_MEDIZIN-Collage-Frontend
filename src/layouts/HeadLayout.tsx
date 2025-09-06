@@ -14,7 +14,7 @@ export default function HeadLayout() {
     { name: "Dashboard", href: "/head/dashboard", icon: LayoutDashboard },
     { name: "Students", href: "/head/students", icon: Users },
     { name: "Teachers", href: "/head/teachers", icon: Users },
-    { name: "Courses", href: "/head/courses", icon: BookOpen },
+    { name: "Grades", href: "/head/grades", icon: BookOpen },
     { name: "Reports", href: "/head/reports", icon: BarChart3 },
   ]
 
