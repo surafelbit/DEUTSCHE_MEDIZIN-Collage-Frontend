@@ -241,3 +241,25 @@
 .dark .sidebar-scroll {
   scrollbar-color: #60a5fa #1f2937; /* dark mode */
 }
+/*something to slide up*/
+/* index.css or styles.css */
+@keyframes slideUp {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s ease-out forwards;
+}
+
+/* Ensure elements are initially hidden */
+.hidden {
+  opacity: 0;
+  transform: translateY(50px);
+}
