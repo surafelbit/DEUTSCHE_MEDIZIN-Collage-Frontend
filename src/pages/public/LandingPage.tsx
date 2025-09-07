@@ -336,9 +336,8 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section>
-        <section className="container mx-auto px-6 py-24">
+        {/* <section className="container mx-auto px-6 py-24">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left Side: Image & Intro */}
             <motion.div
               initial={{ opacity: 0, x: 100 }}
               animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
@@ -359,7 +358,6 @@ export default function LandingPage() {
               />
             </motion.div>
 
-            {/* Right Side: Stats */}
             <motion.div
               className="flex flex-col gap-10"
               initial={{ opacity: 0, x: -100 }}
@@ -368,7 +366,6 @@ export default function LandingPage() {
               }
               transition={{ duration: 1.5, ease: "easeOut" }}
             >
-              {/* Stat 1 */}
               <motion.div
                 className="bg-blue-50 dark:bg-slate-900 rounded-2xl p-6 shadow-lg"
                 initial={{ opacity: 0, y: -50 }}
@@ -385,7 +382,6 @@ export default function LandingPage() {
                 </p>
               </motion.div>
 
-              {/* Stat 2 */}
               <motion.div
                 className="bg-blue-50 dark:bg-slate-900 rounded-2xl p-6 shadow-lg"
                 initial={{ opacity: 0, y: 50 }}
@@ -402,9 +398,160 @@ export default function LandingPage() {
                 </p>
               </motion.div>
 
-              {/* Stat 3 */}
               <motion.div
                 className="bg-blue-50 dark:bg-slate-900 rounded-2xl p-6 shadow-lg"
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={850} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  Staff members currently engaged
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section> */}
+        {/* <section className="mx-20 my-30">
+          <div ref={infoRef} className="grid grid-cols-2 gap-x-20">
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+              transition={{ duration: 2, ease: "easeOut" }}
+            >
+              <div>
+                <h2 className="text-4xl text-blue-500 dark:text-blue-300 font-serif">
+                  Doche College at glance
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono mb-4">
+                  For nearly four centuries, people have come to Harvard in the
+                  pursuit of truth, knowledge, and the betterment of society.
+                </p>
+                <img src="/assets/library.JPG"></img>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: -100 }}
+              animate={
+                infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }
+              }
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="flex flex-col justify-between"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -100 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: -100 }
+                }
+                transition={{ duration: 2, ease: "easeOut" }}
+                className="gap-y-8"
+              >
+                <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
+                  2017{" "}
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono">
+                  The year Douche was founded
+                </p>
+              </motion.div>
+              <div>
+                <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
+                  2017{" "}
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono">
+                  Undergraduate and graduate students in the 2023-24 academic
+                  year
+                </p>
+              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }
+                }
+                transition={{ duration: 2, ease: "easeOut" }}
+              >
+                <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
+                  2017{" "}
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono">
+                  students currently enganged now
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section> */}
+        <section className="container   px-6 py-24">
+          <div className="grid mx-10 lg:grid-cols-2 gap-16 items-center">
+            {/* Left Side: Image & Intro */}
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              <h2 className="text-4xl md:text-5xl font-serif text-blue-600 dark:text-blue-400 mb-6">
+                Doche College at a Glance
+              </h2>
+              <p className="text-lg md:text-xl font-sans dark:text-gray-200 text-gray-800 mb-6">
+                For nearly four years, people have come to Doche College in
+                pursuit of knowledge, truth, and the betterment of society.
+              </p>
+              <motion.img
+                src="/assets/collegephoto.jpg"
+                alt="College Library"
+                className="rounded-3xl shadow-2xl w-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
+                whileHover={{ scale: 1.05 }}
+              />
+            </motion.div>
+
+            {/* Right Side: Stats */}
+            <motion.div
+              className="flex flex-col gap-10"
+              initial={{ opacity: 0, x: -100 }}
+              animate={
+                infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }
+              }
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              {/* Stat 1 */}
+              <motion.div
+                className=""
+                initial={{ opacity: 0, y: -50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: -50 }
+                }
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={2017} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  The year Doche was founded
+                </p>
+              </motion.div>
+
+              {/* Stat 2 */}
+              <motion.div
+                className=""
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={1240} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  Undergraduate & graduate students in 2023-24
+                </p>
+              </motion.div>
+
+              {/* Stat 3 */}
+              <motion.div
+                className=""
                 initial={{ opacity: 0, y: 50 }}
                 animate={
                   infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
