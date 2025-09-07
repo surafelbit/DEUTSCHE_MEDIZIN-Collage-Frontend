@@ -5,6 +5,7 @@ import { motion, useInView } from "framer-motion";
 import Lottie from "lottie-react";
 import DarkVeil from "@/designs/DarkVeil";
 import LiquidChrome from "@/designs/LiquidChrome";
+
 import {
   Card,
   CardContent,
@@ -27,6 +28,7 @@ import GlareHover from "@/designs/GlareHover";
 import CircularGallery from "../../designs/CircularGallery";
 import LightRays from "@/designs/LightRays";
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
+import CountUp from "react-countup";
 
 export default function LandingPage() {
   const [show, setShow] = useState(false);
@@ -90,54 +92,35 @@ export default function LandingPage() {
   const homeRef = useRef();
   const heroRef = useRef(null);
   const heroInView = useInView(heroRef, { margin: "-150px" });
-
+  const textRef = useRef(null);
   // Mission Section Ref
   const missionRef = useRef(null);
   const missionInView = useInView(missionRef, { margin: "-150px" });
   const programs = [
     {
       title: "Anatomy",
-      icon: "/assets/anatomy.png",
+      icon: "https://tse3.mm.bing.net/th/id/OIP.2lJ3_vUKOmF97-CgZ7yylAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
       description:
         "Understand the human body structure through detailed study and cadaver labs.",
     },
     {
       title: "Physiology",
-      icon: "/assets/physiology.png",
+      icon: "https://tse3.mm.bing.net/th/id/OIP.2lJ3_vUKOmF97-CgZ7yylAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
       description:
         "Learn the normal functions of the human body in health and disease.",
     },
     {
       title: "Biochemistry",
-      icon: "/assets/biochemistry.png",
+      icon: "https://tse3.mm.bing.net/th/id/OIP.2lJ3_vUKOmF97-CgZ7yylAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
       description:
         "Explore the chemical processes underlying life and metabolism.",
     },
-    {
-      title: "Pharmacology",
-      icon: "/assets/pharmacology.png",
-      description: "Study drugs, their effects, and proper therapeutic use.",
-    },
-    {
-      title: "Pathology",
-      icon: "/assets/pathology.png",
-      description:
-        "Examine disease mechanisms and learn diagnostic techniques.",
-    },
-    {
-      title: "Microbiology",
-      icon: "/assets/microbiology.png",
-      description:
-        "Understand microorganisms and their role in health and disease.",
-    },
-    {
-      title: "Surgery Skills",
-      icon: "/assets/surgery.png",
-      description: "Hands-on training in surgical techniques and patient care.",
-    },
   ];
+
   const ref = useRef(null);
   const inView = useInView(ref, { margin: "-150px" });
+  const infoRef = useRef(null);
+  const infoView = useInView(infoRef, { margin: "-150px" });
   return (
     <div className="relative min-h-screen ">
       {/* DarkVeil Background */}
@@ -153,7 +136,7 @@ export default function LandingPage() {
             <ChevronUpIcon className="h-6 w-6" />
           </button>
         )}
-        <header className="fixed top-0 left-0 w-full bg-white dark:bg-gray-900 shadow z-50">
+        <header className=" top-0 left-0 w-full bg-white dark:bg-gray-900 shadow z-50">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center relative">
             <div className="flex items-center space-x-3">
               <div className="w-12 rounded-full   rounded-lg flex items-center justify-center">
@@ -164,7 +147,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <nav className=" shadow fixed w-full z-50">
+            <nav className=" shadow  w-full z-50">
               <ul className="flex gap-30 justify-center space-x-8 p-4">
                 <li
                   className="w-8 h-8"
@@ -232,14 +215,16 @@ export default function LandingPage() {
           </div>
         </header>
 
-        <section className="relative bg-gradient-to-r from-blue-900 to-blue-200 text-white h-96 flex items-center ">
+        <section className="relative my-8 bg-gradient-to-r from-blue-900 to-blue-200 text-white h-96 flex items-center ">
           <img
             src="https://skyresortbahirdar.com/wp-content/uploads/2021/09/Bahir-Dar-City-View-1-2560x1440.jpg"
             alt="Student Studying"
             className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
           <div className="relative z-10 text-left">
-            <p className="text-lg mx-8 mb-2">In the city of Bahirdar</p>
+            <p className="text-lg mx-8 mb-2 font-serif font-bold">
+              In the city of Bahirdar
+            </p>
             <h2 className="text-4xl mb-4 bg-gradient-to-r from-blue-900 to-blue-200 px-4 py-2 rounded font-serif">
               <span className="font-bold">DEUTSCHE HOCHSCHULE</span> MEDICIN
               COLLEGE
@@ -251,7 +236,7 @@ export default function LandingPage() {
           </div>
           <div className="absolute left-0 right-0 bottom-0 mx-auto mb-[-40px] max-w-3xl bg-white bg-white/40 backdrop-blur-md rounded-lg p-6 shadow-lg">
             <p className="text-sm font-semibold text-blue-900 mb-1">About us</p>
-            <h2 className="text-xl font-bold uppercase text-black leading-tight">
+            <h2 className="text-xl font-bold uppercase text-blue-600 leading-tight">
               DEUTSCHE HOCHSCHULE <br />
               MEDICIN COLLEGE BAHIRDAR
             </h2>
@@ -259,7 +244,7 @@ export default function LandingPage() {
         </section>
 
         {/* Hero Section */}
-        <section id="home" className="container mx-auto px-4 py-25 pt-30">
+        <section id="home" className="my-8 container mx-auto px-4 py-10 pt-30">
           <div
             className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center gap-16 overflow-hidden"
             ref={heroRef}
@@ -299,15 +284,17 @@ export default function LandingPage() {
                 }
                 transition={{ duration: 2, delay: 0.6, ease: "easeOut" }}
               >
-                <div>Excellence In</div>
-                <TrueFocus
-                  sentence="Medical Education"
-                  manualMode={false}
-                  blurAmount={5}
-                  borderColor="red"
-                  animationDuration={2}
-                  pauseBetweenAnimations={1}
-                />
+                <div className="text-blue-600">Excellence In</div>
+                <div className="text-blue-600">
+                  <TrueFocus
+                    sentence="Medical Education"
+                    manualMode={false}
+                    blurAmount={5}
+                    borderColor="red"
+                    animationDuration={2}
+                    pauseBetweenAnimations={1}
+                  />
+                </div>
               </motion.h1>
 
               <motion.p
@@ -349,118 +336,438 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section>
+        {/* <section className="container mx-auto px-6 py-24">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              <h2 className="text-4xl md:text-5xl font-serif text-blue-600 dark:text-blue-400 mb-6">
+                Doche College at a Glance
+              </h2>
+              <p className="text-lg md:text-xl font-sans dark:text-gray-200 text-gray-800 mb-6">
+                For nearly four centuries, people have come to Doche College in
+                pursuit of knowledge, truth, and the betterment of society.
+              </p>
+              <motion.img
+                src="/assets/library.JPG"
+                alt="College Library"
+                className="rounded-3xl shadow-2xl w-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
+                whileHover={{ scale: 1.05 }}
+              />
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col gap-10"
+              initial={{ opacity: 0, x: -100 }}
+              animate={
+                infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }
+              }
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              <motion.div
+                className="bg-blue-50 dark:bg-slate-900 rounded-2xl p-6 shadow-lg"
+                initial={{ opacity: 0, y: -50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: -50 }
+                }
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={2017} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  The year Doche was founded
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-blue-50 dark:bg-slate-900 rounded-2xl p-6 shadow-lg"
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={1240} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  Undergraduate & graduate students in 2023-24
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-blue-50 dark:bg-slate-900 rounded-2xl p-6 shadow-lg"
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={850} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  Staff members currently engaged
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section> */}
+        {/* <section className="mx-20 my-30">
+          <div ref={infoRef} className="grid grid-cols-2 gap-x-20">
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+              transition={{ duration: 2, ease: "easeOut" }}
+            >
+              <div>
+                <h2 className="text-4xl text-blue-500 dark:text-blue-300 font-serif">
+                  Doche College at glance
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono mb-4">
+                  For nearly four centuries, people have come to Harvard in the
+                  pursuit of truth, knowledge, and the betterment of society.
+                </p>
+                <img src="/assets/library.JPG"></img>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: -100 }}
+              animate={
+                infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }
+              }
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="flex flex-col justify-between"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: -100 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: -100 }
+                }
+                transition={{ duration: 2, ease: "easeOut" }}
+                className="gap-y-8"
+              >
+                <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
+                  2017{" "}
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono">
+                  The year Douche was founded
+                </p>
+              </motion.div>
+              <div>
+                <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
+                  2017{" "}
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono">
+                  Undergraduate and graduate students in the 2023-24 academic
+                  year
+                </p>
+              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }
+                }
+                transition={{ duration: 2, ease: "easeOut" }}
+              >
+                <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
+                  2017{" "}
+                </h2>
+                <p className="text-lg dark:text-white text-black font-mono">
+                  students currently enganged now
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section> */}
+        <section className="container   px-6 py-24">
+          <div className="grid mx-10 lg:grid-cols-2 gap-16 items-center">
+            {/* Left Side: Image & Intro */}
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              <h2 className="text-4xl md:text-5xl font-serif text-blue-600 dark:text-blue-400 mb-6">
+                Doche College at a Glance
+              </h2>
+              <p className="text-lg md:text-xl font-sans dark:text-gray-200 text-gray-800 mb-6">
+                For nearly four years, people have come to Doche College in
+                pursuit of knowledge, truth, and the betterment of society.
+              </p>
+              <motion.img
+                src="/assets/collegephoto.jpg"
+                alt="College Library"
+                className="rounded-3xl shadow-2xl w-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500"
+                whileHover={{ scale: 1.05 }}
+              />
+            </motion.div>
+
+            {/* Right Side: Stats */}
+            <motion.div
+              className="flex flex-col gap-10"
+              initial={{ opacity: 0, x: -100 }}
+              animate={
+                infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }
+              }
+              transition={{ duration: 1.5, ease: "easeOut" }}
+            >
+              {/* Stat 1 */}
+              <motion.div
+                className=""
+                initial={{ opacity: 0, y: -50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: -50 }
+                }
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={2017} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  The year Doche was founded
+                </p>
+              </motion.div>
+
+              {/* Stat 2 */}
+              <motion.div
+                className=""
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={1240} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  Undergraduate & graduate students in 2023-24
+                </p>
+              </motion.div>
+
+              {/* Stat 3 */}
+              <motion.div
+                className=""
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }
+                }
+                transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+              >
+                <h3 className="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">
+                  <CountUp end={850} duration={2} />
+                </h3>
+                <p className="font-sans dark:text-gray-200 text-gray-700 text-lg">
+                  Staff members currently engaged
+                </p>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section>
         <section
           id="programs"
           className="container mx-auto px-4 py-24 overflow-hidden"
           ref={ref}
         >
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">
-            Medical Programs & Courses
-          </h2>
+          <motion.h2
+            className="text-4xl font-extrabold text-center mb-16 
+    bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent 
+    drop-shadow-lg tracking-tight"
+            initial={{ opacity: 0, x: 200 }} // start hidden and lower
+            animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 200 }} // slide up and appear
+            transition={{ duration: 2.2, ease: "easeOut" }}
+          >
+            Medical Programs & Courses We Provide
+          </motion.h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 place-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 place-items-center">
             {programs.map((program, index) => (
               <motion.div
                 key={index}
-                className="flex flex-col items-center justify-center p-6 rounded-full bg-gradient-to-br from-red-500 to-pink-600 shadow-lg text-white w-48 h-48 text-center cursor-pointer hover:scale-105"
-                initial={{ opacity: 0, y: 50, scale: 0.5 }}
+                className="flex flex-col overflow-hidden rounded-3xl 
+        bg-white/80 dark:bg-slate-900/80 
+        backdrop-blur-xl border border-slate-200 dark:border-slate-700
+        shadow-xl hover:shadow-2xl 
+        text-center cursor-pointer w-80 h-[32rem] transition-all duration-300"
+                initial={{ opacity: 0, y: 50, scale: 0.9 }}
                 animate={
                   inView
                     ? { opacity: 1, y: 0, scale: 1 }
-                    : { opacity: 0, y: 50, scale: 0.5 }
+                    : { opacity: 0, y: 50, scale: 0.9 }
                 }
                 transition={{
-                  duration: 1.8,
+                  duration: 1.2,
                   delay: index * 0.2,
                   ease: "easeOut",
                 }}
+                whileHover={{
+                  scale: 1.05,
+                  y: -12,
+                }}
               >
-                <img
-                  src={program.icon}
-                  alt={program.title}
-                  className="h-16 w-16 mb-4"
-                />
-                <h3 className="text-xl font-semibold">{program.title}</h3>
-                <p className="text-sm mt-2">{program.description}</p>
+                {/* Full image large section */}
+                <div className="w-full h-72">
+                  <img
+                    src={program.icon}
+                    alt={program.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Text section smaller */}
+                <div className="flex flex-col items-center p-6">
+                  <h3 className="text-lg font-bold text-gray-800 dark:text-white">
+                    {program.title}
+                  </h3>
+                  <p className="text-sm mt-2 text-gray-600 dark:text-gray-300">
+                    {program.description}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>
         </section>
-        <section id="hero" className="relative h-screen text-white ">
-          {/* Background video */}
 
-          {/* this is the video recylce background */}
-          {/* <video
-            className="absolute inset-0 w-full h-full object-cover"
-            src="https://res.cloudinary.com/djz4nl0ic/video/upload/v1755069644/4C5A5181_llhfsl"
+        <section
+          id="hero"
+          className="relative mx-20 my-8 h-screen overflow-hidden text-white font-sans"
+        >
+          {/* Background video */}
+          <video
+            className="absolute inset-0 w-full h-full object-cover brightness-70"
+            src="/assets/video.mp4"
             autoPlay
             loop
             muted
             playsInline
-          ></video> */}
+          ></video>
 
-          {/* this is the video recylce background */}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/70 via-transparent to-blue-900/70"></div>
 
-          {/* Dark overlay */}
-          <div className="absolute inset-0 "></div>
+          {/* Floating circles */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full bg-blue-400 opacity-15"
+                style={{
+                  width: `${60 + i * 25}px`,
+                  height: `${60 + i * 25}px`,
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                }}
+                animate={{ y: ["0%", "12%", "0%"], x: ["0%", "12%", "0%"] }}
+                transition={{
+                  duration: 9 + i,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </div>
 
           {/* Content */}
-          <div className="relative z-10 flex flex-col justify-end pb-4 items-center h-full px-6 text-center text-sky-300 animate-fade-up">
-            <h1
-              className="text-5xl md:text-6xl font-extrabold mb-4
-          bg-gradient-to-r from-blue-900 to-blue-200 bg-clip-text text-transparent"
+          <div className="relative z-10 flex flex-col justify-center items-center h-full px-6 text-center">
+            {/* Main heading - dynamic letters */}
+            <motion.h1
+              className="text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(0,0,0,0.7)] tracking-tight"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1.5 }}
             >
-              {/* Welcome to BrightFuture Medical College */}
-              Embark on your journey
-            </h1>
+              {["Embark", "on", "your", "Journey"].map((word, idx) => (
+                <motion.span
+                  key={idx}
+                  className="inline-block mx-1"
+                  initial={{ opacity: 0, y: 50, scale: 0.7 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{
+                    duration: Infinity,
+                    delay: idx * 0.3,
+                    ease: "easeOut",
+                  }}
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </motion.h1>
 
-            <p className="text-xl md:text-2xl bg-gradient-to-r from-blue-900 to-blue-200 bg-clip-text text-transparent mb-2">
+            {/* Subheading */}
+            <motion.p
+              className="text-2xl md:text-3xl font-medium text-gray-100 mb-6 drop-shadow-lg"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.8, delay: 1.2, ease: "easeOut" }}
+            >
               Pursue your dreams in{" "}
-              <span className="font-semibold text-blue-900">Medicine</span> and{" "}
-              <span className="font-semibold text-blue-900">Healthcare</span>
-            </p>
-
-            <p className="text-lg md:text-xl text-blue-900 mb-2">
-              Whether You Are{" "}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <span className="px-4 py-2 text-blue-800 font-medium">
-                Regular
+              <span className="text-cyan-400 font-bold tracking-wide">
+                Medicine
+              </span>{" "}
+              and{" "}
+              <span className="text-indigo-400 font-bold tracking-wide">
+                Healthcare
               </span>
-              <span className="text-blue-900 font-semibold">or</span>
-              <span className="px-4 py-2  text-blue-800  font-medium">
-                Distance
-              </span>
-              <span className="px-4 py-2  text-blue-800  font-medium">
-                Extension
-              </span>
-            </div>
+            </motion.p>
 
-            {/* <p className="text-lg md:text-xl font-semibold text-gray-800">
-            Embark on your journey to excellence in medical education today.
-          </p> */}
-            <div className="flex flex-col sm:flex-row gap-4 bg-gradient-to-r from-blue-900 to-blue-200 rounded-full justify-center sm:justify-start">
+            {/* Badges with float */}
+            <motion.div
+              className="flex flex-wrap justify-center gap-5 mb-8"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.5, delay: 1.6, ease: "easeOut" }}
+            >
+              {["Regular", "Distance", "Extension"].map((type, idx) => (
+                <motion.span
+                  key={idx}
+                  className="px-5 py-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-semibold shadow-lg cursor-pointer"
+                  whileHover={{
+                    scale: 1.1,
+                    y: -5,
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+                  }}
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{
+                    duration: 2 + idx,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: idx * 0.3,
+                  }}
+                >
+                  {type}
+                </motion.span>
+              ))}
+            </motion.div>
+
+            {/* CTA button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, delay: 2.1, ease: "easeOut" }}
+            >
               <Link to="/register">
                 <Button
-                  variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-3 bg-transparent"
+                  className="px-10 py-4 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold text-lg shadow-2xl hover:shadow-[0_0_40px_rgba(0,255,255,0.6)] animate-pulse"
                 >
-                  {t("auth:register")}{" "}
+                  {t("auth:register")}
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* Core Values, Vision, Mission */}
         <section
           id="mission"
-          className="container mx-auto px-4 py-16"
+          className="container my-8 mx-auto px-4 py-16"
           ref={missionRef}
         >
-          <h2 className="text-2xl ml-12 font-bold mb-4 text-gray-800 dark:text-white">
+          <h2 className="text-2xl ml-12 font-bold mb-4 text-blue-500 dark:text-white">
             Values and Missions
           </h2>
 
@@ -543,9 +850,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <div className="py-8">
+        <div className="pt-28 pb-48">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
+            <h2 className="text-2xl font-bold mb-4 text-blue-500 dark:text-white">
               DISCOVER MORE
             </h2>
             <div className="relative overflow-hidden">
@@ -663,10 +970,16 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        <div className="relative h-[600px] ">
+        <div className="relative h-[600px] px-10 flex flex-col items-center justify-center">
+          {/* Heading positioned at the top center */}
+          <h2 className="text-4xl font-bold text-blue-500 dark:text-white mb-8">
+            Our Facilities
+          </h2>
+
+          {/* Circular gallery below the heading */}
           <CircularGallery
             bend={3}
-            textColor="#ffffff"
+            textColor="#3B82F6"
             borderRadius={0.05}
             scrollEase={0.02}
           />
@@ -675,12 +988,12 @@ export default function LandingPage() {
         {/* Call to Action */}
         {/* <section className="bg-blue-600 dark:bg-blue-800 py-16"> */}
 
-        <section className=" py-16">
+        <section className="py-26">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
+            <h2 className="text-3xl font-bold text-blue-500 dark:text-white mb-4">
               Ready to Start Your Medical Journey?
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-blue-300 mb-8 max-w-2xl mx-auto">
               Join thousands of successful graduates who have made their mark in
               the medical field. Your future in healthcare starts here.
             </p>
