@@ -428,7 +428,7 @@ export default function LandingPage() {
                   Doche College at glance
                 </h2>
                 <p className="text-lg dark:text-white text-black font-poppins mb-4">
-                  For nearly four centuries, people have come to Harvard in the
+                  For nearly five years, people have come to Douche in the
                   pursuit of truth, knowledge, and the betterment of society.
                 </p>
                 <img src="/assets/library.JPG"></img>
