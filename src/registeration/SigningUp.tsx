@@ -138,7 +138,7 @@ export default function SignInPage() {
       </div>
 
       {/* Foreground content */}
-      <div className="relative z-10 flex flex-col items-center justify-start pt-16 pb-16 space-y-12 max-w-screen-lg px-4">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full flex-col items-center justify-center px-4">
         {/* Optional page header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
@@ -151,7 +151,7 @@ export default function SignInPage() {
 
         {/* Multiple Form Sections */}
 
-        <section className="w-full max-w-md border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-900/80 backdrop-blur-sm shadow-lg">
+        <section className="w-full max-w-md mx-auto border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-900/80 backdrop-blur-sm shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
             Account Credentials
           </h3>
@@ -202,12 +202,6 @@ export default function SignInPage() {
 
           {/* Links */}
           <div className="mt-6 text-center space-y-3">
-            <a
-              href="#"
-              className="block text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              Forgot your password?
-            </a>
             <a
               href="/"
               className="inline-block w-full bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 font-medium py-2 px-4 rounded-md transition duration-200"

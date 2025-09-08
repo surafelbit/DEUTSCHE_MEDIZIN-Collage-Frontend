@@ -1,1786 +1,1089 @@
-// import { Button } from "@/components/ui/button"
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// import { Textarea } from "@/components/ui/textarea"
-// import { Checkbox } from "@/components/ui/checkbox"
-// import { ThemeToggle } from "@/components/theme-toggle"
-// import { GraduationCap, ArrowLeft } from "lucide-react"
-// import { Link } from "react-router-dom"
+import { useState, useEffect } from "react";
 
-// export default function RegisterPage() {
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-//       <div className="max-w-2xl mx-auto">
-//         {/* Header */}
-//         <div className="flex justify-between items-center mb-8">
-//           <Link to="/" className="flex items-center text-blue-600 hover:text-blue-700">
-//             <ArrowLeft className="h-4 w-4 mr-2" />
-//             Back to Home
-//           </Link>
-//           <ThemeToggle />
-//         </div>
-
-//         <Card>
-//           <CardHeader className="text-center">
-//             <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-full flex items-center justify-center">
-//               <GraduationCap className="h-8 w-8 text-white" />
-//             </div>
-//             <CardTitle className="text-2xl">Student Registration</CardTitle>
-//             <CardDescription>Apply to DEUTSCHE HOCHSCHULE FÜR MEDIZIN COLLEGE</CardDescription>
-//           </CardHeader>
-//           <CardContent className="space-y-6">
-//             {/* Personal Information */}
-//             <div className="space-y-4">
-//               <h3 className="text-lg font-semibold">Personal Information</h3>
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="firstName">First Name</Label>
-//                   <Input id="firstName" placeholder="Enter your first name" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="lastName">Last Name</Label>
-//                   <Input id="lastName" placeholder="Enter your last name" />
-//                 </div>
-//               </div>
-
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="email">Email Address</Label>
-//                   <Input id="email" type="email" placeholder="your.email@example.com" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="phone">Phone Number</Label>
-//                   <Input id="phone" placeholder="+49 123 456 7890" />
-//                 </div>
-//               </div>
-
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="dateOfBirth">Date of Birth</Label>
-//                   <Input id="dateOfBirth" type="date" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="nationality">Nationality</Label>
-//                   <Select>
-//                     <SelectTrigger>
-//                       <SelectValue placeholder="Select nationality" />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       <SelectItem value="german">German</SelectItem>
-//                       <SelectItem value="eu">EU Citizen</SelectItem>
-//                       <SelectItem value="international">International</SelectItem>
-//                     </SelectContent>
-//                   </Select>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Academic Information */}
-//             <div className="space-y-4">
-//               <h3 className="text-lg font-semibold">Academic Information</h3>
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="program">Desired Program</Label>
-//                   <Select>
-//                     <SelectTrigger>
-//                       <SelectValue placeholder="Select program" />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       <SelectItem value="medicine">Medicine (MD)</SelectItem>
-//                       <SelectItem value="dentistry">Dentistry</SelectItem>
-//                       <SelectItem value="pharmacy">Pharmacy</SelectItem>
-//                       <SelectItem value="nursing">Nursing</SelectItem>
-//                     </SelectContent>
-//                   </Select>
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="startYear">Intended Start Year</Label>
-//                   <Select>
-//                     <SelectTrigger>
-//                       <SelectValue placeholder="Select year" />
-//                     </SelectTrigger>
-//                     <SelectContent>
-//                       <SelectItem value="2024">2024</SelectItem>
-//                       <SelectItem value="2025">2025</SelectItem>
-//                       <SelectItem value="2026">2026</SelectItem>
-//                     </SelectContent>
-//                   </Select>
-//                 </div>
-//               </div>
-
-//               <div className="space-y-2">
-//                 <Label htmlFor="previousEducation">Previous Education</Label>
-//                 <Input id="previousEducation" placeholder="High School / University Name" />
-//               </div>
-
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="gpa">GPA / Grade Average</Label>
-//                   <Input id="gpa" placeholder="e.g., 3.8 or 1.5 (German system)" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="graduationYear">Graduation Year</Label>
-//                   <Input id="graduationYear" placeholder="e.g., 2023" />
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Address Information */}
-//             <div className="space-y-4">
-//               <h3 className="text-lg font-semibold">Address Information</h3>
-//               <div className="space-y-2">
-//                 <Label htmlFor="address">Street Address</Label>
-//                 <Input id="address" placeholder="Enter your street address" />
-//               </div>
-
-//               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-//                 <div className="space-y-2">
-//                   <Label htmlFor="city">City</Label>
-//                   <Input id="city" placeholder="City" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="state">State/Province</Label>
-//                   <Input id="state" placeholder="State" />
-//                 </div>
-//                 <div className="space-y-2">
-//                   <Label htmlFor="zipCode">ZIP Code</Label>
-//                   <Input id="zipCode" placeholder="ZIP Code" />
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Personal Statement */}
-//             <div className="space-y-4">
-//               <h3 className="text-lg font-semibold">Personal Statement</h3>
-//               <div className="space-y-2">
-//                 <Label htmlFor="statement">Why do you want to study at DHFM College?</Label>
-//                 <Textarea
-//                   id="statement"
-//                   placeholder="Tell us about your motivation, goals, and why you chose our college..."
-//                   className="min-h-32"
-//                 />
-//               </div>
-//             </div>
-
-//             {/* Terms and Conditions */}
-//             <div className="space-y-4">
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox id="terms" />
-//                 <Label htmlFor="terms" className="text-sm">
-//                   I agree to the{" "}
-//                   <a href="#" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
-//                     Terms and Conditions
-//                   </a>{" "}
-//                   and{" "}
-//                   <a href="#" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
-//                     Privacy Policy
-//                   </a>
-//                 </Label>
-//               </div>
-
-//               <div className="flex items-center space-x-2">
-//                 <Checkbox id="newsletter" />
-//                 <Label htmlFor="newsletter" className="text-sm">
-//                   I would like to receive updates about my application and college news
-//                 </Label>
-//               </div>
-//             </div>
-
-//             <Button className="w-full" size="lg">
-//               Submit Application
-//             </Button>
-
-//             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-//               Already have an account?{" "}
-//               <Link to="/login" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
-//                 Sign in here
-//               </Link>
-//             </div>
-//           </CardContent>
-//         </Card>
-//       </div>
-//     </div>
-//   )
-// }
-import React, { useState } from "react";
-
-const RegistrationForm = () => {
+const StudentRegistrationForm = () => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Application type
-    admissionType: "",
+    // Personal Information
+    firstNameAMH: "",
+    firstNameENG: "",
+    fatherNameAMH: "",
+    fatherNameENG: "",
+    grandfatherNameAMH: "",
+    grandfatherNameENG: "",
+    motherNameAMH: "",
+    motherNameENG: "",
+    motherFatherNameAMH: "",
+    motherFatherNameENG: "",
 
-    // Personal Data
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    sex: "",
+    // Demographic Details
+    gender: "",
     age: "",
-    visionImpairment: "",
-    hearingImpairment: "",
-    otherImpairment: "",
+    phoneNumber: "",
+    dateOfBirthEC: "",
+    dateOfBirthGC: "",
+    email: "",
+    maritalStatus: "",
+    impairmentCode: "",
 
-    // Birth Information
-    birthTown: "",
-    birthWoreda: "",
-    birthZone: "",
-    birthRegion: "",
-    birthDateEC: "",
-    birthMonthEC: "",
-    birthYearEC: "",
-    birthDateGC: "",
-    birthMonthGC: "",
-    birthYearGC: "",
+    // Place of Birth
+    placeOfBirthWoredaCode: "",
+    placeOfBirthZoneCode: "",
+    placeOfBirthRegionCode: "",
 
     // Current Address
-    currentRegion: "",
-    currentZone: "",
-    currentWoreda: "",
-    currentSubCity: "",
-    currentKebele: "",
-    currentHouseNo: "",
-    poBox: "",
-    email: "",
-    phoneNo: "",
+    currentAddressWoredaCode: "",
+    currentAddressZoneCode: "",
+    currentAddressRegionCode: "",
 
-    // Marital Status
-    maritalStatus: "",
+    // Contact Person
+    contactPersonFirstNameAMH: "",
+    contactPersonFirstNameENG: "",
+    contactPersonLastNameAMH: "",
+    contactPersonLastNameENG: "",
+    contactPersonPhoneNumber: "",
+    contactPersonRelation: "",
 
-    // Emergency Contact
-    emergencyName: "",
-    emergencyRelation: "",
-    emergencyHomePhone: "",
-    emergencyOfficePhone: "",
-    emergencyMobile: "",
-    emergencyRegion: "",
-    emergencyZone: "",
-    emergencyWoreda: "",
-    emergencySubCity: "",
-    emergencyKebele: "",
-    emergencyHouseNo: "",
-
-    // Family Background
-    fatherName: "",
-    fatherRegion: "",
-    fatherZone: "",
-    fatherWoreda: "",
-    fatherSubCity: "",
-    fatherKebele: "",
-    fatherHouseNo: "",
-    motherName: "",
-    motherRegion: "",
-    motherZone: "",
-    motherWoreda: "",
-    motherKifleKetema: "",
-    motherKebele: "",
-    motherHouseNo: "",
-
-    // Educational Information
-    schools: [
-      {
-        name: "",
-        town: "",
-        year: "",
-        grades: { 9: false, 10: false, 11: false, 12: false },
-      },
-      {
-        name: "",
-        town: "",
-        year: "",
-        grades: { 9: false, 10: false, 11: false, 12: false },
-      },
-      {
-        name: "",
-        town: "",
-        year: "",
-        grades: { 9: false, 10: false, 11: false, 12: false },
-      },
-    ],
-    prepStream: "",
-    studyChoice: "",
-
-    // EHEECE Information
-    subjects: [
-      { name: "", regNo: "", year: "", grade: "" },
-      { name: "", regNo: "", year: "", grade: "" },
-      { name: "", regNo: "", year: "", grade: "" },
-      { name: "", regNo: "", year: "", grade: "" },
-      { name: "", regNo: "", year: "", grade: "" },
-      { name: "", regNo: "", year: "", grade: "" },
-      { name: "", regNo: "", year: "", grade: "" },
-    ],
-
-    // Post Secondary Education
-    hasPostSecondary: "",
-    institutions: [
-      { name: "", country: "", yearFrom: "", yearTo: "", gpa: "", awarded: "" },
-      { name: "", country: "", yearFrom: "", yearTo: "", gpa: "", awarded: "" },
-    ],
-
-    // Employment
-    currentlyEmployed: "",
-    currentEmployer: "",
-    currentJobType: "",
-    currentEmployerAddress: "",
-    currentEmployerPhone: "",
-    employmentHistory: [
-      {
-        type: "",
-        employer: "",
-        poBox: "",
-        telephone: "",
-        yearFrom: "",
-        yearTo: "",
-      },
-      {
-        type: "",
-        employer: "",
-        poBox: "",
-        telephone: "",
-        yearFrom: "",
-        yearTo: "",
-      },
-      {
-        type: "",
-        employer: "",
-        poBox: "",
-        telephone: "",
-        yearFrom: "",
-        yearTo: "",
-      },
-    ],
+    // Academic Information
+    schoolBackgroundId: "",
+    departmentEnrolledId: "",
+    programModalityCode: "",
+    classYearId: "",
+    semesterCode: "",
+    document: null,
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const [dropdownData, setDropdownData] = useState({
+    genders: [],
+    maritalStatuses: [],
+    impairments: [],
+    woredas: [],
+    zones: [],
+    regions: [],
+    schoolBackgrounds: [],
+    departments: [],
+    programModalities: [],
+    classYears: [],
+    semesters: [],
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [dragActive, setDragActive] = useState(false);
+
+  // Fetch dropdown data
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const endpoints = [
+          { key: 'genders', url: '/api/enums/genders' },
+          { key: 'maritalStatuses', url: '/api/enums/marital-statuses' },
+          { key: 'impairments', url: '/api/impairments' },
+          { key: 'woredas', url: '/api/woreda' },
+          { key: 'zones', url: '/api/zone' },
+          { key: 'regions', url: '/api/region' },
+          { key: 'schoolBackgrounds', url: '/api/school-backgrounds' },
+          { key: 'departments', url: '/api/departments' },
+          { key: 'programModalities', url: '/api/program-modality' },
+          { key: 'classYears', url: '/api/class-years' },
+          { key: 'semesters', url: '/api/semesters' },
+        ];
+
+        const promises = endpoints.map(async ({ key, url }) => {
+          try {
+            const response = await fetch(`http://localhost:8081${url}`);
+            if (response.ok) {
+              const data = await response.json();
+              return { key, data };
+            }
+            return { key, data: [] };
+          } catch (error) {
+            console.error(`Error fetching ${key}:`, error);
+            return { key, data: [] };
+          }
+        });
+
+        const results = await Promise.all(promises);
+        const newDropdownData: any = {};
+        results.forEach(({ key, data }) => {
+          newDropdownData[key] = data;
+        });
+
+        setDropdownData(newDropdownData);
+      } catch (error) {
+        console.error('Error fetching dropdown data:', error);
+      }
+    };
+
+    fetchDropdownData();
+  }, []);
+
+  // Form validation functions
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1: // Personal Information
+        return formData.firstNameAMH && formData.firstNameENG && 
+               formData.fatherNameAMH && formData.fatherNameENG && 
+               formData.grandfatherNameAMH && formData.grandfatherNameENG && 
+               formData.motherNameAMH && formData.motherNameENG && 
+               formData.motherFatherNameAMH && formData.motherFatherNameENG;
+      
+      case 2: // Demographic Details
+        return formData.gender && formData.age && formData.phoneNumber && 
+               formData.dateOfBirthEC && formData.dateOfBirthGC && formData.maritalStatus;
+      
+      case 3: // Place of Birth
+        return formData.placeOfBirthRegionCode && formData.placeOfBirthZoneCode && 
+               formData.placeOfBirthWoredaCode;
+      
+      case 4: // Current Address
+        return formData.currentAddressRegionCode && formData.currentAddressZoneCode && 
+               formData.currentAddressWoredaCode;
+      
+      case 5: // Contact Person
+        return formData.contactPersonFirstNameAMH && formData.contactPersonFirstNameENG && 
+               formData.contactPersonLastNameAMH && formData.contactPersonLastNameENG && 
+               formData.contactPersonPhoneNumber;
+      
+      case 6: // Academic Information
+        return formData.schoolBackgroundId && formData.departmentEnrolledId && 
+               formData.programModalityCode && formData.classYearId && formData.semesterCode;
+      
+      default:
+        return true;
+    }
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep) && currentStep < 6) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleInputChange = (e: any) => {
+    const { name, value, type, files } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'file' ? files[0] : value,
     }));
   };
 
-  const handleNestedChange = (section, index, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [section]: prev[section].map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      ),
-    }));
-  };
-
-  const handleGradeChange = (schoolIndex, grade, checked) => {
-    setFormData((prev) => ({
-      ...prev,
-      schools: prev.schools.map((school, i) =>
-        i === schoolIndex
-          ? { ...school, grades: { ...school.grades, [grade]: checked } }
-          : school
-      ),
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  // Enhanced file upload handlers
+  const handleDrag = (e: any) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission here
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.type === "application/pdf") {
+        setFormData((prev) => ({
+          ...prev,
+          document: file,
+        }));
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: 'Please upload only PDF files.' 
+        });
+      }
+    }
+  };
+
+  const handleFileChange = (e: any) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.type === "application/pdf") {
+        setFormData((prev) => ({
+          ...prev,
+          document: file,
+        }));
+        setMessage({ type: "", text: "" });
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: 'Please upload only PDF files.' 
+        });
+      }
+    }
+  };
+
+  const removeFile = () => {
+    setFormData((prev) => ({
+      ...prev,
+      document: null,
+    }));
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ type: "", text: "" });
+
+    try {
+      const formDataToSend = new FormData();
+      
+      // Prepare the data object for JSON part
+      const dataObject = {
+        firstNameAMH: formData.firstNameAMH,
+        firstNameENG: formData.firstNameENG,
+        fatherNameAMH: formData.fatherNameAMH,
+        fatherNameENG: formData.fatherNameENG,
+        grandfatherNameAMH: formData.grandfatherNameAMH,
+        grandfatherNameENG: formData.grandfatherNameENG,
+        motherNameAMH: formData.motherNameAMH,
+        motherNameENG: formData.motherNameENG,
+        motherFatherNameAMH: formData.motherFatherNameAMH,
+        motherFatherNameENG: formData.motherFatherNameENG,
+        gender: formData.gender,
+        age: parseInt(formData.age) || null,
+        phoneNumber: formData.phoneNumber,
+        dateOfBirthEC: formData.dateOfBirthEC,
+        dateOfBirthGC: formData.dateOfBirthGC,
+        email: formData.email || null,
+        maritalStatus: formData.maritalStatus,
+        impairmentCode: formData.impairmentCode || null,
+        placeOfBirthWoredaCode: formData.placeOfBirthWoredaCode,
+        placeOfBirthZoneCode: formData.placeOfBirthZoneCode,
+        placeOfBirthRegionCode: formData.placeOfBirthRegionCode,
+        currentAddressWoredaCode: formData.currentAddressWoredaCode,
+        currentAddressZoneCode: formData.currentAddressZoneCode,
+        currentAddressRegionCode: formData.currentAddressRegionCode,
+        contactPersonFirstNameAMH: formData.contactPersonFirstNameAMH,
+        contactPersonFirstNameENG: formData.contactPersonFirstNameENG,
+        contactPersonLastNameAMH: formData.contactPersonLastNameAMH,
+        contactPersonLastNameENG: formData.contactPersonLastNameENG,
+        contactPersonPhoneNumber: formData.contactPersonPhoneNumber,
+        contactPersonRelation: formData.contactPersonRelation || null,
+        schoolBackgroundId: parseInt(formData.schoolBackgroundId) || null,
+        departmentEnrolledId: parseInt(formData.departmentEnrolledId) || null,
+        programModalityCode: formData.programModalityCode,
+        classYearId: parseInt(formData.classYearId) || null,
+        semesterCode: formData.semesterCode,
+      };
+
+      formDataToSend.append('data', JSON.stringify(dataObject));
+      
+      if (formData.document) {
+        formDataToSend.append('document', formData.document);
+      }
+
+      const response = await fetch('http://localhost:8081/api/applicants/register', {
+        method: 'POST',
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setMessage({ 
+          type: 'success', 
+          text: result.message || 'Student application submitted successfully!' 
+        });
+        // Reset form
+        setFormData({
+          firstNameAMH: "",
+          firstNameENG: "",
+          fatherNameAMH: "",
+          fatherNameENG: "",
+          grandfatherNameAMH: "",
+          grandfatherNameENG: "",
+          motherNameAMH: "",
+          motherNameENG: "",
+          motherFatherNameAMH: "",
+          motherFatherNameENG: "",
+          gender: "",
+          age: "",
+          phoneNumber: "",
+          dateOfBirthEC: "",
+          dateOfBirthGC: "",
+          email: "",
+          maritalStatus: "",
+          impairmentCode: "",
+          placeOfBirthWoredaCode: "",
+          placeOfBirthZoneCode: "",
+          placeOfBirthRegionCode: "",
+          currentAddressWoredaCode: "",
+          currentAddressZoneCode: "",
+          currentAddressRegionCode: "",
+          contactPersonFirstNameAMH: "",
+          contactPersonFirstNameENG: "",
+          contactPersonLastNameAMH: "",
+          contactPersonLastNameENG: "",
+          contactPersonPhoneNumber: "",
+          contactPersonRelation: "",
+          schoolBackgroundId: "",
+          departmentEnrolledId: "",
+          programModalityCode: "",
+          classYearId: "",
+          semesterCode: "",
+          document: null,
+        });
+      } else {
+        setMessage({ 
+          type: 'error', 
+          text: result.error || 'An error occurred while submitting the application.' 
+        });
+      }
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Network error. Please check your connection and try again.' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const FormSection = ({ title, children, icon }: any) => (
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+        <div className="flex items-center">
+          {icon && <span className="text-white text-xl mr-3">{icon}</span>}
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+        </div>
+      </div>
+      <div className="p-6">
+        {children}
+      </div>
+    </div>
+  );
+
+  const FormGroup = ({ label, children, required = false, className = "" }: any) => (
+    <div className={`form-group ${className}`}>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+
+  const Input = ({ type = "text", name, value, onChange, placeholder, required = false, className = "" }: any) => (
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      required={required}
+      className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:bg-gray-50 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg ${className}`}
+    />
+  );
+
+  const Select = ({ name, value, onChange, options, placeholder, required = false, displayKey, valueKey }: any) => (
+    <select
+      name={name}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white hover:bg-gray-50 focus:bg-white shadow-sm hover:shadow-md focus:shadow-lg"
+    >
+      <option value="">{placeholder}</option>
+      {options.map((option: any, index: number) => (
+        <option key={index} value={option[valueKey]}>
+          {option[displayKey]}
+        </option>
+      ))}
+    </select>
+  );
+
+  const FileUpload = () => (
+    <div className="space-y-4">
+      <div
+        className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 ${
+          dragActive
+            ? 'border-blue-500 bg-blue-50'
+            : formData.document
+            ? 'border-green-500 bg-green-50'
+            : 'border-gray-300 hover:border-gray-400'
+        }`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
+        <input
+          type="file"
+          name="document"
+          onChange={handleFileChange}
+          accept="application/pdf"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+        
+        {formData.document ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-center">
+              <div className="bg-green-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p className="text-lg font-medium text-green-800">File Uploaded Successfully!</p>
+              <p className="text-sm text-green-600 mt-1">{(formData.document as File).name}</p>
+              <p className="text-xs text-gray-500 mt-2">
+                Size: {((formData.document as File).size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={removeFile}
+              className="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Remove File
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-center">
+              <div className="bg-gray-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p className="text-lg font-medium text-gray-700">Upload Document</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Drag and drop your PDF file here, or click to browse
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                Only PDF files are accepted (Max size: 10MB)
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const StepIndicator = () => {
+    const steps = [
+      { number: 1, title: "Personal Info", icon: "👤" },
+      { number: 2, title: "Demographics", icon: "📊" },
+      { number: 3, title: "Place of Birth", icon: "🌍" },
+      { number: 4, title: "Current Address", icon: "🏠" },
+      { number: 5, title: "Contact Person", icon: "📞" },
+      { number: 6, title: "Academic Info", icon: "🎓" },
+    ];
+
+    return (
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div key={step.number} className="flex items-center">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-200 ${
+                currentStep === step.number
+                  ? 'bg-blue-600 border-blue-600 text-white'
+                  : currentStep > step.number
+                  ? 'bg-green-500 border-green-500 text-white'
+                  : 'bg-white border-gray-300 text-gray-400'
+              }`}>
+                {currentStep > step.number ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <span className="text-sm font-semibold">{step.number}</span>
+                )}
+              </div>
+              <div className="ml-3 hidden sm:block">
+                <p className={`text-sm font-medium ${
+                  currentStep >= step.number ? 'text-gray-900' : 'text-gray-400'
+                }`}>
+                  {step.title}
+                </p>
+              </div>
+              {index < steps.length - 1 && (
+                <div className={`hidden sm:block w-16 h-0.5 mx-4 ${
+                  currentStep > step.number ? 'bg-green-500' : 'bg-gray-300'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          Registrar Office
-        </h1>
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">
-          LIFE HISTORY FORM, UNDERGRADUATE PROGRAM
-        </h2>
-        <p className="text-sm text-gray-600 leading-relaxed">
-          This form, completed and accompanied by all necessary education
-          documents, must be returned to the Registrar's Office on or before the
-          end of the registration date declared by the Registrar of the College.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Student Registration
+            </h1>
+            <h2 className="text-xl font-semibold text-blue-600 mb-4">
+              Deutsche Medizin College
+            </h2>
+            <p className="text-gray-600 leading-relaxed max-w-2xl mx-auto">
+              Complete the form below to register for undergraduate programs. All required fields must be filled accurately.
+            </p>
+          </div>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* 1. APPLICATION */}
-        <section className="border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            1. APPLICATION
-          </h3>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Admission:
-            </label>
-            <div className="flex gap-6">
-              {["Regular", "Extension", "Summer"].map((type) => (
-                <label key={type} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="admissionType"
-                    value={type}
-                    checked={formData.admissionType === type}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  {type}
-                </label>
-              ))}
+        {/* Step Indicator */}
+        <StepIndicator />
+
+        {/* Message Display */}
+        {message.text && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.type === 'success' 
+              ? 'bg-green-50 border border-green-200 text-green-800' 
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-center">
+              <span className="text-lg mr-2">
+                {message.type === 'success' ? '✅' : '❌'}
+              </span>
+              {message.text}
             </div>
           </div>
-        </section>
+        )}
 
-        {/* 2. PERSONAL DATA */}
-        <section className="border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">2.</h3>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Personal Information */}
+          {currentStep === 1 && (
+          <FormSection title="Personal Information" icon="👤">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormGroup label="First Name (Amharic)" required>
+                <Input
+                  name="firstNameAMH"
+                  value={formData.firstNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter first name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="First Name (English)" required>
+                <Input
+                  name="firstNameENG"
+                  value={formData.firstNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter first name in English"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Father Name (Amharic)" required>
+                <Input
+                  name="fatherNameAMH"
+                  value={formData.fatherNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter father's name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Father Name (English)" required>
+                <Input
+                  name="fatherNameENG"
+                  value={formData.fatherNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter father's name in English"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Grandfather Name (Amharic)" required>
+                <Input
+                  name="grandfatherNameAMH"
+                  value={formData.grandfatherNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter grandfather's name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Grandfather Name (English)" required>
+                <Input
+                  name="grandfatherNameENG"
+                  value={formData.grandfatherNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter grandfather's name in English"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Mother Name (Amharic)" required>
+                <Input
+                  name="motherNameAMH"
+                  value={formData.motherNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter mother's name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Mother Name (English)" required>
+                <Input
+                  name="motherNameENG"
+                  value={formData.motherNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter mother's name in English"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Mother Father Name (Amharic)" required>
+                <Input
+                  name="motherFatherNameAMH"
+                  value={formData.motherFatherNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter mother's father name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Mother Father Name (English)" required>
+                <Input
+                  name="motherFatherNameENG"
+                  value={formData.motherFatherNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter mother's father name in English"
+                  required
+                />
+              </FormGroup>
+            </div>
+          </FormSection>
+          )}
 
-          {/* Full Name */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name (English):
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  First Name
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
+          {/* Demographic Details */}
+          {currentStep === 2 && (
+          <FormSection title="Demographic Details" icon="📊">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <FormGroup label="Gender" required>
+                <Select
+                  name="gender"
+                  value={formData.gender}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  options={dropdownData.genders}
+                  placeholder="Select gender"
+                  required
+                  displayKey="gender"
+                  valueKey="gender"
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Middle Name
-                </label>
-                <input
-                  type="text"
-                  name="middleName"
-                  value={formData.middleName}
+              </FormGroup>
+              
+              <FormGroup label="Age" required>
+                <Input
+                  type="number"
+                  name="age"
+                  value={formData.age}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter age"
+                  required
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Last Name
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
+              </FormGroup>
+              
+              <FormGroup label="Phone Number" required>
+                <Input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="+251912345678"
+                  required
                 />
-              </div>
-            </div>
-          </div>
-
-          {/* Sex and Age */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sex:
-              </label>
-              <div className="flex gap-4">
-                {["Male", "Female"].map((gender) => (
-                  <label key={gender} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="sex"
-                      value={gender}
-                      checked={formData.sex === gender}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    {gender}
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Age:
-              </label>
-              <input
-                type="number"
-                name="age"
-                value={formData.age}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Impairment Information */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Information about Impairment (if any):
-            </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Vision:
-                </label>
-                <input
-                  type="text"
-                  name="visionImpairment"
-                  value={formData.visionImpairment}
+              </FormGroup>
+              
+              <FormGroup label="Date of Birth (Ethiopian Calendar)" required>
+                <Input
+                  name="dateOfBirthEC"
+                  value={formData.dateOfBirthEC}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="2015-01-01"
+                  required
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Hearing:
-                </label>
-                <input
-                  type="text"
-                  name="hearingImpairment"
-                  value={formData.hearingImpairment}
+              </FormGroup>
+              
+              <FormGroup label="Date of Birth (Gregorian Calendar)" required>
+                <Input
+                  type="date"
+                  name="dateOfBirthGC"
+                  value={formData.dateOfBirthGC}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder=""
+                  required
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Any other:
-                </label>
-                <input
-                  type="text"
-                  name="otherImpairment"
-                  value={formData.otherImpairment}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Place of Birth */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Place of Birth:
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Town</label>
-                <input
-                  type="text"
-                  name="birthTown"
-                  value={formData.birthTown}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Woreda
-                </label>
-                <input
-                  type="text"
-                  name="birthWoreda"
-                  value={formData.birthWoreda}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Zone</label>
-                <input
-                  type="text"
-                  name="birthZone"
-                  value={formData.birthZone}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Region
-                </label>
-                <input
-                  type="text"
-                  name="birthRegion"
-                  value={formData.birthRegion}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Date of Birth */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date of Birth:
-            </label>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Ethiopian Calendar (E.C)
-                </label>
-                <div className="grid grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    name="birthDateEC"
-                    placeholder="Date"
-                    value={formData.birthDateEC}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="birthMonthEC"
-                    placeholder="Month"
-                    value={formData.birthMonthEC}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="birthYearEC"
-                    placeholder="Year"
-                    value={formData.birthYearEC}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Gregorian Calendar (G.C)
-                </label>
-                <div className="grid grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    name="birthDateGC"
-                    placeholder="Date"
-                    value={formData.birthDateGC}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="birthMonthGC"
-                    placeholder="Month"
-                    value={formData.birthMonthGC}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="birthYearGC"
-                    placeholder="Year"
-                    value={formData.birthYearGC}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Current Residential Address */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Current Residential Address:
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Region
-                </label>
-                <input
-                  type="text"
-                  name="currentRegion"
-                  value={formData.currentRegion}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Zone</label>
-                <input
-                  type="text"
-                  name="currentZone"
-                  value={formData.currentZone}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Woreda(Town)
-                </label>
-                <input
-                  type="text"
-                  name="currentWoreda"
-                  value={formData.currentWoreda}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Sub-City
-                </label>
-                <input
-                  type="text"
-                  name="currentSubCity"
-                  value={formData.currentSubCity}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Kebele
-                </label>
-                <input
-                  type="text"
-                  name="currentKebele"
-                  value={formData.currentKebele}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  House No.
-                </label>
-                <input
-                  type="text"
-                  name="currentHouseNo"
-                  value={formData.currentHouseNo}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  P.O Box
-                </label>
-                <input
-                  type="text"
-                  name="poBox"
-                  value={formData.poBox}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Email address
-                </label>
-                <input
+              </FormGroup>
+              
+              <FormGroup label="Email Address">
+                <Input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="abebe@example.com"
                 />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Phone No.
-                </label>
-                <input
+              </FormGroup>
+              
+              <FormGroup label="Marital Status" required>
+                <Select
+                  name="maritalStatus"
+                  value={formData.maritalStatus}
+                  onChange={handleInputChange}
+                  options={dropdownData.maritalStatuses}
+                  placeholder="Select marital status"
+                  required
+                  displayKey="maritalStatus"
+                  valueKey="maritalStatus"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Impairment">
+                <Select
+                  name="impairmentCode"
+                  value={formData.impairmentCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.impairments}
+                  placeholder="Select impairment (if any)"
+                  displayKey="impairment"
+                  valueKey="impairmentCode"
+                />
+              </FormGroup>
+            </div>
+          </FormSection>
+          )}
+
+          {/* Place of Birth */}
+          {currentStep === 3 && (
+          <FormSection title="Place of Birth" icon="🌍">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormGroup label="Region" required>
+                <Select
+                  name="placeOfBirthRegionCode"
+                  value={formData.placeOfBirthRegionCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.regions}
+                  placeholder="Select region"
+                  required
+                  displayKey="region"
+                  valueKey="regionCode"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Zone" required>
+                <Select
+                  name="placeOfBirthZoneCode"
+                  value={formData.placeOfBirthZoneCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.zones}
+                  placeholder="Select zone"
+                  required
+                  displayKey="zone"
+                  valueKey="zoneCode"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Woreda" required>
+                <Select
+                  name="placeOfBirthWoredaCode"
+                  value={formData.placeOfBirthWoredaCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.woredas}
+                  placeholder="Select woreda"
+                  required
+                  displayKey="woreda"
+                  valueKey="woredaCode"
+                />
+              </FormGroup>
+            </div>
+          </FormSection>
+          )}
+
+          {/* Current Address */}
+          {currentStep === 4 && (
+          <FormSection title="Current Address" icon="🏠">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormGroup label="Region" required>
+                <Select
+                  name="currentAddressRegionCode"
+                  value={formData.currentAddressRegionCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.regions}
+                  placeholder="Select region"
+                  required
+                  displayKey="region"
+                  valueKey="regionCode"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Zone" required>
+                <Select
+                  name="currentAddressZoneCode"
+                  value={formData.currentAddressZoneCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.zones}
+                  placeholder="Select zone"
+                  required
+                  displayKey="zone"
+                  valueKey="zoneCode"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Woreda" required>
+                <Select
+                  name="currentAddressWoredaCode"
+                  value={formData.currentAddressWoredaCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.woredas}
+                  placeholder="Select woreda"
+                  required
+                  displayKey="woreda"
+                  valueKey="woredaCode"
+                />
+              </FormGroup>
+            </div>
+          </FormSection>
+          )}
+
+          {/* Contact Person */}
+          {currentStep === 5 && (
+          <FormSection title="Emergency Contact Person" icon="📞">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormGroup label="First Name (Amharic)" required>
+                <Input
+                  name="contactPersonFirstNameAMH"
+                  value={formData.contactPersonFirstNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter contact person's first name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="First Name (English)" required>
+                <Input
+                  name="contactPersonFirstNameENG"
+                  value={formData.contactPersonFirstNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter contact person's first name in English"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Last Name (Amharic)" required>
+                <Input
+                  name="contactPersonLastNameAMH"
+                  value={formData.contactPersonLastNameAMH}
+                  onChange={handleInputChange}
+                  placeholder="Enter contact person's last name in Amharic"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Last Name (English)" required>
+                <Input
+                  name="contactPersonLastNameENG"
+                  value={formData.contactPersonLastNameENG}
+                  onChange={handleInputChange}
+                  placeholder="Enter contact person's last name in English"
+                  required
+                />
+              </FormGroup>
+              
+              <FormGroup label="Phone Number" required>
+                <Input
                   type="tel"
-                  name="phoneNo"
-                  value={formData.phoneNo}
+                  name="contactPersonPhoneNumber"
+                  value={formData.contactPersonPhoneNumber}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="+251987654321"
+                  required
                 />
-              </div>
+              </FormGroup>
+              
+              <FormGroup label="Relation">
+                <Input
+                  name="contactPersonRelation"
+                  value={formData.contactPersonRelation}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Brother, Sister, Parent"
+                />
+              </FormGroup>
             </div>
-          </div>
+          </FormSection>
+          )}
 
-          {/* Marital Status */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Marital Status:
-            </label>
-            <div className="flex flex-wrap gap-4">
-              {["Single", "Married", "Divorced", "Separated"].map((status) => (
-                <label key={status} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="maritalStatus"
-                    value={status}
-                    checked={formData.maritalStatus === status}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  {status}
-                </label>
-              ))}
+          {/* Academic Information */}
+          {currentStep === 6 && (
+          <FormSection title="Academic Information" icon="🎓">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormGroup label="School Background" required>
+                <Select
+                  name="schoolBackgroundId"
+                  value={formData.schoolBackgroundId}
+                  onChange={handleInputChange}
+                  options={dropdownData.schoolBackgrounds}
+                  placeholder="Select school background"
+                  required
+                  displayKey="background"
+                  valueKey="id"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Department Enrolled" required>
+                <Select
+                  name="departmentEnrolledId"
+                  value={formData.departmentEnrolledId}
+                  onChange={handleInputChange}
+                  options={dropdownData.departments}
+                  placeholder="Select department"
+                  required
+                  displayKey="deptName"
+                  valueKey="dptID"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Program Modality" required>
+                <Select
+                  name="programModalityCode"
+                  value={formData.programModalityCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.programModalities}
+                  placeholder="Select program modality"
+                  required
+                  displayKey="modality"
+                  valueKey="modalityCode"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Class Year" required>
+                <Select
+                  name="classYearId"
+                  value={formData.classYearId}
+                  onChange={handleInputChange}
+                  options={dropdownData.classYears}
+                  placeholder="Select class year"
+                  required
+                  displayKey="classYear"
+                  valueKey="id"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Semester" required>
+                <Select
+                  name="semesterCode"
+                  value={formData.semesterCode}
+                  onChange={handleInputChange}
+                  options={dropdownData.semesters}
+                  placeholder="Select semester"
+                  required
+                  displayKey="academicPeriod"
+                  valueKey="academicPeriodCode"
+                />
+              </FormGroup>
+              
+              <FormGroup label="Document (PDF)">
+                <FileUpload />
+              </FormGroup>
             </div>
-          </div>
+          </FormSection>
+          )}
 
-          {/* Emergency Contact */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Person in case of Emergency:
-            </label>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyName"
-                    value={formData.emergencyName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Relations
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencyRelation"
-                    value={formData.emergencyRelation}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Telephone:
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <input
-                    type="tel"
-                    name="emergencyHomePhone"
-                    placeholder="Home"
-                    value={formData.emergencyHomePhone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="tel"
-                    name="emergencyOfficePhone"
-                    placeholder="Office"
-                    value={formData.emergencyOfficePhone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="tel"
-                    name="emergencyMobile"
-                    placeholder="Mobile"
-                    value={formData.emergencyMobile}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">
-                  Address:
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <input
-                    type="text"
-                    name="emergencyRegion"
-                    placeholder="Region"
-                    value={formData.emergencyRegion}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="emergencyZone"
-                    placeholder="Zone"
-                    value={formData.emergencyZone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="emergencyWoreda"
-                    placeholder="Woreda/Town"
-                    value={formData.emergencyWoreda}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="emergencySubCity"
-                    placeholder="Sub-City"
-                    value={formData.emergencySubCity}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="emergencyKebele"
-                    placeholder="Kebele"
-                    value={formData.emergencyKebele}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="emergencyHouseNo"
-                    placeholder="House No."
-                    value={formData.emergencyHouseNo}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. FAMILY BACKGROUND */}
-        <section className="border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            3. FAMILY BACKGROUND
-          </h3>
-
-          {/* Father Information */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Father Full Name:
-            </label>
-            <input
-              type="text"
-              name="fatherName"
-              value={formData.fatherName}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-            />
-            <label className="block text-xs text-gray-500 mb-1">Address:</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                name="fatherRegion"
-                placeholder="Region"
-                value={formData.fatherRegion}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="fatherZone"
-                placeholder="Zone"
-                value={formData.fatherZone}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="fatherWoreda"
-                placeholder="Woreda/Town"
-                value={formData.fatherWoreda}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="fatherSubCity"
-                placeholder="Sub-City"
-                value={formData.fatherSubCity}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="fatherKebele"
-                placeholder="Kebele"
-                value={formData.fatherKebele}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="fatherHouseNo"
-                placeholder="House No."
-                value={formData.fatherHouseNo}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          {/* Mother Information */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mother Full Name:
-            </label>
-            <input
-              type="text"
-              name="motherName"
-              value={formData.motherName}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-            />
-            <label className="block text-xs text-gray-500 mb-1">Address:</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                name="motherRegion"
-                placeholder="Region"
-                value={formData.motherRegion}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="motherZone"
-                placeholder="Zone"
-                value={formData.motherZone}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="motherWoreda"
-                placeholder="Woreda/Town"
-                value={formData.motherWoreda}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="motherKifleKetema"
-                placeholder="Kifle Ketema"
-                value={formData.motherKifleKetema}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="motherKebele"
-                placeholder="Kebele"
-                value={formData.motherKebele}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                name="motherHouseNo"
-                placeholder="House No."
-                value={formData.motherHouseNo}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 4. EDUCATIONAL INFORMATION */}
-        <section className="border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            4. EDUCATIONAL INFORMATION
-          </h3>
-
-          {/* Secondary Schools */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Secondary School(s) Attended (List last three Schools):
-            </label>
-            {formData.schools.map((school, index) => (
-              <div
-                key={index}
-                className="mb-4 p-4 border border-gray-200 rounded-md"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      School
-                    </label>
-                    <input
-                      type="text"
-                      value={school.name}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "schools",
-                          index,
-                          "name",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Town
-                    </label>
-                    <input
-                      type="text"
-                      value={school.town}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "schools",
-                          index,
-                          "town",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Attended Year (E.C)
-                    </label>
-                    <input
-                      type="text"
-                      value={school.year}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "schools",
-                          index,
-                          "year",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Last Grade Complete:
-                  </label>
-                  <div className="flex gap-4">
-                    {[9, 10, 11, 12].map((grade) => (
-                      <label key={grade} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={school.grades[grade]}
-                          onChange={(e) =>
-                            handleGradeChange(index, grade, e.target.checked)
-                          }
-                          className="mr-1"
-                        />
-                        {grade}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Preparatory Stream */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Indicate Your Preparatory School Stream:
-            </label>
-            <div className="flex flex-wrap gap-4">
-              {["Natural Science", "Social Science"].map((stream) => (
-                <label key={stream} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="prepStream"
-                    value={stream}
-                    checked={formData.prepStream === stream}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  {stream}
-                </label>
-              ))}
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center pt-6">
+            <button
+              type="button"
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                currentStep === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 focus:ring-gray-500'
+              }`}
+            >
               <div className="flex items-center">
-                <input
-                  type="radio"
-                  name="prepStream"
-                  value="Other"
-                  checked={formData.prepStream === "Other"}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                <span className="mr-2">Others Specify:</span>
-                <input
-                  type="text"
-                  className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={formData.prepStream !== "Other"}
-                />
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
               </div>
-            </div>
-          </div>
+            </button>
 
-          {/* Study Choice */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Indicate Your Choice of Study:
-            </label>
-            <div className="flex flex-wrap gap-4">
-              {[
-                "Medicine",
-                "MRT",
-                "Nursing",
-                "Accounting & Finance",
-                "Management",
-              ].map((choice) => (
-                <label key={choice} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="studyChoice"
-                    value={choice}
-                    checked={formData.studyChoice === choice}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  {choice}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* EHEECE Information */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ethiopian Higher Education Entrance Certificate Examination
-              (EHEECE) information (write five/seven subjects with the best
-              grade earned. Math's & English must be included):
-            </label>
-            <div className="space-y-3">
-              {formData.subjects.map((subject, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-1 md:grid-cols-4 gap-4"
+            <div className="flex items-center space-x-4">
+              {currentStep < 6 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  disabled={!validateStep(currentStep)}
+                  className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    validateStep(currentStep)
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white focus:ring-blue-500 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
                 >
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      value={subject.name}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "subjects",
-                          index,
-                          "name",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                  <div className="flex items-center">
+                    Next
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      EHEECE Reg. No.
-                    </label>
-                    <input
-                      type="text"
-                      value={subject.regNo}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "subjects",
-                          index,
-                          "regNo",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Year (E.C)
-                    </label>
-                    <input
-                      type="text"
-                      value={subject.year}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "subjects",
-                          index,
-                          "year",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Grade (Mark)
-                    </label>
-                    <input
-                      type="text"
-                      value={subject.grade}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "subjects",
-                          index,
-                          "grade",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                </button>
+              ) : (
+            <button
+              type="submit"
+                  disabled={loading || !validateStep(currentStep)}
+                  className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    loading || !validateStep(currentStep)
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white focus:ring-green-500 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                  }`}
+            >
+              {loading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Post Secondary Education */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Have you ever been enrolled in any post-secondary education
-              (University or College level) institution in Ethiopia or Abroad?
-            </label>
-            <div className="flex gap-4 mb-4">
-              {["Yes", "No"].map((option) => (
-                <label key={option} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="hasPostSecondary"
-                    value={option}
-                    checked={formData.hasPostSecondary === option}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  {option}
-                </label>
-              ))}
-            </div>
-
-            {formData.hasPostSecondary === "Yes" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  If your answer is yes, give the detail below:
-                </label>
-                <div className="space-y-4">
-                  {formData.institutions.map((institution, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 rounded-md"
-                    >
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Name of Institution
-                        </label>
-                        <input
-                          type="text"
-                          value={institution.name}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "institutions",
-                              index,
-                              "name",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Country
-                        </label>
-                        <input
-                          type="text"
-                          value={institution.country}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "institutions",
-                              index,
-                              "country",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Years Attended
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            type="text"
-                            placeholder="From"
-                            value={institution.yearFrom}
-                            onChange={(e) =>
-                              handleNestedChange(
-                                "institutions",
-                                index,
-                                "yearFrom",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                          <input
-                            type="text"
-                            placeholder="To"
-                            value={institution.yearTo}
-                            onChange={(e) =>
-                              handleNestedChange(
-                                "institutions",
-                                index,
-                                "yearTo",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          GPA Earned
-                        </label>
-                        <input
-                          type="text"
-                          value={institution.gpa}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "institutions",
-                              index,
-                              "gpa",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-500 mb-1">
-                          Awarded
-                        </label>
-                        <input
-                          type="text"
-                          value={institution.awarded}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "institutions",
-                              index,
-                              "awarded",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+              ) : (
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Submit Registration
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* 5. EMPLOYMENT */}
-        <section className="border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            5. EMPLOYMENT
-          </h3>
-
-          {/* Current Employment */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Are You Currently Employed?
-            </label>
-            <div className="flex gap-4 mb-4">
-              {["Yes", "No"].map((option) => (
-                <label key={option} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="currentlyEmployed"
-                    value={option}
-                    checked={formData.currentlyEmployed === option}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  {option}
-                </label>
-              ))}
-            </div>
-
-            {formData.currentlyEmployed === "Yes" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Employer
-                  </label>
-                  <input
-                    type="text"
-                    name="currentEmployer"
-                    value={formData.currentEmployer}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Type of Job
-                  </label>
-                  <input
-                    type="text"
-                    name="currentJobType"
-                    value={formData.currentJobType}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    name="currentEmployerAddress"
-                    value={formData.currentEmployerAddress}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Telephone
-                  </label>
-                  <input
-                    type="tel"
-                    name="currentEmployerPhone"
-                    value={formData.currentEmployerPhone}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Employment History */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              List at least three employments:
-            </label>
-            <div className="space-y-4">
-              {formData.employmentHistory.map((employment, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border border-gray-200 rounded-md"
-                >
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Type of work
-                    </label>
-                    <input
-                      type="text"
-                      value={employment.type}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "employmentHistory",
-                          index,
-                          "type",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Employer
-                    </label>
-                    <input
-                      type="text"
-                      value={employment.employer}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "employmentHistory",
-                          index,
-                          "employer",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      P.O Box
-                    </label>
-                    <input
-                      type="text"
-                      value={employment.poBox}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "employmentHistory",
-                          index,
-                          "poBox",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Telephone
-                    </label>
-                    <input
-                      type="tel"
-                      value={employment.telephone}
-                      onChange={(e) =>
-                        handleNestedChange(
-                          "employmentHistory",
-                          index,
-                          "telephone",
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Service Year
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        placeholder="From"
-                        value={employment.yearFrom}
-                        onChange={(e) =>
-                          handleNestedChange(
-                            "employmentHistory",
-                            index,
-                            "yearFrom",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        placeholder="To"
-                        value={employment.yearTo}
-                        onChange={(e) =>
-                          handleNestedChange(
-                            "employmentHistory",
-                            index,
-                            "yearTo",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+              )}
+            </button>
+              )}
             </div>
           </div>
-        </section>
-
-        {/* 6. STATEMENT BY THE APPLICANT */}
-        <section className="border-2 border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            6. STATEMENT BY THE APPLICANT
-          </h3>
-          <div className="bg-gray-50 p-4 rounded-md mb-6">
-            <p className="text-sm text-gray-700 leading-relaxed">
-              I hereby certify that all information given in this form is
-              complete, correct and accurate. I fully realize that the college
-              is entitled to take any action on me including dismissal if the
-              information given by me here is found incorrect or misleading at
-              any time. I also realize that I will not be entitled to any
-              reimbursement of whatever fee I might have paid in case where the
-              college takes any action on me as a result of any incorrect or
-              misleading information given by me. I further undertake to observe
-              all the rules and regulations of the college and refrain from any
-              activity which may be contrary to the interest of the Ethiopian
-              broad masses. I shall also take full responsibility for reading
-              and abiding by the rules and regulations of the college student
-              hand book deposited at the college Library system and that of my
-              department.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Date</label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                Applicant's Name
-              </label>
-              <input
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                Applicant's Signature
-              </label>
-              <input
-                type="text"
-                placeholder="Digital signature or type name"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Office Use Only */}
-        <section className="border-2 border-red-200 rounded-lg p-6 bg-red-50">
-          <div className="border-t-2 border-red-400 pt-4">
-            <h3 className="text-lg font-semibold text-red-800 mb-4">
-              DO NOT WRITE BELOW THIS LINE
-            </h3>
-            <p className="text-sm font-medium text-red-700 mb-4">
-              Office personnel accepting this form:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-red-600 mb-1">Name:</label>
-                <div className="w-full h-10 border-b-2 border-red-300"></div>
-              </div>
-              <div>
-                <label className="block text-xs text-red-600 mb-1">
-                  Signature:
-                </label>
-                <div className="w-full h-10 border-b-2 border-red-300"></div>
-              </div>
-              <div>
-                <label className="block text-xs text-red-600 mb-1">Date:</label>
-                <div className="w-full h-10 border-b-2 border-red-300"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Submit Button */}
-        <div className="flex justify-center pt-6">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Submit Registration Form
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
 
-export default RegistrationForm;
+export default StudentRegistrationForm;
