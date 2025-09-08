@@ -98,20 +98,20 @@ export default function LandingPage() {
   const missionInView = useInView(missionRef, { margin: "-150px" });
   const programs = [
     {
-      title: "Anatomy",
-      icon: "https://tse3.mm.bing.net/th/id/OIP.2lJ3_vUKOmF97-CgZ7yylAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
+      title: "Medicine",
+      icon: "https://th.bing.com/th/id/R.e896697aea4207f544f0d3615ec82e61?rik=7Zdqn2%2bf0irguw&pid=ImgRaw&r=0",
       description:
         "Understand the human body structure through detailed study and cadaver labs.",
     },
     {
-      title: "Physiology",
-      icon: "https://tse3.mm.bing.net/th/id/OIP.2lJ3_vUKOmF97-CgZ7yylAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
+      title: "Nursing",
+      icon: "https://seattlemedium.com/wp-content/uploads/2023/06/Black-Nurses-iStock-748-x-486px.jpg",
       description:
         "Learn the normal functions of the human body in health and disease.",
     },
     {
-      title: "Biochemistry",
-      icon: "https://tse3.mm.bing.net/th/id/OIP.2lJ3_vUKOmF97-CgZ7yylAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3",
+      title: "Medical Radiology(MRT)",
+      icon: "https://tse4.mm.bing.net/th/id/OIP.cJn1IK_5m5sOK1fZam3XMwHaEJ?rs=1&pid=ImgDetMain&o=7&rm=3",
       description:
         "Explore the chemical processes underlying life and metabolism.",
     },
@@ -416,7 +416,7 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section> */}
-        {/* <section className="mx-20 my-30">
+        <section className="mx-20 my-30">
           <div ref={infoRef} className="grid grid-cols-2 gap-x-20">
             <motion.div
               initial={{ opacity: 0, x: 100 }}
@@ -427,7 +427,7 @@ export default function LandingPage() {
                 <h2 className="text-4xl text-blue-500 dark:text-blue-300 font-serif">
                   Doche College at glance
                 </h2>
-                <p className="text-lg dark:text-white text-black font-mono mb-4">
+                <p className="text-lg dark:text-white text-black font-poppins mb-4">
                   For nearly four centuries, people have come to Harvard in the
                   pursuit of truth, knowledge, and the betterment of society.
                 </p>
@@ -459,7 +459,7 @@ export default function LandingPage() {
               </motion.div>
               <div>
                 <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
-                  2017{" "}
+                  204{" "}
                 </h2>
                 <p className="text-lg dark:text-white text-black font-mono">
                   Undergraduate and graduate students in the 2023-24 academic
@@ -474,7 +474,7 @@ export default function LandingPage() {
                 transition={{ duration: 2, ease: "easeOut" }}
               >
                 <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
-                  2017{" "}
+                  433{" "}
                 </h2>
                 <p className="text-lg dark:text-white text-black font-mono">
                   students currently enganged now
@@ -482,10 +482,9 @@ export default function LandingPage() {
               </motion.div>
             </motion.div>
           </div>
-        </section> */}
-        <section className="container   px-6 py-24">
+        </section>
+        {/* <section className="container   px-6 py-24">
           <div className="grid mx-10 lg:grid-cols-2 gap-16 items-center">
-            {/* Left Side: Image & Intro */}
             <motion.div
               initial={{ opacity: 0, x: 100 }}
               animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
@@ -506,7 +505,6 @@ export default function LandingPage() {
               />
             </motion.div>
 
-            {/* Right Side: Stats */}
             <motion.div
               className="flex flex-col gap-10"
               initial={{ opacity: 0, x: -100 }}
@@ -515,7 +513,6 @@ export default function LandingPage() {
               }
               transition={{ duration: 1.5, ease: "easeOut" }}
             >
-              {/* Stat 1 */}
               <motion.div
                 className=""
                 initial={{ opacity: 0, y: -50 }}
@@ -532,7 +529,6 @@ export default function LandingPage() {
                 </p>
               </motion.div>
 
-              {/* Stat 2 */}
               <motion.div
                 className=""
                 initial={{ opacity: 0, y: 50 }}
@@ -549,7 +545,6 @@ export default function LandingPage() {
                 </p>
               </motion.div>
 
-              {/* Stat 3 */}
               <motion.div
                 className=""
                 initial={{ opacity: 0, y: 50 }}
@@ -567,7 +562,7 @@ export default function LandingPage() {
               </motion.div>
             </motion.div>
           </div>
-        </section>
+        </section> */}
         <section
           id="programs"
           className="container mx-auto px-4 py-24 overflow-hidden"
@@ -647,7 +642,7 @@ export default function LandingPage() {
           ></video>
 
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/70 via-transparent to-blue-900/70"></div>
+          {/* <div className="absolute inset-0 bg-gradient-to-b from-blue-900/70 via-transparent to-blue-900/70"></div> */}
 
           {/* Floating circles */}
           <div className="absolute inset-0 overflow-hidden">
@@ -674,28 +669,6 @@ export default function LandingPage() {
           {/* Content */}
           <div className="relative z-10 flex flex-col justify-center items-center h-full px-6 text-center">
             {/* Main heading - dynamic letters */}
-            <motion.h1
-              className="text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-500 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(0,0,0,0.7)] tracking-tight"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1.5 }}
-            >
-              {["Embark", "on", "your", "Journey"].map((word, idx) => (
-                <motion.span
-                  key={idx}
-                  className="inline-block mx-1"
-                  initial={{ opacity: 0, y: 50, scale: 0.7 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{
-                    duration: Infinity,
-                    delay: idx * 0.3,
-                    ease: "easeOut",
-                  }}
-                >
-                  {word}
-                </motion.span>
-              ))}
-            </motion.h1>
 
             {/* Subheading */}
             <motion.p
@@ -786,7 +759,9 @@ export default function LandingPage() {
                     src="/assets/student.jpg"
                     className="h-[200px] w-full object-cover"
                   />
-                  <CardTitle className="text-2xl">Core Values</CardTitle>
+                  <CardTitle className="text-2xl text-blue-600 dark:text-white">
+                    Core Values
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base">
@@ -811,7 +786,9 @@ export default function LandingPage() {
                     src="/assets/laboratory.jpg"
                     className="h-[200px] w-full object-cover"
                   />
-                  <CardTitle className="text-2xl">Vision</CardTitle>
+                  <CardTitle className="text-2xl text-blue-600 dark:text-white">
+                    Vision
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base">
@@ -836,7 +813,9 @@ export default function LandingPage() {
                     src="/assets/intro.jpg"
                     className="h-[200px] w-full object-cover"
                   />
-                  <CardTitle className="text-2xl">Mission</CardTitle>
+                  <CardTitle className="text-2xl text-blue-600 dark:text-white">
+                    Mission
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base">
@@ -970,9 +949,9 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        <div className="relative h-[600px] px-10 flex flex-col items-center justify-center">
+        <div className="relative h-[600px] px-10 ">
           {/* Heading positioned at the top center */}
-          <h2 className="text-4xl font-bold text-blue-500 dark:text-white mb-8">
+          <h2 className="text-4xl font-bold text-blue-500 dark:text-white mb-2">
             Our Facilities
           </h2>
 
@@ -1045,11 +1024,15 @@ export default function LandingPage() {
                       />
                     </div>
                     <div>
-                      <h3 className="font-bold">{t("college.name")}</h3>
-                      <p className="text-sm text-">{t("college.subtitle")}</p>
+                      <h3 className="text-gray-500 hover:text-gray-400 dark:text-white font-bold">
+                        {t("college.name")}
+                      </h3>
+                      <p className="text-gray-500 hover:text-gray-400 dark:text-white text-sm text-">
+                        {t("college.subtitle")}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-gray-400">
+                  <p className="text-blue-600 hover:text-gray-400">
                     Excellence in medical education since 1985.
                   </p>
                 </div>
@@ -1059,7 +1042,7 @@ export default function LandingPage() {
                     <li>
                       <Link
                         to="/register"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                        className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
                       >
                         Apply Now
                       </Link>
@@ -1067,7 +1050,7 @@ export default function LandingPage() {
                     <li>
                       <Link
                         to="/login"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                        className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
                       >
                         Student Portal
                       </Link>
@@ -1075,7 +1058,7 @@ export default function LandingPage() {
                     <li>
                       <a
                         href="#"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                        className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
                       >
                         Programs
                       </a>
@@ -1083,7 +1066,7 @@ export default function LandingPage() {
                     <li>
                       <a
                         href="#"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                        className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
                       >
                         Research
                       </a>
@@ -1093,16 +1076,16 @@ export default function LandingPage() {
                 <div>
                   <h4 className="font-semibold mb-4">{t("contact")}</h4>
                   <ul className="space-y-2 ">
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
                       123 Medical Campus Drive
                     </li>
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
                       Berlin, Germany 10115
                     </li>
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
                       +49 30 1234 5678
                     </li>
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                    <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
                       info@dhfm-college.de
                     </li>
                   </ul>

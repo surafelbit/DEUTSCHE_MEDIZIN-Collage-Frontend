@@ -148,8 +148,8 @@ export default function RegistrarLayout() {
                 }}
               >
                 <FileText className="mr-3 h-5 w-5" />
-                <div className="flex">
-                  Applications
+                <div className="flex justify-between w-full">
+                  <span> Applications</span>
                   <svg
                     className={`mr-3 h-5 w-5 transition-transform duration-200 ${
                       extra ? "rotate-90" : ""
@@ -215,8 +215,8 @@ export default function RegistrarLayout() {
                 }}
               >
                 <Settings className="mr-3 h-5 w-5" />
-                <div className="flex">
-                  Set Up
+                <div className="flex justify-between w-full">
+                  <span>Set Up</span>
                   <svg
                     className={`mr-3 ml-2 h-5 w-5 transition-transform duration-200 ${
                       setupOpen ? "rotate-90" : ""
