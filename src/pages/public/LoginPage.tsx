@@ -13,21 +13,24 @@ export default function LoginPage() {
   const { t } = useTranslation(["auth", "common"])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <Link to="/" className="flex items-center text-blue-600 hover:text-blue-700">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t("common:back")} to {t("navigation:home")}
-          </Link>
-          <div className="flex items-center space-x-2">
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-center p-4">
+        <Link to="/" className="flex items-center text-blue-600 hover:text-blue-700">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          {t("common:back")} to {t("navigation:home")}
+        </Link>
+        <div className="flex items-center space-x-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
         </div>
+      </div>
 
-        <Card>
+      {/* Main Content - Centered */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md mx-auto">
+
+        <Card className="shadow-2xl border-0">
           <CardHeader className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-600 rounded-full flex items-center justify-center">
               <GraduationCap className="h-8 w-8 text-white" />
@@ -66,10 +69,7 @@ export default function LoginPage() {
 
             <Button className="w-full">{t("signIn")}</Button>
 
-            <div className="text-center space-y-2">
-              <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                {t("forgotPasswordLink")}
-              </Link>
+            <div className="text-center">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 {t("newStudent")}{" "}
                 <Link to="/register" className="text-blue-600 hover:text-blue-700 dark:text-blue-400">
@@ -79,6 +79,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   )
