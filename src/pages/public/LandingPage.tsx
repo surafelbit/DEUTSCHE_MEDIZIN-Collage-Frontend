@@ -431,7 +431,7 @@ export default function LandingPage() {
                   For nearly five years, people have come to Douche in the
                   pursuit of truth, knowledge, and the betterment of society.
                 </p>
-                <img src="/assets/library.JPG"></img>
+                <img src="/assets/collegephoto.jpg"></img>
               </div>
             </motion.div>
             <motion.div
