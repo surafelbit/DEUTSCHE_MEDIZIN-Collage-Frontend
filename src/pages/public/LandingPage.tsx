@@ -432,6 +432,7 @@ export default function LandingPage() {
                   pursuit of truth, knowledge, and the betterment of society.
                 </p>
                 <img src="/assets/collegephoto.jpg"></img>
+                {/* kgj */}
               </div>
             </motion.div>
             <motion.div
