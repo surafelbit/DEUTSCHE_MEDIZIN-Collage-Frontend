@@ -1,6 +1,7 @@
 const endPoints = {
   users: "/login",
   register: "/auth/register",
-  applicants: "/applicants",
+  applicants: "/applicants/register",
 };
 export default endPoints;
+``;
