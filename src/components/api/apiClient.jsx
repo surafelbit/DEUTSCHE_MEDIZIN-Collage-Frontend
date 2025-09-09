@@ -2,7 +2,8 @@ import axios from "axios";
 const apiClient = axios.create({
   baseURL: "https://growing-crayfish-firstly.ngrok-free.app/api",
   headers: {
-    "Content-Type": "application/json",
+    // Global header to bypass Ngrok browser warning which can cause 403
+    "ngrok-skip-browser-warning": "true",
   },
 });
 apiClient.interceptors.request.use((config) => {
