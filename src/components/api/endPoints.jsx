@@ -1,5 +1,5 @@
 const endPoints = {
-  users: "/login",
+  login: "/auth/login",
   register: "/auth/register",
   applicants: "/applicants/register",
   createDepartmentHead: "/auth/create-department-head",
