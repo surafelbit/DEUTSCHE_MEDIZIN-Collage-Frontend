@@ -4,7 +4,7 @@ const endPoints = {
   applicants: "/applicants",
   createDepartmentHead: "/auth/create-department-head",
   createTeacher: "/auth/create-teacher",
-  departmentHeads: "/department-heads",
+  departmentHeads: "/department-heads", //comment
   teachers: "/teachers",
 };
 export default endPoints;
