@@ -11,7 +11,7 @@ import { Combobox } from "@headlessui/react";
 import useApi from "../hooks/useApi";
 import endPoints from "../components/api/endPoints";
 import DarkVeil from "../designs/DarkVeil";
-import axios from "axios";
+import apiService from "../components/api/apiService";
 const DropdownIndicator = (props) => (
   <components.DropdownIndicator {...props}>
     <svg
@@ -2866,37 +2866,73 @@ const MultiStepRegistrationForm = () => {
     }
   };
 
-  const handleSubmit = async (finalData) => {
-    try {
-      // avoid the await if there is a problem
-      const { data, error, loading } = await useApi(
-        endPoints.register,
-        "post",
-        {
-          username: "jsdk",
-          password: "djdjjdjd",
-          role: "STUDENT",
-        }
-      );
-      console.log(data, error, loading);
-      // const datas = await axios.post(
-      //   "https://growing-crayfish-firstly.ngrok-free.app/api/auth/register",
-      //   {
-      //     username: "jsdk",
-      //     password: "djdjjdjd",
-      //     role: "STUDENT",
-      //   }
-      //   //finalData
-      // );
-      // console.log(datas);
-      console.log("Form submitted:", finalData);
-
-      // <CHANGE> Clear localStorage on successful submission
-      localStorage.removeItem("registrationFormData");
-      localStorage.removeItem("registrationCurrentStep");
-      alert("Registration form submitted successfully!");
-    } catch (error) {}
+const handleSubmit = async () => {
+  const formData = new FormData();
+  const jsonData = {
+    "firstNameAMH": "አበበ",
+    "firstNameENG": "Abebe",
+    "fatherNameAMH": "ከበደ",
+    "fatherNameENG": "Kebede",
+    "grandfatherNameAMH": "ወልደ",
+    "grandfatherNameENG": "Welde",
+    "motherNameAMH": "ማሪያም",
+    "motherNameENG": "Mariam",
+    "motherFatherNameAMH": "ገብረ",
+    "motherFatherNameENG": "Gebere",
+    "gender": "MALE",
+    "age": 20,
+    "phoneNumber": "+251912345678",
+    "dateOfBirthEC": "2015-01-01",
+    "dateOfBirthGC": "2023-01-01",
+    "placeOfBirthWoredaCode": "WRD001",
+    "placeOfBirthZoneCode": "ZON001",
+    "placeOfBirthRegionCode": "REG001",
+    "currentAddressWoredaCode": "WRD002",
+    "currentAddressZoneCode": "ZON002",
+    "currentAddressRegionCode": "REG002",
+    "email": "abebe@example.com",
+    "maritalStatus": "SINGLE",
+    "impairmentCode": "IMP001",
+    "schoolBackgroundId": 1,
+    "contactPersonFirstNameAMH": "ዳዊት",
+    "contactPersonFirstNameENG": "Dawit",
+    "contactPersonLastNameAMH": "ተስፋ",
+    "contactPersonLastNameENG": "Tesfa",
+    "contactPersonPhoneNumber": "+251987654321",
+    "contactPersonRelation": "Brother",
+    "departmentEnrolledId": 1,
+    "programModalityCode": "REGULAR",
+    "classYearId": 1,
+    "semesterCode": "S1"
   };
+
+  try {
+    // Append the JSON string as the 'data' part
+    formData.append(
+      "data",
+      new Blob([JSON.stringify(jsonData)], { type: "application/json" })
+    );
+    
+    const response = await apiService.post(
+      endPoints.applicants,
+      formData
+    );
+    
+    console.log("Response:", response.data);
+    console.log("Form submitted:", jsonData);
+
+    // Clear localStorage on successful submission
+    localStorage.removeItem("registrationFormData");
+    localStorage.removeItem("registrationCurrentStep");
+    alert("Registration form submitted successfully!");
+    
+    return response.data;
+  } catch (error) {
+    console.error("Submission error:", error);
+    alert("There was an error submitting the form.");
+    throw error;
+  }
+};
   const isStepValid = (step, formData) => {
     switch (step) {
       case 1:
