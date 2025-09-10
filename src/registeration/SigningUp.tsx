@@ -1,112 +1,3 @@
-// "use client";
-
-// import type React from "react";
-
-// import { useState } from "react";
-
-// export default function SignInPage() {
-//   const [formData, setFormData] = useState({
-//     username: "",
-//     password: "",
-//   });
-
-//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }));
-//   };
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault();
-//     // Handle signin logic here
-//     console.log("Sign in attempt:", formData);
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-//       <div className="max-w-md w-full space-y-6">
-//         {/* Header */}
-//         <div className="text-center mb-6">
-//           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-//             Sign In
-//           </h2>
-//           <p className="text-sm text-gray-600 dark:text-gray-300">
-//             Please enter your credentials to access your account.
-//           </p>
-//         </div>
-
-//         {/* Sign In Form */}
-//         <section className="border-2 border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800">
-//           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-//             Account Credentials
-//           </h3>
-
-//           <form onSubmit={handleSubmit} className="space-y-6">
-//             {/* Username Field */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-//                 Username:
-//               </label>
-//               <input
-//                 type="text"
-//                 name="username"
-//                 value={formData.username}
-//                 onChange={handleInputChange}
-//                 required
-//                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-//                 placeholder="Enter your username"
-//               />
-//             </div>
-
-//             {/* Password Field */}
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-//                 Password:
-//               </label>
-//               <input
-//                 type="password"
-//                 name="password"
-//                 value={formData.password}
-//                 onChange={handleInputChange}
-//                 required
-//                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-//                 placeholder="Enter your password"
-//               />
-//             </div>
-
-//             {/* Submit Button */}
-//             <div className="pt-4">
-//               <button
-//                 type="submit"
-//                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-//               >
-//                 Sign In
-//               </button>
-//             </div>
-//           </form>
-
-//           {/* Additional Links */}
-//           <div className="mt-6 text-center">
-//             <a
-//               href="#"
-//               className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
-//             >
-//               Forgot your password?
-//             </a>
-//           </div>
-//         </section>
-//       </div>
-//     </div>
-
-//   );
-// }
-// "use client";
-
-// import type React from "react";
-
-// export default function SignInPage() {
 //
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -132,8 +23,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import apiService from "../components/api/apiService";
-import endPoints from "../components/api/endPoints";
+// import apiService from "../components/api/apiService";
+import apiService from "@/components/api/apiService";
+import endPoints from "@/components/api/endPoints";
 export default function SignInPage() {
   const { t } = useTranslation(["auth", "common"]);
   const navigate = useNavigate();
@@ -168,9 +60,16 @@ export default function SignInPage() {
 
       setResponse(response.data);
       console.log("Success:", response.role);
+      console.log(response.jwt);
+      localStorage.setItem("xy9a7b", response.jwt);
       if (response.role == "REGISTRAR") {
         console.log("working");
+        console.log(localStorage.getItem("xy9a7b"));
         navigate("/registrar");
+      } else if (response.role == "STUDENT") {
+        navigate("/student");
+      } else if (response.role == "DEAN") {
+        navigate("/dean");
       } else {
         console.log("something");
       }

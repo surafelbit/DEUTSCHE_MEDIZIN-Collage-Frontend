@@ -144,7 +144,6 @@ export default function RegistrarLayout() {
                 }`}
                 onClick={() => {
                   setExtra(!extra);
-                  window.innerWidth <= 1024 && setSidebarOpen(false);
                 }}
               >
                 <FileText className="mr-3 h-5 w-5" />
@@ -202,6 +201,7 @@ export default function RegistrarLayout() {
                 </div>
               )}
             </div>
+
             <div className="mt-2 space-y-1">
               <button
                 className={`flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -389,6 +389,34 @@ export default function RegistrarLayout() {
                 </div>
               )}
             </div>
+            <div className="mt-2 space-y-1">
+              <button className="flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                {/* Icon with badge */}
+                <div className="relative mr-2">
+                  <svg
+                    className="w-6 h-6 text-gray-700 dark:text-gray-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 10-12 0v3c0 .386-.146.735-.405 1.005L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                  {/* Red badge */}
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                    3
+                  </span>
+                </div>
+
+                {/* Button text */}
+                <span>Notification</span>
+              </button>
+            </div>
           </div>
         </nav>
 
@@ -423,13 +451,40 @@ export default function RegistrarLayout() {
           </Button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            {/* Page Title */}
             <div className="flex flex-1 items-center">
               <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Registrar Portal
               </h1>
             </div>
+
+            {/* Right side controls */}
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               <ThemeToggle />
+
+              {/* Notification Bell */}
+              <div className="relative cursor-pointer">
+                <svg
+                  className="w-6 h-6 text-gray-700 dark:text-gray-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 10-12 0v3c0 .386-.146.735-.405 1.005L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {/* Red badge */}
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                  3
+                </span>
+              </div>
+
+              {/* User info */}
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">RG</span>

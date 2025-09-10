@@ -1,70 +1,73 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
+  Calculator,
   FlaskConical,
   Stethoscope,
   HeartPulse,
   Pill,
-  Calculator,
 } from "lucide-react";
+import apiService from "@/components/api/apiService";
+import endPoints from "@/components/api/endPoints";
 
 interface Department {
-  id: string;
-  name: string;
-  description: string;
+  dptID: number;
+  deptName: string;
+  totalCrHr: number | null;
+  departmentCode: string;
   icon: React.ReactNode;
   color: string;
 }
 
-const departments: Department[] = [
+// ✅ Fake data (mocked departments)
+const fakeDepartments: Department[] = [
   {
-    id: "cs",
-    name: "Computer Science",
-    description: "All CS related courses",
-    icon: <BookOpen className="w-10 h-10" />,
-    color: "from-indigo-500 to-purple-600",
-  },
-  {
-    id: "math",
-    name: "Mathematics",
-    description: "All Math courses",
-    icon: <Calculator className="w-10 h-10" />,
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: "phy",
-    name: "Physics",
-    description: "All Physics courses",
-    icon: <FlaskConical className="w-10 h-10" />,
-    color: "from-amber-500 to-orange-600",
-  },
-  {
-    id: "med",
-    name: "Medicine",
-    description: "All Medicine courses",
-    icon: <Stethoscope className="w-10 h-10" />,
-    color: "from-red-500 to-pink-600",
-  },
-  {
-    id: "nrs",
-    name: "Nursing",
-    description: "All Nursing courses",
+    dptID: 1,
+    deptName: "Nursing",
+    totalCrHr: 120,
+    departmentCode: "NUR",
     icon: <HeartPulse className="w-10 h-10" />,
     color: "from-green-500 to-emerald-600",
   },
   {
-    id: "phr",
-    name: "Pharmacist",
-    description: "All Pharmacist courses",
-    icon: <Pill className="w-10 h-10" />,
-    color: "from-purple-500 to-fuchsia-600",
+    dptID: 2,
+    deptName: "Medicine",
+    totalCrHr: 180,
+    departmentCode: "MED",
+    icon: <Stethoscope className="w-10 h-10" />,
+    color: "from-red-500 to-pink-600",
+  },
+  {
+    dptID: 3,
+    deptName: "Computer Science",
+    totalCrHr: 140,
+    departmentCode: "CS",
+    icon: <BookOpen className="w-10 h-10" />,
+    color: "from-indigo-500 to-purple-600",
   },
 ];
 
 export default function RegistrarDepartments() {
+  const [departments, setDepartments] = useState<Department[]>([]);
   const navigate = useNavigate();
-  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    // For now: load fake data
+    setDepartments(fakeDepartments);
+
+    //Later: replace with API
+    const getter = async () => {
+      try {
+        const response = await apiService.get(endPoints.departments);
+        setDepartments(response);
+        console.log(response);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    getter();
+  }, []);
 
   return (
     <div className="space-y-12 px-8 py-8">
@@ -76,64 +79,30 @@ export default function RegistrarDepartments() {
         <p className="text-white mt-2 text-lg drop-shadow-md">
           Manage all academic departments and their courses
         </p>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="mt-6 bg-white hover:bg-gray-100 text-blue-700 px-6 py-3 rounded-xl shadow-lg transition text-lg font-semibold"
-        >
-          {showForm ? "✖ Cancel" : "+ Create Department"}
-        </button>
       </div>
 
-      {/* Collapsible Create Form */}
-      {showForm && (
-        <div className="p-8 rounded-2xl shadow-lg border bg-white dark:bg-gray-800 transition-colors duration-300">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-            Create New Department
-          </h2>
-          <form className="space-y-6">
-            <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">
-                Department Name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Engineering"
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">
-                Description
-              </label>
-              <textarea
-                placeholder="Short description..."
-                className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl shadow-md transition-colors"
-            >
-              Save Department
-            </button>
-          </form>
-        </div>
-      )}
-
       {/* Departments Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2  gap-10">
         {departments.map((dept) => (
           <div
-            key={dept.id}
-            // onClick={() => navigate(`/registrar/departments/${dept.id}`)}
-            onClick={() => navigate(`/registrar/departments/math`)}
-            className={`cursor-pointer h-48 rounded-3xl p-6 shadow-xl bg-gradient-to-r ${dept.color} text-white flex flex-col justify-between transform hover:-translate-y-2 hover:shadow-2xl transition`}
+            key={dept.dptID}
+            onClick={() =>
+              navigate(`/registrar/departments/${dept.departmentCode}`)
+            }
+            className={`cursor-pointer h-62 rounded-3xl p-6 shadow-xl bg-gradient-to-r from-blue-500 to-blue-800 text-white flex flex-col justify-between transform hover:-translate-y-2 hover:shadow-2xl transition`}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center  gap-4">
               {dept.icon}
-              <h2 className="text-3xl font-extrabold">{dept.name}</h2>
+              <h2 className="text-2xl font-extrabold">{dept.deptName}</h2>
             </div>
-            <p className="text-lg">{dept.description}</p>
+            <div className="space-y-1">
+              <p className="text-lg">📌 ID: {dept.dptID}</p>
+              <p className="text-lg">🏷 Code: {dept.departmentCode}</p>
+              <p className="text-lg">
+                🎓 Total Credits:{" "}
+                {dept.totalCrHr !== null ? dept.totalCrHr : "N/A"}
+              </p>
+            </div>
           </div>
         ))}
       </div>
