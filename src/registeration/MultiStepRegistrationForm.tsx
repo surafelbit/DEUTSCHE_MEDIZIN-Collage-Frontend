@@ -11,7 +11,7 @@ import { Combobox } from "@headlessui/react";
 import useApi from "../hooks/useApi";
 import endPoints from "../components/api/endPoints";
 import DarkVeil from "../designs/DarkVeil";
-import axios from "axios";
+import apiService from "../components/api/apiService";
 const DropdownIndicator = (props) => (
   <components.DropdownIndicator {...props}>
     <svg
@@ -309,20 +309,20 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
         <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
           Student Photo
         </label>
-        <section className="border-2 border-yellow-200 rounded-lg p-6 bg-yellow-50 dark:bg-gray-800 dark:border-gray-700">
-          <div className="border-t-2 border-yellow-400 dark:border-gray-600 pt-4 flex flex-col items-center">
+        <section className="border-2 border-blue-200 rounded-lg p-6 bg-white dark:bg-gray-800 dark:border-gray-700">
+          <div className="border-t-2 border-blue-400 dark:border-gray-600 pt-4 flex flex-col items-center">
             {/* Certificate Icon/Image */}
             <img
               src={previews || "/default-avatar.png"} // fallback default
               alt="Student Photo"
-              className="w-24 h-24 rounded-full mb-4 border-2 border-yellow-300 dark:border-gray-500 object-cover"
+              className="w-24 h-24 rounded-full mb-4 border-2 border-blue-300 dark:border-gray-500 object-cover"
             />
 
-            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2 text-center">
-              Please Upload Your Student Photo
+            <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2 text-center">
+              Please upload your student photo
             </h3>
-            <p className="text-sm font-medium text-yellow-700 dark:text-yellow-200 mb-4 text-center">
-              Upload your student photo in image or PDF format
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-4 text-center">
+              Upload a clear portrait image (JPG or PNG)
             </p>
 
             {/* Certificate uploader */}
@@ -331,7 +331,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               <input
                 id="upload-studentphoto"
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files[0];
                   if (file) {
@@ -348,7 +348,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
               {/* Custom upload button */}
               <label
                 htmlFor="upload-studentphoto"
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-white rounded-lg shadow cursor-pointer hover:from-yellow-300 hover:via-yellow-400 hover:to-yellow-500 transition dark:from-yellow-600 dark:via-yellow-500 dark:to-yellow-400 dark:hover:from-yellow-500 dark:hover:via-yellow-400 dark:hover:to-yellow-300"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow cursor-pointer hover:from-blue-700 hover:to-blue-800 transition"
               >
                 <ImageIcon className="w-5 h-5" />
                 <span>Upload Student Photo</span>
@@ -483,7 +483,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   option: ({ isFocused, isSelected }) =>
                     `px-3 py-2 cursor-pointer ${
                       isSelected
-                        ? "dark:bg-black bg-white text-white"
+                        ? "bg-blue-600 text-white dark:bg-blue-600"
                         : isFocused
                         ? "bg-blue-100 dark:bg-black"
                         : "text-gray-800 dark:text-gray-200"
@@ -539,7 +539,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                   option: ({ isFocused, isSelected }) =>
                     `px-3 py-2 cursor-pointer ${
                       isSelected
-                        ? "dark:bg-black bg-white text-white"
+                        ? "bg-blue-600 text-white dark:bg-blue-600"
                         : isFocused
                         ? "bg-blue-100 dark:bg-black"
                         : "text-gray-800 dark:text-gray-200"
@@ -742,7 +742,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                     option: ({ isFocused, isSelected }) =>
                       `px-3 py-2 cursor-pointer ${
                         isSelected
-                          ? "dark:bg-black bg-white text-white"
+                          ? "bg-blue-600 text-white dark:bg-blue-600"
                           : isFocused
                           ? "bg-blue-100 dark:bg-black"
                           : "text-gray-800 dark:text-gray-200"
@@ -798,7 +798,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                     option: ({ isFocused, isSelected }) =>
                       `px-3 py-2 cursor-pointer ${
                         isSelected
-                          ? "dark:bg-black bg-white text-white"
+                          ? "bg-blue-600 text-white dark:bg-blue-600"
                           : isFocused
                           ? "bg-blue-100 dark:bg-black"
                           : "text-gray-800 dark:text-gray-200"
@@ -854,7 +854,7 @@ const PersonalInformationStep = ({ formData, setFormData }) => {
                     option: ({ isFocused, isSelected }) =>
                       `px-3 py-2 cursor-pointer ${
                         isSelected
-                          ? "dark:bg-black bg-white text-white"
+                          ? "bg-blue-600 text-white dark:bg-blue-600"
                           : isFocused
                           ? "bg-blue-100 dark:bg-black"
                           : "text-gray-800 dark:text-gray-200"
@@ -1687,8 +1687,8 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
             </div>
           ))}
         </div> */}
-        <section className="border-2 border-yellow-200 rounded-lg p-6 bg-yellow-50 dark:bg-gray-800 dark:border-gray-700">
-          <div className="border-t-2 border-yellow-400 pt-4 flex flex-col items-center">
+        <section className="border-2 border-blue-200 rounded-lg p-6 bg-white dark:bg-gray-800 dark:border-gray-700">
+          <div className="border-t-2 border-blue-400 pt-4 flex flex-col items-center">
             {/* Certificate Icon/Image */}
             <img
               src="/assets/certificate.png" // replace with your image path
@@ -1696,10 +1696,10 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
               className="w-24 h-24 mb-4"
             />
 
-            <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+            <h3 className="text-lg font-semibold text-blue-800 mb-2">
               Please Upload Your Certificate
             </h3>
-            <p className="text-sm font-medium text-yellow-700 mb-4 text-center">
+            <p className="text-sm font-medium text-gray-600 mb-4 text-center">
               Upload your Grade 12 certificate below:
             </p>
 
@@ -1725,11 +1725,7 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
               {/* Custom upload button */}
               <label
                 htmlFor="upload-certificate"
-                className="flex items-center gap-2 px-4 py-2 
-        bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 
-        text-white rounded-lg shadow cursor-pointer 
-        hover:from-yellow-300 hover:via-yellow-400 hover:to-yellow-500 
-        transition"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow cursor-pointer hover:from-blue-700 hover:to-blue-800 transition"
               >
                 <ImageIcon className="w-5 h-5" />
                 <span>Upload Certificate</span>
@@ -1843,7 +1839,7 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
               name="department"
               value={formData.department}
               onChange={handleInputChange}
-              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
+              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             >
               <option value="">Choose Department</option>
               <option value="Computer Science">Computer Science</option>
@@ -1887,22 +1883,22 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
               name="programModality"
               value={formData.programModality}
               onChange={handleInputChange}
-              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
+              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             >
               <option value="Regular">Regular</option>
-              <option value="Extension/Weekend" disabled>
+              <option value="Extension/Weekend">
                 Extension/Weekend
               </option>
-              <option value="Summer" disabled>
+              <option value="Summer">
                 Summer
               </option>
-              <option value="Distance" disabled>
+              <option value="Distance">
                 Distance
               </option>
-              <option value="Winter In-service" disabled>
+              <option value="Winter In-service">
                 Winter In-service
               </option>
-              <option value="Daytime" disabled>
+              <option value="Daytime">
                 Daytime
               </option>
             </select>
@@ -1935,7 +1931,7 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
               name="schoolBackground"
               value={formData.schoolBackground}
               onChange={handleInputChange}
-              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition"
+              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             >
               <option value="">Choose Background</option>
               <option value="High School Graduate">High School Graduate</option>
@@ -2858,8 +2854,9 @@ const MultiStepRegistrationForm = () => {
   }, []);
 
   const nextStep = () => {
+    // Allow advancing unless we're already at the final step
     if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((s) => s + 1);
     }
   };
 
@@ -2869,56 +2866,83 @@ const MultiStepRegistrationForm = () => {
     }
   };
 
-  const handleSubmit = async (finalData) => {
-    try {
-      // avoid the await if there is a problem
-      const { data, error, loading } = await useApi(
-        endPoints.register,
-        "post",
-        {
-          username: "jsdk",
-          password: "djdjjdjd",
-          role: "STUDENT",
-        }
-      );
-      console.log(data, error, loading);
-      // const datas = await axios.post(
-      //   "https://growing-crayfish-firstly.ngrok-free.app/api/auth/register",
-      //   {
-      //     username: "jsdk",
-      //     password: "djdjjdjd",
-      //     role: "STUDENT",
-      //   }
-      //   //finalData
-      // );
-      // console.log(datas);
-      console.log("Form submitted:", finalData);
-
-      // <CHANGE> Clear localStorage on successful submission
-      localStorage.removeItem("registrationFormData");
-      localStorage.removeItem("registrationCurrentStep");
-      alert("Registration form submitted successfully!");
-    } catch (error) {}
+const handleSubmit = async () => {
+  const formData = new FormData();
+  const jsonData = {
+    "firstNameAMH": "አበበ",
+    "firstNameENG": "Abebe",
+    "fatherNameAMH": "ከበደ",
+    "fatherNameENG": "Kebede",
+    "grandfatherNameAMH": "ወልደ",
+    "grandfatherNameENG": "Welde",
+    "motherNameAMH": "ማሪያም",
+    "motherNameENG": "Mariam",
+    "motherFatherNameAMH": "ገብረ",
+    "motherFatherNameENG": "Gebere",
+    "gender": "MALE",
+    "age": 20,
+    "phoneNumber": "+251912345678",
+    "dateOfBirthEC": "2015-01-01",
+    "dateOfBirthGC": "2023-01-01",
+    "placeOfBirthWoredaCode": "WRD001",
+    "placeOfBirthZoneCode": "ZON001",
+    "placeOfBirthRegionCode": "REG001",
+    "currentAddressWoredaCode": "WRD002",
+    "currentAddressZoneCode": "ZON002",
+    "currentAddressRegionCode": "REG002",
+    "email": "abebe@example.com",
+    "maritalStatus": "SINGLE",
+    "impairmentCode": "IMP001",
+    "schoolBackgroundId": 1,
+    "contactPersonFirstNameAMH": "ዳዊት",
+    "contactPersonFirstNameENG": "Dawit",
+    "contactPersonLastNameAMH": "ተስፋ",
+    "contactPersonLastNameENG": "Tesfa",
+    "contactPersonPhoneNumber": "+251987654321",
+    "contactPersonRelation": "Brother",
+    "departmentEnrolledId": 1,
+    "programModalityCode": "REGULAR",
+    "classYearId": 1,
+    "semesterCode": "S1"
   };
+
+  try {
+    // Append the JSON string as the 'data' part
+    formData.append(
+      "data",
+      new Blob([JSON.stringify(jsonData)], { type: "application/json" })
+    );
+    
+    const response = await apiService.post(
+      endPoints.applicants,
+      formData
+    );
+    
+    console.log("Response:", response.data);
+    console.log("Form submitted:", jsonData);
+
+    // Clear localStorage on successful submission
+    localStorage.removeItem("registrationFormData");
+    localStorage.removeItem("registrationCurrentStep");
+    alert("Registration form submitted successfully!");
+    
+    return response.data;
+  } catch (error) {
+    console.error("Submission error:", error);
+    alert("There was an error submitting the form.");
+    throw error;
+  }
+};
   const isStepValid = (step, formData) => {
     switch (step) {
       case 1:
+        // Be lenient on Step 1 so users can proceed after core personal info
         return (
-          formData.firstName &&
-          formData.middleName &&
-          formData.lastName &&
-          formData.sex &&
-          formData.birthWoreda &&
-          formData.birthYearEC &&
-          formData.birthMonthEC &&
-          formData.birthDateEC &&
-          formData.birthYearGC &&
-          formData.birthMonthGC &&
-          formData.birthDateGC &&
-          formData.phoneNo &&
-          formData.maritalStatus &&
-          formData.emergencyfirstName &&
-          formData.contactPersonPhoneNumber
+          !!formData.firstName &&
+          !!formData.middleName &&
+          !!formData.lastName &&
+          !!formData.sex &&
+          !!formData.phoneNo
         );
       case 2:
         return true;
@@ -3046,19 +3070,14 @@ const MultiStepRegistrationForm = () => {
                 Save Progress
               </button>
 
-              <button
-                onClick={nextStep}
-                disabled={
-                  !isStepValid(currentStep, formData) || currentStep == 4
-                }
-                className={`px-6 py-2 rounded-lg font-medium transition duration-200 ${
-                  !isStepValid(currentStep, formData) || currentStep == 4
-                    ? "bg-gray-300 text-gray-500 dark:text-gray-100 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                }`}
-              >
-                Next
-              </button>
+              {currentStep < totalSteps && (
+                <button
+                  onClick={nextStep}
+                  className={`px-6 py-2 rounded-lg font-medium transition duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                >
+                  Next
+                </button>
+              )}
             </div>
           </div>
         )}
