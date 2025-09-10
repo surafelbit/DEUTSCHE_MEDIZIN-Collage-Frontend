@@ -7,4 +7,5 @@ const endPoints = {
   departmentHeads: "/department-heads", //comment
   teachers: "/teachers",
 };
+
 export default endPoints;
