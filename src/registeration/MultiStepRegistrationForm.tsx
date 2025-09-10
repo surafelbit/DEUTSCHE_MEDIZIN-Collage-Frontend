@@ -9,9 +9,9 @@ import { useTranslation } from "react-i18next";
 import Select from "react-select";
 import { Combobox } from "@headlessui/react";
 import useApi from "../hooks/useApi";
-import endPoints from "../components/api/endPoints";
+import endPoints from "@/components/api/endPoints";
 import DarkVeil from "../designs/DarkVeil";
-import apiService from "../components/api/apiService";
+import apiService from "@/components/api/apiService";
 const DropdownIndicator = (props) => (
   <components.DropdownIndicator {...props}>
     <svg
@@ -1886,21 +1886,11 @@ const EducationalInformationStep = ({ formData, setFormData }) => {
               className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             >
               <option value="Regular">Regular</option>
-              <option value="Extension/Weekend">
-                Extension/Weekend
-              </option>
-              <option value="Summer">
-                Summer
-              </option>
-              <option value="Distance">
-                Distance
-              </option>
-              <option value="Winter In-service">
-                Winter In-service
-              </option>
-              <option value="Daytime">
-                Daytime
-              </option>
+              <option value="Extension/Weekend">Extension/Weekend</option>
+              <option value="Summer">Summer</option>
+              <option value="Distance">Distance</option>
+              <option value="Winter In-service">Winter In-service</option>
+              <option value="Daytime">Daytime</option>
             </select>
 
             {/* Dropdown arrow */}
@@ -2866,73 +2856,70 @@ const MultiStepRegistrationForm = () => {
     }
   };
 
-const handleSubmit = async () => {
-  const formData = new FormData();
-  const jsonData = {
-    "firstNameAMH": "አበበ",
-    "firstNameENG": "Abebe",
-    "fatherNameAMH": "ከበደ",
-    "fatherNameENG": "Kebede",
-    "grandfatherNameAMH": "ወልደ",
-    "grandfatherNameENG": "Welde",
-    "motherNameAMH": "ማሪያም",
-    "motherNameENG": "Mariam",
-    "motherFatherNameAMH": "ገብረ",
-    "motherFatherNameENG": "Gebere",
-    "gender": "MALE",
-    "age": 20,
-    "phoneNumber": "+251912345678",
-    "dateOfBirthEC": "2015-01-01",
-    "dateOfBirthGC": "2023-01-01",
-    "placeOfBirthWoredaCode": "WRD001",
-    "placeOfBirthZoneCode": "ZON001",
-    "placeOfBirthRegionCode": "REG001",
-    "currentAddressWoredaCode": "WRD002",
-    "currentAddressZoneCode": "ZON002",
-    "currentAddressRegionCode": "REG002",
-    "email": "abebe@example.com",
-    "maritalStatus": "SINGLE",
-    "impairmentCode": "IMP001",
-    "schoolBackgroundId": 1,
-    "contactPersonFirstNameAMH": "ዳዊት",
-    "contactPersonFirstNameENG": "Dawit",
-    "contactPersonLastNameAMH": "ተስፋ",
-    "contactPersonLastNameENG": "Tesfa",
-    "contactPersonPhoneNumber": "+251987654321",
-    "contactPersonRelation": "Brother",
-    "departmentEnrolledId": 1,
-    "programModalityCode": "REGULAR",
-    "classYearId": 1,
-    "semesterCode": "S1"
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    const jsonData = {
+      firstNameAMH: "አበበ",
+      firstNameENG: "Abebe",
+      fatherNameAMH: "ከበደ",
+      fatherNameENG: "Kebede",
+      grandfatherNameAMH: "ወልደ",
+      grandfatherNameENG: "Welde",
+      motherNameAMH: "ማሪያም",
+      motherNameENG: "Mariam",
+      motherFatherNameAMH: "ገብረ",
+      motherFatherNameENG: "Gebere",
+      gender: "MALE",
+      age: 20,
+      phoneNumber: "+251912345678",
+      dateOfBirthEC: "2015-01-01",
+      dateOfBirthGC: "2023-01-01",
+      placeOfBirthWoredaCode: "WRD001",
+      placeOfBirthZoneCode: "ZON001",
+      placeOfBirthRegionCode: "REG001",
+      currentAddressWoredaCode: "WRD002",
+      currentAddressZoneCode: "ZON002",
+      currentAddressRegionCode: "REG002",
+      email: "abebe@example.com",
+      maritalStatus: "SINGLE",
+      impairmentCode: "IMP001",
+      schoolBackgroundId: 1,
+      contactPersonFirstNameAMH: "ዳዊት",
+      contactPersonFirstNameENG: "Dawit",
+      contactPersonLastNameAMH: "ተስፋ",
+      contactPersonLastNameENG: "Tesfa",
+      contactPersonPhoneNumber: "+251987654321",
+      contactPersonRelation: "Brother",
+      departmentEnrolledId: 1,
+      programModalityCode: "REGULAR",
+      classYearId: 1,
+      semesterCode: "S1",
+    };
+
+    try {
+      // Append the JSON string as the 'data' part
+      formData.append(
+        "data",
+        new Blob([JSON.stringify(jsonData)], { type: "application/json" })
+      );
+
+      const response = await apiService.post(endPoints.applicants, formData);
+
+      console.log("Response:", response.data);
+      console.log("Form submitted:", jsonData);
+
+      // Clear localStorage on successful submission
+      localStorage.removeItem("registrationFormData");
+      localStorage.removeItem("registrationCurrentStep");
+      alert("Registration form submitted successfully!");
+
+      return response.data;
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("There was an error submitting the form.");
+      throw error;
+    }
   };
-
-  try {
-    // Append the JSON string as the 'data' part
-    formData.append(
-      "data",
-      new Blob([JSON.stringify(jsonData)], { type: "application/json" })
-    );
-    
-    const response = await apiService.post(
-      endPoints.applicants,
-      formData
-    );
-    
-    console.log("Response:", response.data);
-    console.log("Form submitted:", jsonData);
-
-    // Clear localStorage on successful submission
-    localStorage.removeItem("registrationFormData");
-    localStorage.removeItem("registrationCurrentStep");
-    alert("Registration form submitted successfully!");
-    
-    return response.data;
-  } catch (error) {
-    console.error("Submission error:", error);
-    alert("There was an error submitting the form.");
-    throw error;
-  }
-};
   const isStepValid = (step, formData) => {
     switch (step) {
       case 1:
