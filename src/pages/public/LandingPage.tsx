@@ -121,6 +121,8 @@ export default function LandingPage() {
   const inView = useInView(ref, { margin: "-150px" });
   const infoRef = useRef(null);
   const infoView = useInView(infoRef, { margin: "-150px" });
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="relative min-h-screen ">
       {/* DarkVeil Background */}
@@ -136,7 +138,7 @@ export default function LandingPage() {
             <ChevronUpIcon className="h-6 w-6" />
           </button>
         )}
-        <header className=" top-0 left-0 w-full bg-white dark:bg-gray-900 shadow z-50">
+        {/* <header className=" top-0 left-0 w-full bg-white dark:bg-gray-900 shadow z-50">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center relative">
             <div className="flex items-center space-x-3">
               <div className="w-12 rounded-full   rounded-lg flex items-center justify-center">
@@ -204,7 +206,6 @@ export default function LandingPage() {
               </ul>
             </nav>
 
-            {/* Utilities */}
             <div className=" md:flex items-center z-50 space-x-4">
               <LanguageSwitcher />
               <ThemeToggle />
@@ -212,6 +213,144 @@ export default function LandingPage() {
                 <Button variant="outline">{t("auth:login")}</Button>
               </Link>
             </div>
+          </div>
+        </header> */}
+
+        <header className="fixed top-0 left-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg z-50">
+          <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+            {/* Logo */}
+            <div className="flex items-center space-x-2">
+              <img
+                src="/assets/companylogo.jpg"
+                alt="Company Logo"
+                className="h-10 w-10 rounded-full object-cover shadow-sm"
+              />
+              <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                CompanyName
+              </span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className=" md:flex items-center space-x-6">
+              <a
+                href="#home"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300"
+              >
+                Home
+              </a>
+              <a
+                href="#mission"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300"
+              >
+                Mission
+              </a>
+              <a
+                href="#hero"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300"
+              >
+                Services
+              </a>
+              <a
+                href="#contact"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300"
+              >
+                Contact
+              </a>
+            </nav>
+
+            {/* Desktop Utilities */}
+            <div className=" md:flex items-center space-x-4">
+              <LanguageSwitcher />
+              <ThemeToggle />
+              <Link to="/login">
+                <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-sm">
+                  Login
+                </button>
+              </Link>
+            </div>
+
+            {/* Hamburger Button */}
+            <button
+              className="md:hidden text-gray-700 dark:text-gray-200 focus:outline-none"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                {isOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Dropdown Menu */}
+          <div
+            className={`md:hidden bg-white dark:bg-gray-900 shadow-lg transition-all duration-300 ease-in-out ${
+              isOpen
+                ? "max-h-screen opacity-100"
+                : "max-h-0 opacity-0 overflow-hidden"
+            }`}
+          >
+            <nav className="flex flex-col space-y-3 px-4 py-4">
+              <a
+                href="#home"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300 py-2"
+                onClick={() => setIsOpen(false)}
+              >
+                Home
+              </a>
+              <a
+                href="#mission"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300 py-2"
+                onClick={() => setIsOpen(false)}
+              >
+                Mission
+              </a>
+              <a
+                href="#hero"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300 py-2"
+                onClick={() => setIsOpen(false)}
+              >
+                Services
+              </a>
+              <a
+                href="#contact"
+                className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300 py-2"
+                onClick={() => setIsOpen(false)}
+              >
+                Contact
+              </a>
+              {/* Mobile Utilities */}
+              <div className="flex flex-col space-y-3 pt-2">
+                <div className="flex justify-between items-center">
+                  <LanguageSwitcher />
+                  <ThemeToggle />
+                </div>
+                <Link to="/login" onClick={() => setIsOpen(false)}>
+                  <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-sm w-full">
+                    Login
+                  </button>
+                </Link>
+              </div>
+            </nav>
           </div>
         </header>
 
@@ -416,8 +555,11 @@ export default function LandingPage() {
             </motion.div>
           </div>
         </section> */}
-        <section className="mx-20 my-30">
-          <div ref={infoRef} className="grid grid-cols-2 gap-x-20">
+        <section className="mx-4 sm:mx-20 my-10">
+          <div
+            ref={infoRef}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-x-20 gap-y-10"
+          >
             <motion.div
               initial={{ opacity: 0, x: 100 }}
               animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
@@ -431,10 +573,15 @@ export default function LandingPage() {
                   For nearly five years, people have come to Douche in the
                   pursuit of truth, knowledge, and the betterment of society.
                 </p>
-                <img src="/assets/collegephoto.jpg"></img>
-                {/* kgj */}
+                {/* ✅ Make the image responsive */}
+                <img
+                  src="/assets/collegephoto.jpg"
+                  alt="College"
+                  className="w-full h-auto rounded-lg object-cover"
+                />
               </div>
             </motion.div>
+
             <motion.div
               initial={{ opacity: 0, x: -100 }}
               animate={
@@ -458,6 +605,7 @@ export default function LandingPage() {
                   The year Douche was founded
                 </p>
               </motion.div>
+
               <div>
                 <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
                   204{" "}
@@ -467,6 +615,7 @@ export default function LandingPage() {
                   year
                 </p>
               </div>
+
               <motion.div
                 initial={{ opacity: 0, y: 100 }}
                 animate={
@@ -478,12 +627,13 @@ export default function LandingPage() {
                   433{" "}
                 </h2>
                 <p className="text-lg dark:text-white text-black font-mono">
-                  students currently enganged now
+                  students currently engaged now
                 </p>
               </motion.div>
             </motion.div>
           </div>
         </section>
+
         {/* <section className="container   px-6 py-24">
           <div className="grid mx-10 lg:grid-cols-2 gap-16 items-center">
             <motion.div
