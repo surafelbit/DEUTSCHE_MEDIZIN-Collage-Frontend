@@ -148,12 +148,12 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
         {/* Full Name */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Full Name (English):
+            Full Name (English): *
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-gray-500 dark:text-white mb-1">
-                First Name
+                First Name *
               </label>
               <input
                 type="text"
@@ -164,8 +164,8 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 text-white mb-1">
-                Middle Name
+              <label className="block text-xs text-gray-500 dark:text-white mb-1">
+                Middle Name *
               </label>
               <input
                 type="text"
@@ -176,8 +176,8 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 text-white mb-1">
-                Last Name
+              <label className="block text-xs text-gray-500 dark:text-white mb-1">
+                Last Name *
               </label>
               <input
                 type="text"
@@ -189,12 +189,12 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
             </div>
           </div>
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Full Name (Amharic):
+            Full Name (Amharic): *
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs text-gray-500 dark:text-white mb-1">
-                First Name
+                First Name *
               </label>
               <input
                 type="text"
@@ -206,7 +206,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-200 mb-1">
-                Middle Name
+                Middle Name *
               </label>
               <input
                 type="text"
@@ -218,7 +218,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-200 mb-1">
-                Last Name
+                Last Name *
               </label>
               <input
                 type="text"
@@ -235,7 +235,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-              Sex:
+              Sex: *
             </label>
             <div className="flex gap-4">
               {["Male", "Female"].map((gender) => (
@@ -255,7 +255,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-              Age:
+              Age: *
             </label>
             <input
               type="number"
@@ -271,7 +271,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Information about Impairment (if any):
+            Information about Impairment (if any): (Optional)
           </label>
           <select
             name="impairmentCode"
@@ -288,7 +288,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
           </select>
         </div>
         <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-          Student Photo
+          Student Photo (Optional)
         </label>
         <section className="border-2 border-blue-200 rounded-lg p-6 bg-white dark:bg-gray-800 dark:border-gray-700">
           <div className="border-t-2 border-blue-400 dark:border-gray-600 pt-4 flex flex-col items-center">
@@ -464,25 +464,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
             Date of Birth:
           </label>
           <div className="space-y-4">
-            {/* Semester selection */}
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Semester
-              </label>
-              <select
-                name="semesterCode"
-                value={formData.semesterCode}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border bg-white dark:bg-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Choose Semester</option>
-                {dropdowns.semesters.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
                 Ethiopian Calendar (E.C)
@@ -516,34 +497,15 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Gregorian Calendar (G.C)
+                Gregorian Calendar (G.C) *
               </label>
-              <div className="grid grid-cols-3 gap-4">
-                <input
-                  type="text"
-                  name="birthDateGC"
-                  placeholder="Date"
-                  value={formData.birthDateGC}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="text"
-                  name="birthMonthGC"
-                  placeholder="Month"
-                  value={formData.birthMonthGC}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="text"
-                  name="birthYearGC"
-                  placeholder="Year"
-                  value={formData.birthYearGC}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              <input
+                type="date"
+                name="birthDateGC"
+                value={formData.birthDateGC}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </div>
         </div>
@@ -660,14 +622,14 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
         {/* Emergency Contact */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Contact Person in case of Emergency:
+            Contact Person in case of Emergency: (Optional)
           </label>
           <div className="space-y-4">
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                 Full Name (English):
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
                     First Name
@@ -676,18 +638,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                     type="text"
                     name="emergencyfirstName"
                     value={formData.emergencyfirstName}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                    Middle Name
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencymiddleName"
-                    value={formData.emergencymiddleName}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -708,7 +658,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
               <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
                 Full Name (Amharic):
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
                     First Name
@@ -717,18 +667,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                     type="text"
                     name="emergencyfirstNameAMH"
                     value={formData.emergencyfirstNameAMH}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                    Middle Name
-                  </label>
-                  <input
-                    type="text"
-                    name="emergencymiddleNameAMH"
-                    value={formData.emergencymiddleNameAMH}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -841,103 +779,16 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
           3. FAMILY BACKGROUND
         </h3>
 
-        {/* Father Information */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Father Full Name (English):
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="fatherFirstName"
-                value={formData.fatherFirstName}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Middle Name
-              </label>
-              <input
-                type="text"
-                name="fatherMiddleName"
-                value={formData.fatherMiddleName}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="fatherLastName"
-                value={formData.fatherLastName}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Father Full Name (AMH):
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="fatherFirstNameAMH"
-                value={formData.fatherFirstNameAMH}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Middle Name
-              </label>
-              <input
-                type="text"
-                name="middleNameFatherNameAMH"
-                value={formData.middleNameFatherNameAMH}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="fatherlastNameAMH"
-                value={formData.fatherlastNameAMH}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-
-        </div>
 
         {/* Mother Information */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Mothers Full Name (English):
+            Mothers Full Name (English): *
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                First Name
+                First Name *
               </label>
               <input
                 type="text"
@@ -949,19 +800,7 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Middle Name
-              </label>
-              <input
-                type="text"
-                name="motherMiddleName"
-                value={formData.motherMiddleName}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Last Name
+                Last Name *
               </label>
               <input
                 type="text"
@@ -973,12 +812,12 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
             </div>
           </div>
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Mothers Full Name (AMH):
+            Mothers Full Name (AMH): *
           </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                First Name
+                First Name *
               </label>
               <input
                 type="text"
@@ -990,19 +829,7 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
             </div>
             <div>
               <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Middle Name
-              </label>
-              <input
-                type="text"
-                name="motherMiddleNameAMH"
-                value={formData.motherMiddleNameAMH}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
-                Last Name
+                Last Name *
               </label>
               <input
                 type="text"
@@ -1134,7 +961,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
 
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
-            Select School Background
+            Select School Background *
           </label>
           <div className="relative">
             <select
@@ -1180,7 +1007,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
             />
 
             <h3 className="text-lg font-semibold text-blue-800 mb-2">
-              Please Upload Your Certificate
+              Please Upload Your Certificate (Optional)
             </h3>
             <div className="text-sm font-medium text-gray-600 mb-4 text-center">
               {currentInstructions ? (
@@ -1234,7 +1061,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
                   if (file) {
                     setFormData((prev) => ({
                       ...prev,
-                      grade12Certificate: file,
+                      document: file,
                     }));
                   }
                 }}
@@ -1252,23 +1079,23 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
 
               {/* File name */}
               <span className="text-gray-600 dark:text-gray-300 text-sm">
-                {formData.grade12Certificate
-                  ? formData.grade12Certificate.name
+                {formData.document
+                  ? formData.document.name
                   : "No file chosen"}
               </span>
             </div>
 
             {/* Preview (for images and PDF files) */}
-            {formData.grade12Certificate &&
-              formData.grade12Certificate instanceof File && (
+            {formData.document &&
+              formData.document instanceof File && (
                 <div className="mt-3 relative inline-block">
-                  {formData.grade12Certificate.type.startsWith("image/") ? (
+                  {formData.document.type.startsWith("image/") ? (
                     <img
-                      src={URL.createObjectURL(formData.grade12Certificate)}
+                      src={URL.createObjectURL(formData.document)}
                       alt="Certificate Preview"
                       className="w-32 h-32 object-cover rounded-md border"
                     />
-                  ) : formData.grade12Certificate.type === "application/pdf" ? (
+                  ) : formData.document.type === "application/pdf" ? (
                     <div className="w-32 h-32 bg-red-100 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-md flex flex-col items-center justify-center">
                       <svg className="w-8 h-8 text-red-600 dark:text-red-400 mb-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
@@ -1282,7 +1109,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
                     onClick={() =>
                       setFormData((prev) => ({
                         ...prev,
-                        grade12Certificate: null,
+                        document: null,
                       }))
                     }
                     className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
@@ -1297,7 +1124,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
         
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
-            Select Your Department
+            Select Your Department *
           </label>
           <div className="relative">
             <select
@@ -1334,7 +1161,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
         </div>
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
-            Select Program Modality
+            Select Program Modality *
           </label>
           <div className="relative">
             <select
@@ -1372,7 +1199,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
 
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
-            Select Class Year
+            Select Class Year *
           </label>
           <div className="relative">
             <select
@@ -1383,6 +1210,44 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
             >
               <option value="">Choose Class Year</option>
               {dropdowns.classYears.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            {/* Dropdown arrow */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-100">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
+            Select Semester *
+          </label>
+          <div className="relative">
+            <select
+              name="semesterCode"
+              value={formData.semesterCode}
+              onChange={handleInputChange}
+              className="appearance-none w-full bg-white dark:bg-black border border-gray-300 rounded-lg px-4 py-3 pr-10 text-gray-800 dark:text-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            >
+              <option value="">Choose Semester</option>
+              {dropdowns.semesters.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -1895,12 +1760,16 @@ const MultiStepRegistrationForm = () => {
           // Marital Status
           maritalStatus: "",
 
+          // Family Background
+          motherFirstName: "",
+          motherFirstNameAMH: "",
+          motherLastName: "",
+          motherLastNameAMH: "",
+
           // Emergency Contact
           emergencyfirstName: "",
-          emergencymiddleName: "",
           emergencylastName: "",
           emergencyfirstNameAMH: "",
-          emergencymiddleNameAMH: "",
           emergencylastNameAMH: "",
 
         };
@@ -2046,19 +1915,22 @@ const MultiStepRegistrationForm = () => {
     const rawBody = {
       firstNameAMH: nullIfEmpty(formData.firstNameAMH),
       firstNameENG: nullIfEmpty(formData.firstName),
-      fatherNameAMH: nullIfEmpty(formData.fatherFirstNameAMH),
-      fatherNameENG: nullIfEmpty(formData.fatherFirstName),
-      grandfatherNameAMH: nullIfEmpty(formData.middleNameFatherNameAMH),
-      grandfatherNameENG: nullIfEmpty(formData.fatherMiddleName),
+      // Father name extracted from student's middle name
+      fatherNameAMH: nullIfEmpty(formData.middleNameAMH),
+      fatherNameENG: nullIfEmpty(formData.middleName),
+      // Grandfather name - using last name as grandfather name
+      grandfatherNameAMH: nullIfEmpty(formData.lastNameAMH),
+      grandfatherNameENG: nullIfEmpty(formData.lastName),
       motherNameAMH: nullIfEmpty(formData.motherFirstNameAMH),
       motherNameENG: nullIfEmpty(formData.motherFirstName),
-      motherFatherNameAMH: nullIfEmpty(formData.motherMiddleNameAMH),
-      motherFatherNameENG: nullIfEmpty(formData.motherMiddleName),
+      // Mother's father name - using mother's last name as her father's name
+      motherFatherNameAMH: nullIfEmpty(formData.motherLastNameAMH),
+      motherFatherNameENG: nullIfEmpty(formData.motherLastName),
       gender: formData.sex ? (formData.sex === "Male" ? "MALE" : "FEMALE") : null,
       age: intOrNull(formData.age),
       phoneNumber: nullIfEmpty(formData.phoneNo),
       dateOfBirthEC: dateOrNull(formData.birthYearEC, formData.birthMonthEC, formData.birthDateEC),
-      dateOfBirthGC: dateOrNull(formData.birthYearGC, formData.birthMonthGC, formData.birthDateGC),
+      dateOfBirthGC: formData.birthDateGC || null,
       placeOfBirthWoredaCode: nullIfEmpty(formData.placeOfBirthWoredaCode),
       placeOfBirthZoneCode: nullIfEmpty(formData.placeOfBirthZoneCode),
       placeOfBirthRegionCode: nullIfEmpty(formData.placeOfBirthRegionCode),
@@ -2091,6 +1963,15 @@ const MultiStepRegistrationForm = () => {
         "data",
         new Blob([JSON.stringify(body)], { type: "application/json" })
       );
+      
+      // Append file uploads if they exist
+      if (formData.studentPhoto && formData.studentPhoto instanceof File) {
+        formDataObj.append("studentPhoto", formData.studentPhoto);
+      }
+      
+      if (formData.document && formData.document instanceof File) {
+        formDataObj.append("document", formData.document);
+      }
       
       const response = await apiService.post(
         endPoints.applicants,
