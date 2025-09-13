@@ -1517,7 +1517,7 @@ const EmploymentInformationStep = ({ formData, setFormData }) => {
   );
 };
 
-const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
+const ReviewSubmitStep = ({ formData, setFormData, onSubmit, isSubmitting }) => {
   const [applicantName, setApplicantName] = useState("");
   const [applicantSignature, setApplicantSignature] = useState("");
   const [submissionDate, setSubmissionDate] = useState(
@@ -1532,8 +1532,10 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
 
       };
       console.log(finalData);
-      onSubmit(finalData);
-    } catch (error) {}
+      await onSubmit(finalData);
+    } catch (error) {
+      // Error handling is done in the parent component
+    }
   };
 
   return (
@@ -1602,9 +1604,24 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit }) => {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              disabled={isSubmitting}
+              className={`font-semibold py-3 px-8 rounded-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                isSubmitting
+                  ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500"
+              }`}
             >
-              Submit Registration Form
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Submitting...
+                </div>
+              ) : (
+                "Submit Registration Form"
+              )}
             </button>
           </div>
         </form>
@@ -1695,6 +1712,8 @@ const ProgressIndicator = ({ currentStep, totalSteps }) => {
 const MultiStepRegistrationForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // <CHANGE> Added initial form data structure with localStorage persistence
   const [formData, setFormData] = useState(() => {
@@ -1903,6 +1922,9 @@ const MultiStepRegistrationForm = () => {
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setErrorMessage("");
+    
     const formDataObj = new FormData();
     const nullIfEmpty = (v) => (v === undefined || v === null || String(v).trim() === "" ? null : v);
     const intOrNull = (v) => {
@@ -1984,13 +2006,49 @@ const MultiStepRegistrationForm = () => {
       // Clear localStorage on successful submission
       localStorage.removeItem("registrationFormData");
       localStorage.removeItem("registrationCurrentStep");
+      setErrorMessage("");
       alert("Registration form submitted successfully!");
       
       return response.data;
     } catch (error) {
       console.error("Submission error:", error);
-      alert("There was an error submitting the form.");
+      
+      // Extract error message from different possible error structures
+      let errorMsg = "An unexpected error occurred. Please try again.";
+      
+      if (error.response) {
+        // Server responded with error status
+        const { status, data } = error.response;
+        
+        if (status === 400) {
+          errorMsg = data?.message || data?.error || "Invalid data provided. Please check your information and try again.";
+        } else if (status === 401) {
+          errorMsg = "Authentication failed. Please refresh the page and try again.";
+        } else if (status === 403) {
+          errorMsg = "Access denied. You don't have permission to perform this action.";
+        } else if (status === 404) {
+          errorMsg = "Service not found. Please contact support.";
+        } else if (status === 409) {
+          errorMsg = "A record with this information already exists. Please check your details.";
+        } else if (status === 422) {
+          errorMsg = data?.message || "Validation error. Please check all required fields are filled correctly.";
+        } else if (status === 500) {
+          errorMsg = "Server error. Please try again later or contact support.";
+        } else {
+          errorMsg = data?.message || `Server error (${status}). Please try again.`;
+        }
+      } else if (error.request) {
+        // Network error
+        errorMsg = "Network error. Please check your internet connection and try again.";
+      } else {
+        // Other error
+        errorMsg = error.message || "An unexpected error occurred. Please try again.";
+      }
+      
+      setErrorMessage(errorMsg);
       throw error;
+    } finally {
+      setIsSubmitting(false);
     }
   };
   const isStepValid = (step, formData) => {
@@ -2046,6 +2104,7 @@ const MultiStepRegistrationForm = () => {
             formData={formData}
             setFormData={setFormData}
             onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
           />
         );
 
@@ -2104,6 +2163,36 @@ const MultiStepRegistrationForm = () => {
 
         {/* <CHANGE> Added progress indicator */}
         <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+
+        {/* Error Message Display */}
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                  Registration Error
+                </h3>
+                <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                  <p>{errorMessage}</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage("")}
+                    className="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-red-200 dark:hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* <CHANGE> Render current step */}
         {renderStep()}
