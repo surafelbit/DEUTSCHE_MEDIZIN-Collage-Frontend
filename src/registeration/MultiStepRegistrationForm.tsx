@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, X, User } from "lucide-react";
 import LightRays from "@/designs/LightRays";
 import { useTranslation } from "react-i18next";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import { Combobox } from "@headlessui/react";
 import useApi from "../hooks/useApi";
-import endPoints from "../components/api/endPoints";
+import endPoints from "@/components/api/endPoints";
 import DarkVeil from "../designs/DarkVeil";
-import apiService from "../components/api/apiService";
+import apiService from "@/components/api/apiService";
 const DropdownIndicator = (props) => (
   <components.DropdownIndicator {...props}>
     <svg
@@ -125,7 +125,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
   const filtered =
     query === ""
       ? countries
-      : countries.filter((c) => c.toLowerCase().includes(query.toLowerCase()));
+      : countries.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()));
   return (
     <div className="space-y-6 ">
       {/* <CHANGE> Added step title and description */}
@@ -314,7 +314,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
-                  const file = e.target.files[0];
+                  const file = e.target.files?.[0];
                   if (file) {
                     setFormData((prev) => ({
                       ...prev,
@@ -357,7 +357,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                   <button
                     type="button"
                     onClick={() => {
-                      setPreviews(null);
+                      setPreviews("https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg");
                       setFormData((prev) => ({
                         ...prev,
                         studentPhoto: null,
@@ -1230,7 +1230,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
                 type="file"
                 accept=".pdf,image/*"
                 onChange={(e) => {
-                  const file = e.target.files[0];
+                  const file = e.target.files?.[0];
                   if (file) {
                     setFormData((prev) => ({
                       ...prev,
@@ -1347,7 +1347,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
               {dropdowns.programModalities.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
-              </option>
+                </option>
               ))}
             </select>
 
@@ -2033,85 +2033,85 @@ const MultiStepRegistrationForm = () => {
     }
   };
 
-const handleSubmit = async () => {
-  const formDataObj = new FormData();
-  const nullIfEmpty = (v) => (v === undefined || v === null || String(v).trim() === "" ? null : v);
-  const intOrNull = (v) => {
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) ? n : null;
-  };
-  const safeUpper = (v) => (v ? String(v).toUpperCase() : null);
-  const dateOrNull = (y, m, d) => (y && m && d ? `${y}-${m}-${d}` : null);
+  const handleSubmit = async () => {
+    const formDataObj = new FormData();
+    const nullIfEmpty = (v) => (v === undefined || v === null || String(v).trim() === "" ? null : v);
+    const intOrNull = (v) => {
+      const n = parseInt(v, 10);
+      return Number.isFinite(n) ? n : null;
+    };
+    const safeUpper = (v) => (v ? String(v).toUpperCase() : null);
+    const dateOrNull = (y, m, d) => (y && m && d ? `${y}-${m}-${d}` : null);
 
-  const rawBody = {
-    firstNameAMH: nullIfEmpty(formData.firstNameAMH),
-    firstNameENG: nullIfEmpty(formData.firstName),
-    fatherNameAMH: nullIfEmpty(formData.fatherFirstNameAMH),
-    fatherNameENG: nullIfEmpty(formData.fatherFirstName),
-    grandfatherNameAMH: nullIfEmpty(formData.middleNameFatherNameAMH),
-    grandfatherNameENG: nullIfEmpty(formData.fatherMiddleName),
-    motherNameAMH: nullIfEmpty(formData.motherFirstNameAMH),
-    motherNameENG: nullIfEmpty(formData.motherFirstName),
-    motherFatherNameAMH: nullIfEmpty(formData.motherMiddleNameAMH),
-    motherFatherNameENG: nullIfEmpty(formData.motherMiddleName),
-    gender: formData.sex ? (formData.sex === "Male" ? "MALE" : "FEMALE") : null,
-    age: intOrNull(formData.age),
-    phoneNumber: nullIfEmpty(formData.phoneNo),
-    dateOfBirthEC: dateOrNull(formData.birthYearEC, formData.birthMonthEC, formData.birthDateEC),
-    dateOfBirthGC: dateOrNull(formData.birthYearGC, formData.birthMonthGC, formData.birthDateGC),
-    placeOfBirthWoredaCode: nullIfEmpty(formData.placeOfBirthWoredaCode),
-    placeOfBirthZoneCode: nullIfEmpty(formData.placeOfBirthZoneCode),
-    placeOfBirthRegionCode: nullIfEmpty(formData.placeOfBirthRegionCode),
-    currentAddressWoredaCode: nullIfEmpty(formData.currentAddressWoredaCode),
-    currentAddressZoneCode: nullIfEmpty(formData.currentAddressZoneCode),
-    currentAddressRegionCode: nullIfEmpty(formData.currentAddressRegionCode),
-    email: nullIfEmpty(formData.email),
-    maritalStatus: safeUpper(formData.maritalStatus),
-    impairmentCode: nullIfEmpty(formData.impairmentCode),
-    schoolBackgroundId: intOrNull(formData.schoolBackgroundId),
-    contactPersonFirstNameAMH: nullIfEmpty(formData.emergencyfirstNameAMH),
-    contactPersonFirstNameENG: nullIfEmpty(formData.emergencyfirstName),
-    contactPersonLastNameAMH: nullIfEmpty(formData.emergencylastNameAMH),
-    contactPersonLastNameENG: nullIfEmpty(formData.emergencylastName),
-    contactPersonPhoneNumber: nullIfEmpty(formData.contactPersonPhoneNumber),
-    contactPersonRelation: nullIfEmpty(formData.contactPersonRelation),
-    departmentEnrolledId: intOrNull(formData.departmentEnrolledId),
-    programModalityCode: nullIfEmpty(formData.programModalityCode),
-    classYearId: intOrNull(formData.classYearId),
-    semesterCode: nullIfEmpty(formData.semesterCode),
-  };
-  // Remove null fields to avoid backend complaints for missing/optional values
-  const body = Object.fromEntries(
-    Object.entries(rawBody).filter(([_, v]) => v !== null)
-  );
-
-  try {
-    // Append the JSON string as the 'data' part
-    formDataObj.append(
-      "data",
-      new Blob([JSON.stringify(body)], { type: "application/json" })
+    const rawBody = {
+      firstNameAMH: nullIfEmpty(formData.firstNameAMH),
+      firstNameENG: nullIfEmpty(formData.firstName),
+      fatherNameAMH: nullIfEmpty(formData.fatherFirstNameAMH),
+      fatherNameENG: nullIfEmpty(formData.fatherFirstName),
+      grandfatherNameAMH: nullIfEmpty(formData.middleNameFatherNameAMH),
+      grandfatherNameENG: nullIfEmpty(formData.fatherMiddleName),
+      motherNameAMH: nullIfEmpty(formData.motherFirstNameAMH),
+      motherNameENG: nullIfEmpty(formData.motherFirstName),
+      motherFatherNameAMH: nullIfEmpty(formData.motherMiddleNameAMH),
+      motherFatherNameENG: nullIfEmpty(formData.motherMiddleName),
+      gender: formData.sex ? (formData.sex === "Male" ? "MALE" : "FEMALE") : null,
+      age: intOrNull(formData.age),
+      phoneNumber: nullIfEmpty(formData.phoneNo),
+      dateOfBirthEC: dateOrNull(formData.birthYearEC, formData.birthMonthEC, formData.birthDateEC),
+      dateOfBirthGC: dateOrNull(formData.birthYearGC, formData.birthMonthGC, formData.birthDateGC),
+      placeOfBirthWoredaCode: nullIfEmpty(formData.placeOfBirthWoredaCode),
+      placeOfBirthZoneCode: nullIfEmpty(formData.placeOfBirthZoneCode),
+      placeOfBirthRegionCode: nullIfEmpty(formData.placeOfBirthRegionCode),
+      currentAddressWoredaCode: nullIfEmpty(formData.currentAddressWoredaCode),
+      currentAddressZoneCode: nullIfEmpty(formData.currentAddressZoneCode),
+      currentAddressRegionCode: nullIfEmpty(formData.currentAddressRegionCode),
+      email: nullIfEmpty(formData.email),
+      maritalStatus: safeUpper(formData.maritalStatus),
+      impairmentCode: nullIfEmpty(formData.impairmentCode),
+      schoolBackgroundId: intOrNull(formData.schoolBackgroundId),
+      contactPersonFirstNameAMH: nullIfEmpty(formData.emergencyfirstNameAMH),
+      contactPersonFirstNameENG: nullIfEmpty(formData.emergencyfirstName),
+      contactPersonLastNameAMH: nullIfEmpty(formData.emergencylastNameAMH),
+      contactPersonLastNameENG: nullIfEmpty(formData.emergencylastName),
+      contactPersonPhoneNumber: nullIfEmpty(formData.contactPersonPhoneNumber),
+      contactPersonRelation: nullIfEmpty(formData.contactPersonRelation),
+      departmentEnrolledId: intOrNull(formData.departmentEnrolledId),
+      programModalityCode: nullIfEmpty(formData.programModalityCode),
+      classYearId: intOrNull(formData.classYearId),
+      semesterCode: nullIfEmpty(formData.semesterCode),
+    };
+    // Remove null fields to avoid backend complaints for missing/optional values
+    const body = Object.fromEntries(
+      Object.entries(rawBody).filter(([_, v]) => v !== null)
     );
-    
-    const response = await apiService.post(
-      endPoints.applicants,
-      formDataObj
-    );
-    
-    console.log("Response:", response.data);
-    console.log("Form submitted:", body);
 
-    // Clear localStorage on successful submission
-    localStorage.removeItem("registrationFormData");
-    localStorage.removeItem("registrationCurrentStep");
-    alert("Registration form submitted successfully!");
-    
-    return response.data;
-  } catch (error) {
-    console.error("Submission error:", error);
-    alert("There was an error submitting the form.");
-    throw error;
-  }
-};
+    try {
+      // Append the JSON string as the 'data' part
+      formDataObj.append(
+        "data",
+        new Blob([JSON.stringify(body)], { type: "application/json" })
+      );
+      
+      const response = await apiService.post(
+        endPoints.applicants,
+        formDataObj
+      );
+      
+      console.log("Response:", response.data);
+      console.log("Form submitted:", body);
+
+      // Clear localStorage on successful submission
+      localStorage.removeItem("registrationFormData");
+      localStorage.removeItem("registrationCurrentStep");
+      alert("Registration form submitted successfully!");
+      
+      return response.data;
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("There was an error submitting the form.");
+      throw error;
+    }
+  };
   const isStepValid = (step, formData) => {
     switch (step) {
       case 1:
@@ -2173,6 +2173,9 @@ const handleSubmit = async () => {
           <PersonalInformationStep
             formData={formData}
             setFormData={setFormData}
+            dropdowns={dropdowns}
+            fetchZonesByRegion={fetchZonesByRegion}
+            fetchWoredasByZone={fetchWoredasByZone}
           />
         );
     }

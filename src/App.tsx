@@ -189,7 +189,10 @@ function App() {
           <Route path="/dean" element={<DeanLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DeanDashboard />} />
-            <Route path="create-department-head" element={<CreateDepartmentHead />} />
+            <Route
+              path="create-department-head"
+              element={<CreateDepartmentHead />}
+            />
             <Route path="students" element={<DeanStudents />} />
             <Route path="grades" element={<DeanGrades />} />
             <Route path="reports" element={<DeanReports />} />
