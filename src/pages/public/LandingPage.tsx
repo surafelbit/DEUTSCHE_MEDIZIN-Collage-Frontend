@@ -231,7 +231,7 @@ export default function LandingPage() {
             </div>
 
             {/* Desktop Navigation */}
-            <nav className=" md:flex items-center space-x-6">
+            <nav className=" items-center space-x-6">
               <a
                 href="#home"
                 className="text-gray-700 dark:text-gray-200 font-medium hover:text-blue-500 dark:hover:text-blue-400 transition-colors duration-300"
@@ -303,10 +303,8 @@ export default function LandingPage() {
 
           {/* Mobile Dropdown Menu */}
           <div
-            className={`md:hidden bg-white dark:bg-gray-900 shadow-lg transition-all duration-300 ease-in-out ${
-              isOpen
-                ? "max-h-screen opacity-100"
-                : "max-h-0 opacity-0 overflow-hidden"
+            className={`md:hidden bg-white dark:bg-gray-900 shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${
+              isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
             }`}
           >
             <nav className="flex flex-col space-y-3 px-4 py-4">
@@ -353,7 +351,6 @@ export default function LandingPage() {
             </nav>
           </div>
         </header>
-
         <section className="relative my-8 bg-gradient-to-r from-blue-900 to-blue-200 text-white h-96 flex items-center ">
           <img
             src="https://skyresortbahirdar.com/wp-content/uploads/2021/09/Bahir-Dar-City-View-1-2560x1440.jpg"

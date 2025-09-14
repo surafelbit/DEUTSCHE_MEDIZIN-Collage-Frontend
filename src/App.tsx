@@ -54,6 +54,7 @@ import LocationEditor from "./pages/registrar/settings/LocationEditor";
 import AcademicYearEditor from "./pages/registrar/settings/AcademicYearEditor";
 import ImpairmentEditor from "./pages/registrar/settings/ImpairmentEditor";
 import CourseCategoriesEditor from "./pages/registrar/settings/CourseCategoriesEditor";
+import NotificationsPage from "./pages/registrar/NotificationsPage";
 // Finance Pages
 import FinanceLayout from "./layouts/FinanceLayout";
 import FinanceDashboard from "./pages/finance/Dashboard";
@@ -175,6 +176,7 @@ function App() {
 
             <Route path="batches" element={<RegistrarBatches />} />
             <Route path="tables" element={<CustomStudentTable />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* Finance Routes */}

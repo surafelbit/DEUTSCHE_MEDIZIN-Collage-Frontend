@@ -16,7 +16,7 @@ const endPoints = {
   semester: "/semesters",
   BatchClassYearSemesters: "/bcsy",
   batches: "/batches",
-
+  courses: "/courses/single",
   regions: "/region",
   zonesByRegion: "/zone/region",
   woredasByZone: "/woreda/zone",
