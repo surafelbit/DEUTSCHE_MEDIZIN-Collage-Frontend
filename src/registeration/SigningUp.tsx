@@ -1,7 +1,7 @@
-//
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
+import apiService from "@/components/api/apiService";
+import endPoints from "@/components/api/endPoints";
 import {
   Card,
   CardContent,
@@ -11,70 +11,56 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { GraduationCap, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
-// import apiService from "../components/api/apiService";
-import apiService from "@/components/api/apiService";
-import endPoints from "@/components/api/endPoints";
+
 export default function SignInPage() {
   const { t } = useTranslation(["auth", "common"]);
   const navigate = useNavigate();
 
-  // 1️⃣ State to capture user input
+  // State to capture user input
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
 
-  // 2️⃣ Submit handler
+  // Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = {
-      username: email, // or whatever your backend expects
+      username: email,
       password,
     };
 
     try {
-      const response = await apiService.post(endPoints.login, formData);
-      // const res = await axios.post(
-      //   "https://your-api-endpoint.com/login", // replace with your API URL
-      //   formData,
-      //   {
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // );
+      const responses = await apiService.post(endPoints.login, formData, {
+        headers: { requiresAuth: false },
+      });
+      setResponse(responses.message);
+      console.log(responses);
+      // localStorage.setItem("xy9a7b", response.data.jwt);
 
-      setResponse(response.data);
-      console.log("Success:", response.role);
-      console.log(response.jwt);
-      localStorage.setItem("xy9a7b", response.jwt);
-      if (response.role == "REGISTRAR") {
-        console.log("working");
-        console.log(localStorage.getItem("xy9a7b"));
-        navigate("/registrar");
-      } else if (response.role == "STUDENT") {
-        navigate("/student");
-      } else if (response.role == "DEAN") {
-        navigate("/dean");
-      } else {
-        console.log("something");
+      // Navigate based on role from backend
+      switch (responses.role) {
+        case "REGISTRAR":
+          navigate("/registrar");
+          break;
+        case "STUDENT":
+          navigate("/student");
+          break;
+        case "DEAN":
+          navigate("/dean");
+          break;
+        default:
+          console.log("Role not handled:", response.role);
       }
     } catch (err) {
-      setError(err.response?.data || err.message);
+      setError(err?.response?.data?.error || "failed to login");
+      console.log(err.response.data.error);
       console.error("Error:", err);
     }
   };
@@ -106,34 +92,7 @@ export default function SignInPage() {
               <CardDescription>{t("signInToAccount")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="role">{t("loginAs")}</Label>
-                <Select onValueChange={setRole}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("selectRole")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">
-                      {t("roles.student")}
-                    </SelectItem>
-                    <SelectItem value="teacher">
-                      {t("roles.teacher")}
-                    </SelectItem>
-                    <SelectItem value="head">{t("roles.head")}</SelectItem>
-                    <SelectItem value="registrar">
-                      {t("roles.registrar")}
-                    </SelectItem>
-                    <SelectItem value="finance">
-                      {t("roles.finance")}
-                    </SelectItem>
-                    <SelectItem value="dean">{t("roles.dean")}</SelectItem>
-                    <SelectItem value="manager">
-                      {t("roles.manager")}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
+              {/* Email input */}
               <div className="space-y-2">
                 <Label htmlFor="email">{t("common:email")}</Label>
                 <Input
@@ -145,6 +104,7 @@ export default function SignInPage() {
                 />
               </div>
 
+              {/* Password input */}
               <div className="space-y-2">
                 <Label htmlFor="password">{t("password")}</Label>
                 <Input
