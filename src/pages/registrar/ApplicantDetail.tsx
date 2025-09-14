@@ -99,6 +99,12 @@ export default function ApplicantDetail() {
     }
     getter();
   }, [id]);
+  useEffect(() => {
+    async function getter() {
+      const url = endPoints.applicantDetail.replace(":id", id);
+    }
+    getter();
+  }, []);
 
   const handleStatusChange = (newStatus) => {
     // if (remarks.trim() === "") {

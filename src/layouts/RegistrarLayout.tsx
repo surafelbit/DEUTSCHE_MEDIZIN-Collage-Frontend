@@ -17,8 +17,9 @@ import {
   Settings,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-
+import { useNavigate } from "react-router-dom";
 export default function RegistrarLayout() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     // Initial check: if large screen (≥ 1024px), open sidebar
@@ -55,6 +56,18 @@ export default function RegistrarLayout() {
   ];
   const [extra, setExtra] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
+  // Example state
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "New student registered" },
+    { id: 2, text: "Fee payment confirmed" },
+    { id: 3, text: "Grade report submitted" },
+    { id: 4, text: "New message from Admin" },
+    { id: 5, text: "System maintenance tonight" },
+  ]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // how many to show initially
+  const maxVisible = 3;
 
   return (
     <div className=" flex min-h-screen bg-gray-50 dark:bg-gray-900 ">
@@ -390,7 +403,10 @@ export default function RegistrarLayout() {
               )}
             </div>
             <div className="mt-2 space-y-1">
-              <button className="flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+              <button
+                onClick={() => navigate("/registrar/notifications")}
+                className="flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              >
                 {/* Icon with badge */}
                 <div className="relative mr-2">
                   <svg
@@ -444,10 +460,9 @@ export default function RegistrarLayout() {
           <Button
             variant="ghost"
             size="icon"
-            className=""
             onClick={() => setSidebarOpen(true)}
           >
-            {!sidebarOpen && <Menu className="h-6 w-6" />}{" "}
+            {!sidebarOpen && <Menu className="h-6 w-6" />}
           </Button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
@@ -463,25 +478,57 @@ export default function RegistrarLayout() {
               <ThemeToggle />
 
               {/* Notification Bell */}
-              <div className="relative cursor-pointer">
-                <svg
-                  className="w-6 h-6 text-gray-700 dark:text-gray-200"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
+              <div className="relative">
+                <div
+                  className="cursor-pointer"
+                  onClick={() => setShowNotifications(!showNotifications)}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 10-12 0v3c0 .386-.146.735-.405 1.005L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                  />
-                </svg>
-                {/* Red badge */}
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                  3
-                </span>
+                  <svg
+                    className="w-6 h-6 text-gray-700 dark:text-gray-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6 6 0 10-12 0v3c0 .386-.146.735-.405 1.005L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
+                  </svg>
+                  {/* Red badge */}
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                    {notifications.length}
+                  </span>
+                </div>
+
+                {/* Dropdown Notifications */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                    <div className="py-2">
+                      {/* Show only first N notifications */}
+                      {notifications.slice(0, maxVisible).map((note) => (
+                        <div
+                          key={note.id}
+                          className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        >
+                          {note.text}
+                        </div>
+                      ))}
+
+                      {/* If more exist show “View More” */}
+                      {notifications.length > maxVisible && (
+                        <div
+                          onClick={() => alert("Go to full notifications page")}
+                          className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer font-medium"
+                        >
+                          View more →
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* User info */}
@@ -489,14 +536,16 @@ export default function RegistrarLayout() {
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">RG</span>
                 </div>
-                <div className="hidden sm:block">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    Registrar
+                {window.innerWidth > 720 && (
+                  <div className=" ">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Registrar
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Academic Records
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Academic Records
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
