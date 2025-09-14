@@ -226,7 +226,7 @@ export default function LandingPage() {
                 className="h-10 w-10 rounded-full object-cover shadow-sm"
               />
               <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
-                CompanyName
+                DEUTSCHE HOCHSCHULE
               </span>
             </div>
 
@@ -394,7 +394,7 @@ export default function LandingPage() {
                   ? { opacity: 1, x: 0, scale: 1 }
                   : { opacity: 0, x: -300, scale: 0.8 }
               }
-              transition={{ duration: 2, ease: "easeOut" }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
             >
               <img
                 src="/assets/companylogo.jpg"
@@ -410,7 +410,7 @@ export default function LandingPage() {
               animate={
                 heroInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 300 }
               }
-              transition={{ duration: 2, delay: 0.3, ease: "easeOut" }}
+              transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
             >
               <motion.h1
                 className="text-5xl font-bold text-gray-900 dark:text-white mb-6"
@@ -418,7 +418,7 @@ export default function LandingPage() {
                 animate={
                   heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: -100 }
                 }
-                transition={{ duration: 2, delay: 0.6, ease: "easeOut" }}
+                transition={{ duration: 1.5, delay: 0.6, ease: "easeOut" }}
               >
                 <div className="text-blue-600">Excellence In</div>
                 <div className="text-blue-600">
@@ -439,7 +439,7 @@ export default function LandingPage() {
                 animate={
                   heroInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }
                 }
-                transition={{ duration: 2, delay: 0.9, ease: "easeOut" }}
+                transition={{ duration: 1.5, delay: 0.9, ease: "easeOut" }}
               >
                 Join our vibrant University College community! Begin your
                 academic journey by completing the Life History Form for
@@ -454,7 +454,7 @@ export default function LandingPage() {
                     ? { opacity: 1, y: 0, scale: 1 }
                     : { opacity: 0, y: 50, scale: 0.8 }
                 }
-                transition={{ duration: 2, delay: 1.2, ease: "easeOut" }}
+                transition={{ duration: 1.5, delay: 1.2, ease: "easeOut" }}
               >
                 <Link to="/register">
                   <Button size="lg" className="text-lg px-8 py-3">
@@ -560,7 +560,7 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, x: 100 }}
               animate={infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: 100 }}
-              transition={{ duration: 2, ease: "easeOut" }}
+              transition={{ duration: 1, ease: "easeOut" }}
             >
               <div>
                 <h2 className="text-4xl text-blue-500 dark:text-blue-300 font-serif">
@@ -584,7 +584,7 @@ export default function LandingPage() {
               animate={
                 infoView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }
               }
-              transition={{ duration: 2, ease: "easeOut" }}
+              transition={{ duration: 1, ease: "easeOut" }}
               className="flex flex-col justify-between"
             >
               <motion.div
@@ -592,7 +592,7 @@ export default function LandingPage() {
                 animate={
                   infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: -100 }
                 }
-                transition={{ duration: 2, ease: "easeOut" }}
+                transition={{ duration: 1, ease: "easeOut" }}
                 className="gap-y-8"
               >
                 <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
@@ -618,7 +618,7 @@ export default function LandingPage() {
                 animate={
                   infoView ? { opacity: 1, y: 0 } : { opacity: 0, y: 100 }
                 }
-                transition={{ duration: 2, ease: "easeOut" }}
+                transition={{ duration: 1, ease: "easeOut" }}
               >
                 <h2 className="text-2xl text-blue-500 dark:text-blue-300 font-serif">
                   433{" "}

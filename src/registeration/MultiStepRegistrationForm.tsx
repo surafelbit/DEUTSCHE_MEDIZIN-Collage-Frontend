@@ -29,7 +29,13 @@ const DropdownIndicator = (props) => (
     </svg>
   </components.DropdownIndicator>
 );
-const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesByRegion, fetchWoredasByZone }) => {
+const PersonalInformationStep = ({
+  formData,
+  setFormData,
+  dropdowns,
+  fetchZonesByRegion,
+  fetchWoredasByZone,
+}) => {
   const countries = [
     { value: "US", label: "United States" },
     { value: "CA", label: "Canada" },
@@ -69,7 +75,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
       placeOfBirthWoredaCode: "",
     }));
     if (value) {
-      await fetchZonesByRegion(value, 'birth');
+      await fetchZonesByRegion(value, "birth");
     }
   };
 
@@ -81,7 +87,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
       placeOfBirthWoredaCode: "",
     }));
     if (value) {
-      await fetchWoredasByZone(value, 'birth');
+      await fetchWoredasByZone(value, "birth");
     }
   };
 
@@ -94,7 +100,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
       currentAddressWoredaCode: "",
     }));
     if (value) {
-      await fetchZonesByRegion(value, 'current');
+      await fetchZonesByRegion(value, "current");
     }
   };
 
@@ -106,7 +112,7 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
       currentAddressWoredaCode: "",
     }));
     if (value) {
-      await fetchWoredasByZone(value, 'current');
+      await fetchWoredasByZone(value, "current");
     }
   };
   function handleFileChange(event) {
@@ -125,7 +131,9 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
   const filtered =
     query === ""
       ? countries
-      : countries.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()));
+      : countries.filter((c) =>
+          c.label.toLowerCase().includes(query.toLowerCase())
+        );
   return (
     <div className="space-y-6 ">
       {/* <CHANGE> Added step title and description */}
@@ -137,7 +145,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
           Please provide your basic personal details and contact information.
         </p>
       </div>
-
 
       {/* 2. PERSONAL DATA */}
       <section className="border-2 border-gray-200 rounded-lg p-6">
@@ -268,7 +275,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
           </div>
         </div>
 
-
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
             Information about Impairment (if any): (Optional)
@@ -357,7 +363,9 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                   <button
                     type="button"
                     onClick={() => {
-                      setPreviews("https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg");
+                      setPreviews(
+                        "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg"
+                      );
                       setFormData((prev) => ({
                         ...prev,
                         studentPhoto: null,
@@ -377,7 +385,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
             Place of Birth:
           </label>
-
         </div>
         <div className="flex justify-between">
           <div className="mb-6">
@@ -399,8 +406,18 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -425,8 +442,18 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -451,8 +478,18 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </div>
             </div>
@@ -535,8 +572,18 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -561,8 +608,18 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -587,14 +644,23 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                   ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
             </div>
           </div>
-    
         </div>
 
         {/* Marital Status */}
@@ -714,7 +780,6 @@ const PersonalInformationStep = ({ formData, setFormData, dropdowns, fetchZonesB
                 </div>
               </div>
             </div>
-
           </div>
         </div>
         <div className="mb-6">
@@ -779,7 +844,6 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
           3. FAMILY BACKGROUND
         </h3>
 
-
         {/* Mother Information */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
@@ -840,7 +904,6 @@ const FamilyBackgroundStep = ({ formData, setFormData }) => {
               />
             </div>
           </div>
-
         </div>
       </section>
     </div>
@@ -856,47 +919,52 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
   // Instruction mapping based on school background
   const getInstructions = (schoolBackgroundId) => {
     const instructions = {
-      "1": { // High School Graduate
+      "1": {
+        // High School Graduate
         title: "High School Graduate Certificate Requirements",
         content: [
           "• 8th Grade Certificate",
           "• 12th Grade National Exam Certificate",
-          "• If you have multiple certificates, please combine them into a single PDF file before uploading"
-        ]
+          "• If you have multiple certificates, please combine them into a single PDF file before uploading",
+        ],
       },
-      "2": { // College Diploma
-        title: "College Diploma Certificate Requirements", 
+      "2": {
+        // College Diploma
+        title: "College Diploma Certificate Requirements",
         content: [
           "• Grade 12 Certificate",
           "• College Diploma Certificate",
-          "• If you have multiple certificates, please combine them into a single PDF file before uploading"
-        ]
+          "• If you have multiple certificates, please combine them into a single PDF file before uploading",
+        ],
       },
-      "3": { // College Degree
+      "3": {
+        // College Degree
         title: "College Degree Certificate Requirements",
         content: [
-          "• Grade 12 Certificate", 
+          "• Grade 12 Certificate",
           "• College Degree Certificate",
-          "• If you have multiple certificates, please combine them into a single PDF file before uploading"
-        ]
+          "• If you have multiple certificates, please combine them into a single PDF file before uploading",
+        ],
       },
-      "4": { // Level IV
+      "4": {
+        // Level IV
         title: "Level IV Certificate Requirements",
         content: [
           "• Grade 12 Certificate",
           "• Level IV Certificate",
-          "• If you have multiple certificates, please combine them into a single PDF file before uploading"
-        ]
+          "• If you have multiple certificates, please combine them into a single PDF file before uploading",
+        ],
       },
-      "5": { // Masters Degree
+      "5": {
+        // Masters Degree
         title: "Masters Degree Certificate Requirements",
         content: [
           "• Grade 12 Certificate",
-          "• Bachelor's Degree Certificate", 
+          "• Bachelor's Degree Certificate",
           "• Masters Degree Certificate",
-          "• If you have multiple certificates, please combine them into a single PDF file before uploading"
-        ]
-      }
+          "• If you have multiple certificates, please combine them into a single PDF file before uploading",
+        ],
+      },
     };
     return instructions[schoolBackgroundId] || null;
   };
@@ -996,7 +1064,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
             </div>
           </div>
         </div>
-        
+
         <section className="border-2 border-blue-200 rounded-lg p-6 bg-white dark:bg-gray-800 dark:border-gray-700">
           <div className="border-t-2 border-blue-400 pt-4 flex flex-col items-center">
             {/* Certificate Icon/Image */}
@@ -1022,7 +1090,10 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
                   </button>
                 </div>
               ) : (
-                <span>Please select your school background first to see upload instructions</span>
+                <span>
+                  Please select your school background first to see upload
+                  instructions
+                </span>
               )}
             </div>
 
@@ -1079,49 +1150,55 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
 
               {/* File name */}
               <span className="text-gray-600 dark:text-gray-300 text-sm">
-                {formData.document
-                  ? formData.document.name
-                  : "No file chosen"}
+                {formData.document ? formData.document.name : "No file chosen"}
               </span>
             </div>
 
             {/* Preview (for images and PDF files) */}
-            {formData.document &&
-              formData.document instanceof File && (
-                <div className="mt-3 relative inline-block">
-                  {formData.document.type.startsWith("image/") ? (
-                    <img
-                      src={URL.createObjectURL(formData.document)}
-                      alt="Certificate Preview"
-                      className="w-32 h-32 object-cover rounded-md border"
-                    />
-                  ) : formData.document.type === "application/pdf" ? (
-                    <div className="w-32 h-32 bg-red-100 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-md flex flex-col items-center justify-center">
-                      <svg className="w-8 h-8 text-red-600 dark:text-red-400 mb-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-xs text-red-600 dark:text-red-400 font-medium">PDF</span>
-                    </div>
-                  ) : null}
-                  {/* Close/Remove button */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        document: null,
-                      }))
-                    }
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+            {formData.document && formData.document instanceof File && (
+              <div className="mt-3 relative inline-block">
+                {formData.document.type.startsWith("image/") ? (
+                  <img
+                    src={URL.createObjectURL(formData.document)}
+                    alt="Certificate Preview"
+                    className="w-32 h-32 object-cover rounded-md border"
+                  />
+                ) : formData.document.type === "application/pdf" ? (
+                  <div className="w-32 h-32 bg-red-100 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-md flex flex-col items-center justify-center">
+                    <svg
+                      className="w-8 h-8 text-red-600 dark:text-red-400 mb-1"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                      PDF
+                    </span>
+                  </div>
+                ) : null}
+                {/* Close/Remove button */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      document: null,
+                    }))
+                  }
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         </section>
 
-        
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-800 dark:text-white mb-2">
             Select Your Department *
@@ -1137,7 +1214,7 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
               {dropdowns.departments.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
-              </option>
+                </option>
               ))}
             </select>
 
@@ -1272,8 +1349,6 @@ const EducationalInformationStep = ({ formData, setFormData, dropdowns }) => {
             </div>
           </div>
         </div>
-
-
       </section>
     </div>
   );
@@ -1517,7 +1592,12 @@ const EmploymentInformationStep = ({ formData, setFormData }) => {
   );
 };
 
-const ReviewSubmitStep = ({ formData, setFormData, onSubmit, isSubmitting }) => {
+const ReviewSubmitStep = ({
+  formData,
+  setFormData,
+  onSubmit,
+  isSubmitting,
+}) => {
   const [applicantName, setApplicantName] = useState("");
   const [applicantSignature, setApplicantSignature] = useState("");
   const [submissionDate, setSubmissionDate] = useState(
@@ -1529,7 +1609,6 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit, isSubmitting }) => 
       e.preventDefault();
       const finalData = {
         ...formData,
-
       };
       console.log(finalData);
       await onSubmit(finalData);
@@ -1582,7 +1661,6 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit, isSubmitting }) => 
           <div>
             <span className="font-medium">Phone:</span> {formData.phoneNo}
           </div>
-
         </div>
       </section>
 
@@ -1599,8 +1677,6 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit, isSubmitting }) => 
         </div>
 
         <form onSubmit={handleSubmit}>
-          
-
           <div className="flex justify-center">
             <button
               type="submit"
@@ -1613,9 +1689,25 @@ const ReviewSubmitStep = ({ formData, setFormData, onSubmit, isSubmitting }) => 
             >
               {isSubmitting ? (
                 <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Submitting...
                 </div>
@@ -1767,7 +1859,7 @@ const MultiStepRegistrationForm = () => {
           schoolBackgroundId: "",
           classYearId: "",
           semesterCode: "",
-          
+
           // Geographic codes
           placeOfBirthRegionCode: "",
           placeOfBirthZoneCode: "",
@@ -1790,7 +1882,6 @@ const MultiStepRegistrationForm = () => {
           emergencylastName: "",
           emergencyfirstNameAMH: "",
           emergencylastNameAMH: "",
-
         };
   });
 
@@ -1836,7 +1927,15 @@ const MultiStepRegistrationForm = () => {
   useEffect(() => {
     const loadDropdowns = async () => {
       try {
-        const [departments, impairments, semesters, schoolBackgrounds, programModalities, classYears, regions] = await Promise.all([
+        const [
+          departments,
+          impairments,
+          semesters,
+          schoolBackgrounds,
+          programModalities,
+          classYears,
+          regions,
+        ] = await Promise.all([
           apiService.get(endPoints.departments),
           apiService.get(endPoints.impairments),
           apiService.get(endPoints.semesters),
@@ -1846,18 +1945,39 @@ const MultiStepRegistrationForm = () => {
           apiService.get(endPoints.regions),
         ]);
 
-        setDropdowns(prev => ({
+        setDropdowns((prev) => ({
           ...prev,
-          departments: (departments || []).map((d) => ({ value: d.dptID, label: d.deptName })),
-          impairments: (impairments || []).map((i) => ({ value: i.impairmentCode, label: i.impairment })),
-          semesters: (semesters || []).map((s) => ({ value: s.academicPeriodCode, label: s.academicPeriod })),
-          schoolBackgrounds: (schoolBackgrounds || []).map((b) => ({ value: b.id, label: b.background })),
-          programModalities: (programModalities || []).map((m) => ({ value: m.modalityCode, label: m.modality })),
-          classYears: (classYears || []).map((y) => ({ value: y.id, label: y.classYear })),
-          regions: (regions || []).map((r) => ({ value: r.regionCode, label: r.region })),
+          departments: (departments || []).map((d) => ({
+            value: d.dptID,
+            label: d.deptName,
+          })),
+          impairments: (impairments || []).map((i) => ({
+            value: i.impairmentCode,
+            label: i.impairment,
+          })),
+          semesters: (semesters || []).map((s) => ({
+            value: s.academicPeriodCode,
+            label: s.academicPeriod,
+          })),
+          schoolBackgrounds: (schoolBackgrounds || []).map((b) => ({
+            value: b.id,
+            label: b.background,
+          })),
+          programModalities: (programModalities || []).map((m) => ({
+            value: m.modalityCode,
+            label: m.modality,
+          })),
+          classYears: (classYears || []).map((y) => ({
+            value: y.id,
+            label: y.classYear,
+          })),
+          regions: (regions || []).map((r) => ({
+            value: r.regionCode,
+            label: r.region,
+          })),
         }));
       } catch (err) {
-        setDropdowns(prev => ({
+        setDropdowns((prev) => ({
           ...prev,
           departments: [],
           impairments: [],
@@ -1875,23 +1995,31 @@ const MultiStepRegistrationForm = () => {
   // Cascading dropdown functions
   const fetchZonesByRegion = async (regionCode, target) => {
     try {
-      const zones = await apiService.get(`${endPoints.zonesByRegion}/${regionCode}`);
-      setDropdowns(prev => ({
+      const zones = await apiService.get(
+        `${endPoints.zonesByRegion}/${regionCode}`
+      );
+      setDropdowns((prev) => ({
         ...prev,
-        ...(target === 'birth'
+        ...(target === "birth"
           ? {
-              birthZones: (zones || []).map((z) => ({ value: z.zoneCode, label: z.zone })),
+              birthZones: (zones || []).map((z) => ({
+                value: z.zoneCode,
+                label: z.zone,
+              })),
               birthWoredas: [],
             }
           : {
-              currentZones: (zones || []).map((z) => ({ value: z.zoneCode, label: z.zone })),
+              currentZones: (zones || []).map((z) => ({
+                value: z.zoneCode,
+                label: z.zone,
+              })),
               currentWoredas: [],
             }),
       }));
     } catch (err) {
-      setDropdowns(prev => ({
+      setDropdowns((prev) => ({
         ...prev,
-        ...(target === 'birth'
+        ...(target === "birth"
           ? { birthZones: [], birthWoredas: [] }
           : { currentZones: [], currentWoredas: [] }),
       }));
@@ -1900,17 +2028,29 @@ const MultiStepRegistrationForm = () => {
 
   const fetchWoredasByZone = async (zoneCode, target) => {
     try {
-      const woredas = await apiService.get(`${endPoints.woredasByZone}/${zoneCode}`);
-      setDropdowns(prev => ({
+      const woredas = await apiService.get(
+        `${endPoints.woredasByZone}/${zoneCode}`
+      );
+      setDropdowns((prev) => ({
         ...prev,
-        ...(target === 'birth'
-          ? { birthWoredas: (woredas || []).map((w) => ({ value: w.woredaCode, label: w.woreda })) }
-          : { currentWoredas: (woredas || []).map((w) => ({ value: w.woredaCode, label: w.woreda })) }),
+        ...(target === "birth"
+          ? {
+              birthWoredas: (woredas || []).map((w) => ({
+                value: w.woredaCode,
+                label: w.woreda,
+              })),
+            }
+          : {
+              currentWoredas: (woredas || []).map((w) => ({
+                value: w.woredaCode,
+                label: w.woreda,
+              })),
+            }),
       }));
     } catch (err) {
-      setDropdowns(prev => ({
+      setDropdowns((prev) => ({
         ...prev,
-        ...(target === 'birth' ? { birthWoredas: [] } : { currentWoredas: [] }),
+        ...(target === "birth" ? { birthWoredas: [] } : { currentWoredas: [] }),
       }));
     }
   };
@@ -1924,9 +2064,10 @@ const MultiStepRegistrationForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setErrorMessage("");
-    
+
     const formDataObj = new FormData();
-    const nullIfEmpty = (v) => (v === undefined || v === null || String(v).trim() === "" ? null : v);
+    const nullIfEmpty = (v) =>
+      v === undefined || v === null || String(v).trim() === "" ? null : v;
     const intOrNull = (v) => {
       const n = parseInt(v, 10);
       return Number.isFinite(n) ? n : null;
@@ -1948,10 +2089,18 @@ const MultiStepRegistrationForm = () => {
       // Mother's father name - using mother's last name as her father's name
       motherFatherNameAMH: nullIfEmpty(formData.motherLastNameAMH),
       motherFatherNameENG: nullIfEmpty(formData.motherLastName),
-      gender: formData.sex ? (formData.sex === "Male" ? "MALE" : "FEMALE") : null,
+      gender: formData.sex
+        ? formData.sex === "Male"
+          ? "MALE"
+          : "FEMALE"
+        : null,
       age: intOrNull(formData.age),
       phoneNumber: nullIfEmpty(formData.phoneNo),
-      dateOfBirthEC: dateOrNull(formData.birthYearEC, formData.birthMonthEC, formData.birthDateEC),
+      dateOfBirthEC: dateOrNull(
+        formData.birthYearEC,
+        formData.birthMonthEC,
+        formData.birthDateEC
+      ),
       dateOfBirthGC: formData.birthDateGC || null,
       placeOfBirthWoredaCode: nullIfEmpty(formData.placeOfBirthWoredaCode),
       placeOfBirthZoneCode: nullIfEmpty(formData.placeOfBirthZoneCode),
@@ -1985,21 +2134,18 @@ const MultiStepRegistrationForm = () => {
         "data",
         new Blob([JSON.stringify(body)], { type: "application/json" })
       );
-      
+
       // Append file uploads if they exist
       if (formData.studentPhoto && formData.studentPhoto instanceof File) {
         formDataObj.append("studentPhoto", formData.studentPhoto);
       }
-      
+
       if (formData.document && formData.document instanceof File) {
         formDataObj.append("document", formData.document);
       }
-      
-      const response = await apiService.post(
-        endPoints.applicants,
-        formDataObj
-      );
-      
+
+      const response = await apiService.post(endPoints.applicants, formDataObj);
+
       console.log("Response:", response.data);
       console.log("Form submitted:", body);
 
@@ -2008,43 +2154,54 @@ const MultiStepRegistrationForm = () => {
       localStorage.removeItem("registrationCurrentStep");
       setErrorMessage("");
       alert("Registration form submitted successfully!");
-      
+
       return response.data;
     } catch (error) {
       console.error("Submission error:", error);
-      
+
       // Extract error message from different possible error structures
       let errorMsg = "An unexpected error occurred. Please try again.";
-      
+
       if (error.response) {
         // Server responded with error status
         const { status, data } = error.response;
-        
+
         if (status === 400) {
-          errorMsg = data?.message || data?.error || "Invalid data provided. Please check your information and try again.";
+          errorMsg =
+            data?.message ||
+            data?.error ||
+            "Invalid data provided. Please check your information and try again.";
         } else if (status === 401) {
-          errorMsg = "Authentication failed. Please refresh the page and try again.";
+          errorMsg =
+            "Authentication failed. Please refresh the page and try again.";
         } else if (status === 403) {
-          errorMsg = "Access denied. You don't have permission to perform this action.";
+          errorMsg =
+            "Access denied. You don't have permission to perform this action.";
         } else if (status === 404) {
           errorMsg = "Service not found. Please contact support.";
         } else if (status === 409) {
-          errorMsg = "A record with this information already exists. Please check your details.";
+          errorMsg =
+            "A record with this information already exists. Please check your details.";
         } else if (status === 422) {
-          errorMsg = data?.message || "Validation error. Please check all required fields are filled correctly.";
+          errorMsg =
+            data?.message ||
+            "Validation error. Please check all required fields are filled correctly.";
         } else if (status === 500) {
           errorMsg = "Server error. Please try again later or contact support.";
         } else {
-          errorMsg = data?.message || `Server error (${status}). Please try again.`;
+          errorMsg =
+            data?.message || `Server error (${status}). Please try again.`;
         }
       } else if (error.request) {
         // Network error
-        errorMsg = "Network error. Please check your internet connection and try again.";
+        errorMsg =
+          "Network error. Please check your internet connection and try again.";
       } else {
         // Other error
-        errorMsg = error.message || "An unexpected error occurred. Please try again.";
+        errorMsg =
+          error.message || "An unexpected error occurred. Please try again.";
       }
-      
+
       setErrorMessage(errorMsg);
       throw error;
     } finally {
@@ -2123,254 +2280,269 @@ const MultiStepRegistrationForm = () => {
 
   return (
     // <div className="w-full mx-auto p-6 bg-white dark:bg-black">
-    <div className="relative min-h-screen  bg-gray-50 dark:bg-gray-900 px-6 md:px-16 lg:px-28 overflow-auto overflow-x-hidden">
-      {/* <div className="hidden dark:block fixed inset-0">
+    <div>
+      <header className="container mx-auto px-4 py-2 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+            <img src="/assets/companylogo.jpg" className="h-[50px] w-full" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              DEUTSCHE HOCHSCHULE
+            </h1>
+            <p className="text-sm text-gray-600  dark:text-gray-300">
+              medicin college
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
+      </header>
+      <div className="relative min-h-screen  bg-gray-50 dark:bg-gray-900 px-6 md:px-16 lg:px-28 overflow-auto overflow-x-hidden">
+        {/* <div className="hidden dark:block fixed inset-0">
         <DarkVeil className="w-full h-full object-cover" />
       </div> */}
-      <div className="relative z-10">
-        <header className="container mx-auto px-4 py-12 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <img src="/assets/companylogo.jpg" className="h-[50px] w-full" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                fanum
-              </h1>
-              <p className="text-sm text-gray-600  dark:text-gray-300">tax</p>
-            </div>
+        <div className="relative z-10">
+          {/* <CHANGE> Added header with form title */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+              Registrar Office
+            </h1>
+            <h2 className="text-xl font-semibold text-gray-700 dark:text-white dark:text-gray-200 mb-4">
+              LIFE HISTORY FORM, UNDERGRADUATE PROGRAM
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+              This form, completed and accompanied by all necessary education
+              documents, must be returned to the Registrar's Office on or before
+              the end of the registration date declared by the Registrar of the
+              College.
+            </p>
           </div>
-          <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
-        </header>
-        {/* <CHANGE> Added header with form title */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
-            Registrar Office
-          </h1>
-          <h2 className="text-xl font-semibold text-gray-700 dark:text-white dark:text-gray-200 mb-4">
-            LIFE HISTORY FORM, UNDERGRADUATE PROGRAM
-          </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-            This form, completed and accompanied by all necessary education
-            documents, must be returned to the Registrar's Office on or before
-            the end of the registration date declared by the Registrar of the
-            College.
-          </p>
-        </div>
 
-        {/* <CHANGE> Added progress indicator */}
-        <ProgressIndicator currentStep={currentStep} totalSteps={totalSteps} />
+          {/* <CHANGE> Added progress indicator */}
+          <ProgressIndicator
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+          />
 
-        {/* Error Message Display */}
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                  Registration Error
-                </h3>
-                <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                  <p>{errorMessage}</p>
-                </div>
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setErrorMessage("")}
-                    className="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-red-200 dark:hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          {/* Error Message Display */}
+          {errorMessage && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-red-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    Dismiss
-                  </button>
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                    Registration Error
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                    <p>{errorMessage}</p>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setErrorMessage("")}
+                      className="bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-3 py-2 rounded-md text-sm font-medium hover:bg-red-200 dark:hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* <CHANGE> Render current step */}
-        {renderStep()}
+          {/* <CHANGE> Render current step */}
+          {renderStep()}
 
-        {/* <CHANGE> Added navigation buttons */}
-        {currentStep <= totalSteps && (
-          <div className="flex justify-between mt-8">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              className={`px-6 py-2 rounded-lg font-medium transition duration-200 ${
-                currentStep === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              }`}
-            >
-              Previous
-            </button>
-
-            <div className="flex gap-4">
+          {/* <CHANGE> Added navigation buttons */}
+          {currentStep <= totalSteps && (
+            <div className="flex justify-between mt-8">
               <button
-                onClick={() => {
-                  localStorage.setItem(
-                    "registrationFormData",
-                    JSON.stringify(formData)
-                  );
-                  alert("Progress saved!");
-                }}
-                className="px-6 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+                className={`px-6 py-2 rounded-lg font-medium transition duration-200 ${
+                  currentStep === 1
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-600 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                }`}
               >
-                Save Progress
+                Previous
               </button>
 
-              {currentStep < totalSteps && (
+              <div className="flex gap-4">
                 <button
-                  onClick={nextStep}
-                  className={`px-6 py-2 rounded-lg font-medium transition duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  onClick={() => {
+                    localStorage.setItem(
+                      "registrationFormData",
+                      JSON.stringify(formData)
+                    );
+                    alert("Progress saved!");
+                  }}
+                  className="px-6 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 >
-                  Next
+                  Save Progress
                 </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-      <div
-        id="contact"
-        className="relative w-full mt-5 flex items-center justify-center overflow-hidden"
-      >
-        {/* Light rays absolutely positioned behind content */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <LightRays
-            raysOrigin="top-center"
-            raysColor="#ffffff"
-            raysSpeed={1}
-            lightSpread={1}
-            rayLength={2}
-            pulsating={true}
-            fadeDistance={1}
-            saturation={1}
-            followMouse={true}
-            mouseInfluence={0.1}
-            noiseAmount={0}
-            distortion={0}
-            className="w-full h-full"
-          />
-        </div>
-        {/* <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12"> */}
 
-        <footer className="text-white py-1">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-4 gap-8">
-              <div>
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 rounded-full   rounded-lg flex items-center justify-center">
-                    <img
-                      src="/assets/companylogo.jpg"
-                      className="h-[50px] w-full rounded-full "
-                    />
+                {currentStep < totalSteps && (
+                  <button
+                    onClick={nextStep}
+                    className={`px-6 py-2 rounded-lg font-medium transition duration-200 bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  >
+                    Next
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        <div
+          id="contact"
+          className="relative w-full mt-5 flex items-center justify-center overflow-hidden"
+        >
+          {/* Light rays absolutely positioned behind content */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <LightRays
+              raysOrigin="top-center"
+              raysColor="#ffffff"
+              raysSpeed={1}
+              lightSpread={1}
+              rayLength={2}
+              pulsating={true}
+              fadeDistance={1}
+              saturation={1}
+              followMouse={true}
+              mouseInfluence={0.1}
+              noiseAmount={0}
+              distortion={0}
+              className="w-full h-full"
+            />
+          </div>
+          {/* <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12"> */}
+
+          <footer className="text-white py-1">
+            <div className="container mx-auto px-4">
+              <div className="grid md:grid-cols-4 gap-8">
+                <div>
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="w-12 rounded-full   rounded-lg flex items-center justify-center">
+                      <img
+                        src="/assets/companylogo.jpg"
+                        className="h-[50px] w-full rounded-full "
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold">some</h3>
+                      <p className="text-sm text-">thing</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold">some</h3>
-                    <p className="text-sm text-">thing</p>
+                  <p className="text-gray-400">
+                    Excellence in medical education since 1985.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-4">Quick Links</h4>
+                  <ul className="space-y-2 text-black">
+                    <li>
+                      <Link
+                        to="/register"
+                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                      >
+                        Apply Now
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/login"
+                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                      >
+                        Student Portal
+                      </Link>
+                    </li>
+                    <li>
+                      <a
+                        href="#"
+                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                      >
+                        Programs
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="#"
+                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                      >
+                        Research
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-4">something</h4>
+                  <ul className="space-y-2 ">
+                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                      123 Medical Campus Drive
+                    </li>
+                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                      Berlin, Germany 10115
+                    </li>
+                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                      +49 30 1234 5678
+                    </li>
+                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                      info@dhfm-college.de
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-4">Follow Us</h4>
+                  <div className="flex space-x-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <span className="sr-only">Facebook</span>📘
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <span className="sr-only">Twitter</span>🐦
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <span className="sr-only">LinkedIn</span>💼
+                    </Button>
                   </div>
                 </div>
-                <p className="text-gray-400">
-                  Excellence in medical education since 1985.
+              </div>
+              <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>
+                  &copy; 2024 Deutsche Hochschule für Medizin College. All
+                  rights reserved.
                 </p>
               </div>
-              <div>
-                <h4 className="font-semibold mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-black">
-                  <li>
-                    <Link
-                      to="/register"
-                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                    >
-                      Apply Now
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/login"
-                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                    >
-                      Student Portal
-                    </Link>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                    >
-                      Programs
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                    >
-                      Research
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">something</h4>
-                <ul className="space-y-2 ">
-                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                    123 Medical Campus Drive
-                  </li>
-                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                    Berlin, Germany 10115
-                  </li>
-                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                    +49 30 1234 5678
-                  </li>
-                  <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                    info@dhfm-college.de
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Follow Us</h4>
-                <div className="flex space-x-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <span className="sr-only">Facebook</span>📘
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <span className="sr-only">Twitter</span>🐦
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-white"
-                  >
-                    <span className="sr-only">LinkedIn</span>💼
-                  </Button>
-                </div>
-              </div>
             </div>
-            <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-              <p>
-                &copy; 2024 Deutsche Hochschule für Medizin College. All rights
-                reserved.
-              </p>
-            </div>
-          </div>
-        </footer>
+          </footer>
+        </div>
       </div>
     </div>
   );
