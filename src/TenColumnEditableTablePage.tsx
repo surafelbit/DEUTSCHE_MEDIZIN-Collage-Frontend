@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 // Full-page demo: 10-column dynamic table with single-row edit & bulk edit
 // Tailwind CSS recommended for styling
@@ -95,24 +95,38 @@ const ALL_COLUMNS = [
   { key: "active", label: "Active", type: "boolean" },
 ];
 
+interface BulkEditModalProps {
+  open: boolean;
+  onClose: () => void;
+  onApply: (field: string, value: string | number | boolean) => void;
+  visibleColumns: string[];
+}
+
 function BulkEditModal({ open, onClose, onApply, visibleColumns }) {
   const columnOptions = ALL_COLUMNS.filter((c) =>
     visibleColumns.includes(c.key)
   );
-  const [field, setField] = useState(columnOptions[0]?.key || "");
-  const selectedCol = useMemo(
+  const [field, setField] = useState<string>(columnOptions[0]?.key || "");
+  interface Column {
+    key: string;
+    type: "string" | "number" | "boolean";
+  }
+
+  const selectedCol = useMemo<Column | undefined>(
     () => ALL_COLUMNS.find((c) => c.key === field),
     [field]
   );
-  const [value, setValue] = useState("");
+
+  const [value, setValue] = useState<string>("");
 
   if (!open) return null;
 
   const handleApply = () => {
-    // Coerce types
-    let v = value;
+    let v: string | number | boolean = value;
+
     if (selectedCol?.type === "number") v = Number(value || 0);
     if (selectedCol?.type === "boolean") v = value === "true" || value === true;
+
     onApply(field, v);
   };
 
@@ -218,10 +232,6 @@ export default function TenColumnEditableTablePage() {
 
   // Selection for bulk actions
   const [selectedIds, setSelectedIds] = useState([]);
-  const allSelected = useMemo(
-    () => selectedIds.length > 0 && selectedIds.length === filtered.length,
-    []
-  );
 
   const [bulkOpen, setBulkOpen] = useState(false);
 
