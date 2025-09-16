@@ -4,8 +4,7 @@ import { Toaster } from "sonner";
 
 // Public Pagess
 import LandingPage from "./pages/public/LandingPage";
-import LoginPage from "./pages/public/LoginPage";
-import RegisterPage from "./pages/public/RegisterPage";
+
 import ForgotPasswordPage from "./pages/public/ForgotPasswordPage";
 import MultiStepRegistrationForm from "./../src/registeration/MultiStepRegistrationForm";
 import NotFound from "../src/pages/NotFound/NotFound";
@@ -42,7 +41,7 @@ import RegistrarDashboard from "./pages/registrar/Dashboard";
 import RegistrarApplications from "./pages/registrar/Applications";
 import RegistrarDepartments from "./pages/registrar/Departments";
 import RegistrarStudents from "./pages/registrar/Students";
-import RegistrarCourses from "./pages/registrar/Courses";
+// import RegistrarCourses from "./pages/registrar/Courses";
 import RegistrarAssessments from "./pages/registrar/Assessments";
 import RegistrarBatches from "./pages/registrar/Batches";
 import DepartmentDetail from "./pages/registrar/DepartmentDetail";
@@ -76,7 +75,7 @@ import ManagerDashboard from "./pages/manager/Dashboard";
 import ManagerReports from "./pages/manager/Reports";
 import ManagerSettings from "./pages/manager/Settings";
 import BatchUpdateTable from "./pages/registrar/BatchUpdateTable";
-import TenColumnEditableTablePage from "./TenColumnEditableTablePage";
+// import TenColumnEditableTablePage from "./TenColumnEditableTablePage";
 import BatchesEditor from "./pages/registrar/settings/BatchesEditor";
 import ProgramModalitiesEditor from "./pages/registrar/settings/ProgramModalitiesEditor";
 import AttritionCausesEditor from "./pages/registrar/settings/AttritionCausesEditor";
