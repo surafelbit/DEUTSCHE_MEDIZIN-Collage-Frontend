@@ -95,7 +95,7 @@ const ALL_COLUMNS = [
   { key: "active", label: "Active", type: "boolean" },
 ];
 
-interface BulkEditModalProps {
+interface BulkEditModal {
   open: boolean;
   onClose: () => void;
   onApply: (field: string, value: string | number | boolean) => void;
@@ -110,6 +110,8 @@ function BulkEditModal({ open, onClose, onApply, visibleColumns }) {
   interface Column {
     key: string;
     type: "string" | "number" | "boolean";
+    type: "text" | "number" | "boolean" | "select";
+    options?: string[];
   }
 
   const selectedCol = useMemo<Column | undefined>(
@@ -257,7 +259,7 @@ export default function TenColumnEditableTablePage() {
     );
   }, [students, search]);
 
-  const toggleColumn = (key) => {
+  const toggleColumn = (key: string) => {
     setVisibleColumns((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );

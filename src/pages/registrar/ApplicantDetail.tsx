@@ -39,7 +39,23 @@ export default function ApplicantDetail() {
   const [password, setPassword] = useState(""); // Stores new password
   const [confirmPassword, setConfirmPassword] = useState(""); // Stores confirm password
   const [passwordError, setPasswordError] = useState(""); // Stores password error message
-  const [applicantData, setApplicant] = useState();
+  interface ApplicantType {
+    placeOfBirthWoreda: string;
+    placeOfBirthZone: string;
+    placeOfBirthRegion: string;
+    departmentEnrolled: string;
+    programModality: string;
+    schoolBackground: string;
+    grade12ExamResult: string;
+    contactPersonFirstNameAMH: string;
+    contactPersonFirstNameENG: string;
+    contactPersonLastNameAMH: string;
+    contactPersonLastNameENG: string;
+    contactPersonPhoneNumber: string;
+    contactPersonRelation: string;
+    // add other fields as needed
+  }
+  const [applicant, setApplicant] = useState<ApplicantType | null>(null);
   const [loading, setIsLoading] = useState(true);
   const { id } = useParams();
   console.log(id);
