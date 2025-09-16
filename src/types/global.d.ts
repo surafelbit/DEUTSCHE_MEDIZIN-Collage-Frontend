@@ -1,4 +1,7 @@
-// --- Asset imports ---
+// Allow importing anything without TS errors
+declare module "*";
+
+// Allow assets
 declare module "*.png";
 declare module "*.jpg";
 declare module "*.jpeg";
@@ -7,13 +10,3 @@ declare module "*.gif";
 declare module "*.css";
 declare module "*.scss";
 declare module "*.json";
-
-// --- Global variables ---
-declare global {
-  interface Window {
-    myGlobalVar: any; // replace if needed
-  }
-}
-
-// --- Catch-all for unknown modules ---
-declare module "*";

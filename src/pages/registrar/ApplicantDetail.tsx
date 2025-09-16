@@ -6,7 +6,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,107 +21,88 @@ import {
   Edit,
   Camera,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useModal } from "@/hooks/Modal";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
 import LoadingSpinner from "@/designs/LoadingSpinner";
 import UserNotFound from "@/designs/UserNotFound";
+
+// Define the full ApplicantType interface matching your data
+interface ApplicantType {
+  firstNameAMH: string;
+  firstNameENG: string;
+  fatherNameAMH: string;
+  fatherNameENG: string;
+  grandfatherNameAMH: string;
+  grandfatherNameENG: string;
+  motherNameAMH: string;
+  motherNameENG: string;
+  motherFatherNameAMH: string;
+  motherFatherNameENG: string;
+  gender: string;
+  age: number;
+  phoneNumber: string;
+  dateOfBirthEC: string;
+  dateOfBirthGC: string;
+  placeOfBirthWoreda: string;
+  placeOfBirthZone: string;
+  placeOfBirthRegion: string;
+  currentAddressWoreda: string;
+  currentAddressZone: string;
+  currentAddressRegion: string;
+  email: string;
+  maritalStatus: string;
+  impairment: string;
+  schoolBackground: string;
+  studentPhoto: string;
+  contactPersonFirstNameAMH: string;
+  contactPersonFirstNameENG: string;
+  contactPersonLastNameAMH: string;
+  contactPersonLastNameENG: string;
+  contactPersonPhoneNumber: string;
+  contactPersonRelation: string;
+  departmentEnrolled: string;
+  programModality: string;
+  grade12ExamResult: string;
+}
+
 export default function ApplicantDetail() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState(null); // Tracks acceptance/rejection status
-  const [remarks, setRemarks] = useState(""); // Stores remarks for acceptance/rejection
-  const [password, setPassword] = useState(""); // Stores new password
-  const [confirmPassword, setConfirmPassword] = useState(""); // Stores confirm password
-  const [passwordError, setPasswordError] = useState(""); // Stores password error message
-  interface ApplicantType {
-    placeOfBirthWoreda: string;
-    placeOfBirthZone: string;
-    placeOfBirthRegion: string;
-    departmentEnrolled: string;
-    programModality: string;
-    schoolBackground: string;
-    grade12ExamResult: string;
-    contactPersonFirstNameAMH: string;
-    contactPersonFirstNameENG: string;
-    contactPersonLastNameAMH: string;
-    contactPersonLastNameENG: string;
-    contactPersonPhoneNumber: string;
-    contactPersonRelation: string;
-    // add other fields as needed
-  }
+  const { id } = useParams<{ id: string }>(); // Type useParams to ensure id is string
+  const [status, setStatus] = useState<"accepted" | "rejected" | null>(null);
+  const [remarks, setRemarks] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [applicant, setApplicant] = useState<ApplicantType | null>(null);
   const [loading, setIsLoading] = useState(true);
-  const { id } = useParams();
-  console.log(id);
-  // const applicantData = {
-  //   firstNameAMH: "አበበ",
-  //   firstNameENG: "Abebe",
-  //   fatherNameAMH: "ከበደ",
-  //   fatherNameENG: "Kebede",
-  //   grandfatherNameAMH: "ወልደ",
-  //   grandfatherNameENG: "Welde",
-  //   motherNameAMH: "ልደት",
-  //   motherNameENG: "Lidet",
-  //   motherFatherNameAMH: "ታደሰ",
-  //   motherFatherNameENG: "Tadesse",
-  //   gender: "Male",
-  //   age: 20,
-  //   phoneNumber: "+251912345678",
-  //   dateOfBirthEC: "15/06/2005",
-  //   dateOfBirthGC: "1997-02-22",
-  //   placeOfBirthWoreda: "Yeka",
-  //   placeOfBirthZone: "Addis Ababa",
-  //   placeOfBirthRegion: "Addis Ababa",
-  //   currentAddressWoreda: "Bole",
-  //   currentAddressZone: "Addis Ababa",
-  //   currentAddressRegion: "Addis Ababa",
-  //   email: "abebe.kebede@example.com",
-  //   maritalStatus: "Single",
-  //   impairment: "None",
-  //   schoolBackground: "Public",
-  //   studentPhoto:
-  //     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD/2wBDAAoHBwkHBgoJCAkLCwoMDxkQDw4ODx4WFxIZJCAmJSMgIyIOJj4kLCIuNDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy",
-  //   contactPersonFirstNameAMH: "ሰለሞን",
-  //   contactPersonFirstNameENG: "Solomon",
-  //   contactPersonLastNameAMH: "ገብረ",
-  //   contactPersonLastNameENG: "Gebre",
-  //   contactPersonPhoneNumber: "+251987654321",
-  //   contactPersonRelation: "Brother",
-  //   departmentEnrolled: "Computer Science",
-  //   programModality: "Regular",
-  //   grade12ExamResult:
-  //     "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAAAAD/2wBDAAoHBwkHBgoJCAkLCwoMDxkQDw4ODx4WFxIZJCAmJSMgIyIOJj4kLCIuNDIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy",
-  // };
-  // setApplicant(applicantData);
 
   useEffect(() => {
-    async function getter() {
+    async function fetchApplicant() {
       try {
-        setIsLoading(true); // Set loading to true
-        const url = endPoints.applicantDetail.replace(":id", id);
-        const response = await apiService.get(url);
-        setApplicant(response);
+        setIsLoading(true);
+        const url = endPoints.applicantDetail.replace(":id", id ?? ""); // Fallback for undefined id
+        const response = await apiService.get<ApplicantType>(url); // Type the API response
+        setApplicant(response.data); // Adjust based on your apiService response structure
       } catch (error) {
         console.error("Error fetching applicant data:", error);
       } finally {
-        setIsLoading(false); // Set loading to false
+        setIsLoading(false);
       }
     }
-    getter();
-  }, [id]);
-  useEffect(() => {
-    async function getter() {
-      const url = endPoints.applicantDetail.replace(":id", id);
+    if (id) {
+      fetchApplicant();
+    } else {
+      setIsLoading(false);
     }
-    getter();
-  }, []);
+  }, [id]);
 
-  const handleStatusChange = (newStatus) => {
+  // Remove duplicate useEffect (it was empty and redundant)
+  const handleStatusChange = (newStatus: "accepted" | "rejected") => {
+    // Uncomment if remarks are required
     // if (remarks.trim() === "") {
     //   alert("Please provide remarks before submitting.");
     //   return;
@@ -141,20 +121,24 @@ export default function ApplicantDetail() {
     }
     setPasswordError("");
     alert("Password successfully set!");
-    // Here you would typically send the password to a backend API
+    // Add API call here to send password to backend
   };
+
   if (loading) {
     return <LoadingSpinner />;
   }
-  if (!applicantData) {
+
+  if (!applicant) {
     return <UserNotFound />;
   }
+
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Applicant Details</h1>
         <div className="flex space-x-2">
           <Link
+            to="#"
             onClick={() => navigate(-1)}
             className="inline-flex items-center text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
           >
@@ -169,15 +153,14 @@ export default function ApplicantDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Picture and Basic Info */}
         <Card className="lg:col-span-1">
           <CardHeader className="text-center">
             <div className="relative mx-auto">
               <Avatar className="w-32 h-32">
-                <AvatarImage src={applicantData?.studentPhoto} />
+                <AvatarImage src={applicant.studentPhoto} alt="Student Photo" />
                 <AvatarFallback className="text-2xl">
-                  {applicantData.firstNameENG[0]}
-                  {applicantData.fatherNameENG[0]}
+                  {applicant.firstNameENG[0]}
+                  {applicant.fatherNameENG[0]}
                 </AvatarFallback>
               </Avatar>
               <Button
@@ -189,29 +172,29 @@ export default function ApplicantDetail() {
               </Button>
             </div>
             <CardTitle className="mt-4">
-              {applicantData.firstNameENG} {applicantData.fatherNameENG}
+              {applicant.firstNameENG} {applicant.fatherNameENG}
             </CardTitle>
             <CardDescription>
-              {applicantData.departmentEnrolled} Applicant
+              {applicant.departmentEnrolled} Applicant
             </CardDescription>
             <Badge variant="secondary" className="mt-2">
-              {applicantData.programModality}
+              {applicant.programModality}
             </Badge>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-2 text-sm">
               <Mail className="h-4 w-4 text-gray-500" />
-              <span>{applicantData.email}</span>
+              <span>{applicant.email}</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <Phone className="h-4 w-4 text-gray-500" />
-              <span>{applicantData.phoneNumber}</span>
+              <span>{applicant.phoneNumber}</span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
               <MapPin className="h-4 w-4 text-gray-500" />
               <span>
-                {applicantData.currentAddressWoreda},{" "}
-                {applicantData.currentAddressRegion}
+                {applicant.currentAddressWoreda},{" "}
+                {applicant.currentAddressRegion}
               </span>
             </div>
             <div className="flex items-center space-x-2 text-sm">
@@ -221,7 +204,6 @@ export default function ApplicantDetail() {
           </CardContent>
         </Card>
 
-        {/* Personal Information */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
@@ -235,7 +217,7 @@ export default function ApplicantDetail() {
                 <Label htmlFor="firstNameAMH">First Name (Amharic)</Label>
                 <Input
                   id="firstNameAMH"
-                  value={applicantData.firstNameAMH}
+                  value={applicant.firstNameAMH}
                   readOnly
                 />
               </div>
@@ -243,7 +225,7 @@ export default function ApplicantDetail() {
                 <Label htmlFor="firstNameENG">First Name (English)</Label>
                 <Input
                   id="firstNameENG"
-                  value={applicantData.firstNameENG}
+                  value={applicant.firstNameENG}
                   readOnly
                 />
               </div>
@@ -254,7 +236,7 @@ export default function ApplicantDetail() {
                 <Label htmlFor="fatherNameAMH">Father's Name (Amharic)</Label>
                 <Input
                   id="fatherNameAMH"
-                  value={applicantData.fatherNameAMH}
+                  value={applicant.fatherNameAMH}
                   readOnly
                 />
               </div>
@@ -262,7 +244,7 @@ export default function ApplicantDetail() {
                 <Label htmlFor="fatherNameENG">Father's Name (English)</Label>
                 <Input
                   id="fatherNameENG"
-                  value={applicantData.fatherNameENG}
+                  value={applicant.fatherNameENG}
                   readOnly
                 />
               </div>
@@ -275,7 +257,7 @@ export default function ApplicantDetail() {
                 </Label>
                 <Input
                   id="grandfatherNameAMH"
-                  value={applicantData.grandfatherNameAMH}
+                  value={applicant.grandfatherNameAMH}
                   readOnly
                 />
               </div>
@@ -285,7 +267,7 @@ export default function ApplicantDetail() {
                 </Label>
                 <Input
                   id="grandfatherNameENG"
-                  value={applicantData.grandfatherNameENG}
+                  value={applicant.grandfatherNameENG}
                   readOnly
                 />
               </div>
@@ -296,7 +278,7 @@ export default function ApplicantDetail() {
                 <Label htmlFor="motherNameAMH">Mother's Name (Amharic)</Label>
                 <Input
                   id="motherNameAMH"
-                  value={applicantData.motherNameAMH}
+                  value={applicant.motherNameAMH}
                   readOnly
                 />
               </div>
@@ -304,7 +286,7 @@ export default function ApplicantDetail() {
                 <Label htmlFor="motherNameENG">Mother's Name (English)</Label>
                 <Input
                   id="motherNameENG"
-                  value={applicantData.motherNameENG}
+                  value={applicant.motherNameENG}
                   readOnly
                 />
               </div>
@@ -317,7 +299,7 @@ export default function ApplicantDetail() {
                 </Label>
                 <Input
                   id="motherFatherNameAMH"
-                  value={applicantData.motherFatherNameAMH}
+                  value={applicant.motherFatherNameAMH}
                   readOnly
                 />
               </div>
@@ -327,7 +309,7 @@ export default function ApplicantDetail() {
                 </Label>
                 <Input
                   id="motherFatherNameENG"
-                  value={applicantData.motherFatherNameENG}
+                  value={applicant.motherFatherNameENG}
                   readOnly
                 />
               </div>
@@ -338,14 +320,14 @@ export default function ApplicantDetail() {
                 <Label htmlFor="dateOfBirthGC">Date of Birth (GC)</Label>
                 <Input
                   id="dateOfBirthGC"
-                  value={applicantData.dateOfBirthGC}
+                  value={applicant.dateOfBirthGC}
                   type="date"
                   readOnly
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender</Label>
-                <Input id="gender" value={applicantData.gender} readOnly />
+                <Input id="gender" value={applicant.gender} readOnly />
               </div>
             </div>
 
@@ -355,7 +337,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="currentAddress">Current Address</Label>
               <Input
                 id="currentAddress"
-                value={`${applicantData.currentAddressWoreda}, ${applicantData.currentAddressZone}, ${applicantData.currentAddressRegion}`}
+                value={`${applicant.currentAddressWoreda}, ${applicant.currentAddressZone}, ${applicant.currentAddressRegion}`}
                 readOnly
               />
             </div>
@@ -364,7 +346,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="placeOfBirth">Place of Birth</Label>
               <Input
                 id="placeOfBirth"
-                value={`${applicantData.placeOfBirthWoreda}, ${applicantData.placeOfBirthZone}, ${applicantData.placeOfBirthRegion}`}
+                value={`${applicant.placeOfBirthWoreda}, ${applicant.placeOfBirthZone}, ${applicant.placeOfBirthRegion}`}
                 readOnly
               />
             </div>
@@ -372,7 +354,6 @@ export default function ApplicantDetail() {
         </Card>
       </div>
 
-      {/* Academic Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -389,7 +370,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="departmentEnrolled">Department Applied</Label>
               <Input
                 id="departmentEnrolled"
-                value={applicantData.departmentEnrolled}
+                value={applicant.departmentEnrolled}
                 readOnly
               />
             </div>
@@ -397,7 +378,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="programModality">Program Modality</Label>
               <Input
                 id="programModality"
-                value={applicantData.programModality}
+                value={applicant.programModality}
                 readOnly
               />
             </div>
@@ -405,7 +386,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="schoolBackground">School Background</Label>
               <Input
                 id="schoolBackground"
-                value={applicantData.schoolBackground}
+                value={applicant.schoolBackground}
                 readOnly
               />
             </div>
@@ -416,7 +397,7 @@ export default function ApplicantDetail() {
           <div className="space-y-2">
             <Label htmlFor="grade12ExamResult">Grade 12 Exam Result</Label>
             <img
-              src={applicantData.grade12ExamResult}
+              src={applicant.grade12ExamResult}
               alt="Grade 12 Exam Result"
               className="w-64 h-36 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
             />
@@ -424,7 +405,6 @@ export default function ApplicantDetail() {
         </CardContent>
       </Card>
 
-      {/* Emergency Contact */}
       <Card>
         <CardHeader>
           <CardTitle>Emergency Contact</CardTitle>
@@ -438,7 +418,7 @@ export default function ApplicantDetail() {
               </Label>
               <Input
                 id="contactPersonFirstNameAMH"
-                value={applicantData.contactPersonFirstNameAMH}
+                value={applicant.contactPersonFirstNameAMH}
                 readOnly
               />
             </div>
@@ -448,7 +428,7 @@ export default function ApplicantDetail() {
               </Label>
               <Input
                 id="contactPersonFirstNameENG"
-                value={applicantData.contactPersonFirstNameENG}
+                value={applicant.contactPersonFirstNameENG}
                 readOnly
               />
             </div>
@@ -461,7 +441,7 @@ export default function ApplicantDetail() {
               </Label>
               <Input
                 id="contactPersonLastNameAMH"
-                value={applicantData.contactPersonLastNameAMH}
+                value={applicant.contactPersonLastNameAMH}
                 readOnly
               />
             </div>
@@ -471,7 +451,7 @@ export default function ApplicantDetail() {
               </Label>
               <Input
                 id="contactPersonLastNameENG"
-                value={applicantData.contactPersonLastNameENG}
+                value={applicant.contactPersonLastNameENG}
                 readOnly
               />
             </div>
@@ -482,7 +462,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="contactPersonPhoneNumber">Phone Number</Label>
               <Input
                 id="contactPersonPhoneNumber"
-                value={applicantData.contactPersonPhoneNumber}
+                value={applicant.contactPersonPhoneNumber}
                 readOnly
               />
             </div>
@@ -490,7 +470,7 @@ export default function ApplicantDetail() {
               <Label htmlFor="contactPersonRelation">Relationship</Label>
               <Input
                 id="contactPersonRelation"
-                value={applicantData.contactPersonRelation}
+                value={applicant.contactPersonRelation}
                 readOnly
               />
             </div>
@@ -498,7 +478,6 @@ export default function ApplicantDetail() {
         </CardContent>
       </Card>
 
-      {/* Acceptance/Rejection Form */}
       <Card>
         <CardHeader>
           <CardTitle>Acceptance/Rejection</CardTitle>
@@ -507,7 +486,7 @@ export default function ApplicantDetail() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="remarks">Remarks</Label>
             <Textarea
               id="remarks"
@@ -515,7 +494,7 @@ export default function ApplicantDetail() {
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Enter remarks for acceptance or rejection"
             />
-          </div> */}
+          </div>
           <div className="flex space-x-4">
             <Button
               variant="default"
@@ -548,7 +527,6 @@ export default function ApplicantDetail() {
         </CardContent>
       </Card>
 
-      {/* Password Creation Form (Shown only if accepted) */}
       {status === "accepted" && (
         <Card>
           <CardHeader>
