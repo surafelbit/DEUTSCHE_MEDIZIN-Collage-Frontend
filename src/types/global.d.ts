@@ -1,29 +1,21 @@
-// Allow importing JS/JSX files without type declarations
-declare module "*.js" {
-  const content: any;
-  export default content;
+// src/types/global.d.ts
+
+// If you have custom module imports (like images, CSV, JSON, etc.)
+declare module "*.png";
+declare module "*.jpg";
+declare module "*.jpeg";
+declare module "*.svg";
+declare module "*.gif";
+declare module "*.css";
+declare module "*.scss";
+declare module "*.json";
+
+// If you want to declare global variables
+declare global {
+  interface Window {
+    myGlobalVar: any;
+  }
 }
 
-declare module "*.jsx" {
-  const content: any;
-  export default content;
-}
-
-declare module "*.ts" {
-  const content: any;
-  export default content;
-}
-
-declare module "*.tsx" {
-  const content: any;
-  export default content;
-}
-
-// Missing type packages fallbacks
-declare module "prop-types" {
-  const content: any;
-  export default content;
-}
-
-// Generic fallback for any unknown module
+// Optional: If you want a catch-all for any unknown modules
 declare module "*";
