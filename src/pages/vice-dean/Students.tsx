@@ -9,11 +9,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { X, Loader2, AlertCircle } from "lucide-react";
 import apiService from "../../components/api/apiService";
 import endPoints from "../../components/api/endPoints";
+import { AcademicProgression } from "@/components/Extra/AcademicProgression"; // Adjust path as needed
 
 type Student = {
   studentId: number;
+  studentUserId: number; // Make sure this exists
   idNumber: string;
   fullName: string;
   department: string;
@@ -21,6 +24,22 @@ type Student = {
   studentStatus: string;
   cgpa: number;
 };
+
+// Interface for academic progress data
+interface AcademicProgressData {
+  studentId: number;
+  username: string;
+  fullName: string;
+  department: string;
+  currentStatus: string;
+  currentBatchClassYearSemester: string;
+  takenCourses: any[];
+  totalTakenCourses: number;
+  totalTakenCreditHours: number;
+  remainingCourses: any[];
+  totalRemainingCourses: number;
+  totalRemainingCreditHours: number;
+}
 
 export default function ViceDeanStudents() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -30,6 +49,12 @@ export default function ViceDeanStudents() {
   const [status, setStatus] = useState("All");
   const [dept, setDept] = useState("All");
   const [selected, setSelected] = useState<Student | undefined>(undefined);
+
+  // Academic progress states
+  const [academicProgress, setAcademicProgress] =
+    useState<AcademicProgressData | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStudents();
@@ -49,21 +74,55 @@ export default function ViceDeanStudents() {
     }
   };
 
+  // Fetch academic progress when student is selected
+  const fetchAcademicProgress = async (studentUserId: number) => {
+    try {
+      setLoadingProgress(true);
+      setProgressError(null);
+      // Replace :userId with the actual studentUserId
+      const endpoint = endPoints.studentsAcademicProgress.replace(
+        ":userId",
+        studentUserId.toString(),
+      );
+      console.log("Fetching from endpoint:", endpoint); // Debug log
+      const data = await apiService.get(endpoint);
+      console.log("Academic Progress Response:", data); // Debug log - data is already the response data
+      setAcademicProgress(data);
+    } catch (err: any) {
+      console.error("Failed to load academic progress:", err);
+      setProgressError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to load academic progress",
+      );
+    } finally {
+      setLoadingProgress(false);
+    }
+  };
+
+  // Handle student click
+  const handleViewProfile = (student: Student) => {
+    setSelected(student);
+    setAcademicProgress(null);
+    setProgressError(null);
+    fetchAcademicProgress(student.studentUserId);
+  };
+
   // Extract unique departments for filter
   const departments = useMemo(() => {
-    const depts = students.map(s => s.department);
+    const depts = students.map((s) => s.department);
     return Array.from(new Set(depts)).sort();
   }, [students]);
 
   // Extract unique statuses for filter
   const statuses = useMemo(() => {
-    const stats = students.map(s => s.studentStatus);
+    const stats = students.map((s) => s.studentStatus);
     return Array.from(new Set(stats)).sort();
   }, [students]);
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
-      const matchesQuery = 
+      const matchesQuery =
         s.fullName.toLowerCase().includes(query.toLowerCase()) ||
         s.idNumber.toLowerCase().includes(query.toLowerCase());
       const matchesStatus = status === "All" || s.studentStatus === status;
@@ -118,14 +177,121 @@ export default function ViceDeanStudents() {
             Student Overview
           </h1>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
               onClick={fetchStudents}
             >
               Refresh Data
             </Button>
           </div>
+        </div>
+
+        {/* Summary Cards - Moved to Top */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Total Students
+              </p>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {students.length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Avg CGPA (All)
+              </p>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {students.length > 0
+                  ? (
+                      students.reduce((a, c) => a + c.cgpa, 0) / students.length
+                    ).toFixed(2)
+                  : "0.00"}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Active Students
+              </p>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {students.filter((s) => s.studentStatus === "Active").length}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Graduated
+              </p>
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {students.filter((s) => s.studentStatus === "Graduated").length}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Students with CGPA ≥ 3.5
+              </p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {students.filter((s) => s.cgpa >= 3.5).length}
+                <span className="text-sm font-normal ml-2 text-gray-500">
+                  (
+                  {students.length > 0
+                    ? (
+                        (students.filter((s) => s.cgpa >= 3.5).length /
+                          students.length) *
+                        100
+                      ).toFixed(1)
+                    : "0"}
+                  %)
+                </span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Students with CGPA &lt; 2.0
+              </p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                {students.filter((s) => s.cgpa < 2.0).length}
+                <span className="text-sm font-normal ml-2 text-gray-500">
+                  (
+                  {students.length > 0
+                    ? (
+                        (students.filter((s) => s.cgpa < 2.0).length /
+                          students.length) *
+                        100
+                      ).toFixed(1)
+                    : "0"}
+                  %)
+                </span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent className="p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Currently Filtered
+              </p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {filtered.length}
+                <span className="text-sm font-normal ml-2 text-gray-500">
+                  of {students.length}
+                </span>
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Search and Filters */}
@@ -144,7 +310,9 @@ export default function ViceDeanStudents() {
             >
               <option value="All">All Statuses</option>
               {statuses.map((stat) => (
-                <option key={stat} value={stat}>{stat}</option>
+                <option key={stat} value={stat}>
+                  {stat}
+                </option>
               ))}
             </select>
             <select
@@ -154,7 +322,9 @@ export default function ViceDeanStudents() {
             >
               <option value="All">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept} value={dept}>{dept}</option>
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
               ))}
             </select>
             <div className="flex gap-2 lg:col-span-2">
@@ -177,7 +347,7 @@ export default function ViceDeanStudents() {
           <CardContent className="p-4 overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-gray-600 dark:text-gray-400">
+                <tr className="text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                   <th className="p-2">ID Number</th>
                   <th className="p-2">Full Name</th>
                   <th className="p-2">Department</th>
@@ -198,31 +368,35 @@ export default function ViceDeanStudents() {
                   filtered.map((s) => (
                     <tr
                       key={s.studentId}
-                      className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700"
+                      className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                     >
                       <td className="p-2">{s.idNumber}</td>
-                      <td className="p-2">{s.fullName}</td>
+                      <td className="p-2 font-medium">{s.fullName}</td>
                       <td className="p-2">{s.department}</td>
                       <td className="p-2">{s.batchClassYearSemester}</td>
                       <td className="p-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          s.studentStatus === "Active" 
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                            : s.studentStatus === "Graduated"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            s.studentStatus === "Active"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                              : s.studentStatus === "Graduated"
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                          }`}
+                        >
                           {s.studentStatus}
                         </span>
                       </td>
                       <td className="p-2">
-                        <span className={`font-semibold ${
-                          s.cgpa >= 3.5 
-                            ? "text-green-600 dark:text-green-400"
-                            : s.cgpa >= 2.5
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-red-600 dark:text-red-400"
-                        }`}>
+                        <span
+                          className={`font-semibold ${
+                            s.cgpa >= 3.5
+                              ? "text-green-600 dark:text-green-400"
+                              : s.cgpa >= 2.5
+                                ? "text-blue-600 dark:text-blue-400"
+                                : "text-red-600 dark:text-red-400"
+                          }`}
+                        >
                           {s.cgpa.toFixed(2)}
                         </span>
                       </td>
@@ -230,10 +404,10 @@ export default function ViceDeanStudents() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                          onClick={() => setSelected(s)}
+                          className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          onClick={() => handleViewProfile(s)}
                         >
-                          View Profile
+                          View Progress
                         </Button>
                       </td>
                     </tr>
@@ -244,265 +418,95 @@ export default function ViceDeanStudents() {
           </CardContent>
         </Card>
 
-        {/* Student Detail Modal (Sheet) */}
+        {/* Student Detail Modal with Academic Progression */}
         <Sheet
           open={!!selected}
           onOpenChange={(o) => !o && setSelected(undefined)}
         >
           <SheetContent
             side="right"
-            className="w-[85vw] sm:max-w-3xl lg:max-w-4xl pl-8 pr-6 data-[state=open]:duration-150 data-[state=closed]:duration-150"
+            className="w-[85vw] sm:max-w-3xl lg:max-w-4xl overflow-y-auto p-0"
           >
             {selected && (
-              <div className="space-y-4">
-                <SheetHeader>
-                  <SheetTitle className="text-blue-600 dark:text-blue-400">
-                    {selected.fullName} • {selected.idNumber}
-                  </SheetTitle>
+              <div className="h-full">
+                <SheetHeader className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <SheetTitle className="text-blue-600 dark:text-blue-400 text-xl">
+                      {selected.fullName} • {selected.idNumber}
+                    </SheetTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full"
+                      onClick={() => setSelected(undefined)}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </SheetHeader>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Department
-                    </p>
-                    <p className="font-medium">{selected.department}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Batch/Year/Semester
-                    </p>
-                    <p className="font-medium">{selected.batchClassYearSemester}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Status
-                    </p>
-                    <p className="font-medium">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        selected.studentStatus === "Active" 
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                          : selected.studentStatus === "Graduated"
-                          ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                      }`}>
-                        {selected.studentStatus}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <h4 className="text-lg font-semibold">Academic Summary</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Student ID
-                        </span>
-                        <span className="font-medium">{selected.idNumber}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Student ID (Internal)
-                        </span>
-                        <span className="font-medium">{selected.studentId}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Enrollment Period
-                        </span>
-                        <span className="font-medium">{selected.batchClassYearSemester}</span>
-                      </div>
+
+                <div className="p-6 pt-4">
+                  {loadingProgress ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                      <p className="mt-4 text-gray-600 dark:text-gray-400">
+                        Loading academic progress...
+                      </p>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="text-lg font-semibold">Academic Performance</h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Cumulative GPA
-                        </span>
-                        <span className={`font-bold text-lg ${
-                          selected.cgpa >= 3.5 
-                            ? "text-green-600 dark:text-green-400"
-                            : selected.cgpa >= 2.5
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-red-600 dark:text-red-400"
-                        }`}>
-                          {selected.cgpa.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Academic Standing
-                        </span>
-                        <span className={`font-medium ${
-                          selected.cgpa >= 3.5 
-                            ? "text-green-600 dark:text-green-400"
-                            : selected.cgpa >= 2.5
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-red-600 dark:text-red-400"
-                        }`}>
-                          {selected.cgpa >= 3.5 
-                            ? "Excellent" 
-                            : selected.cgpa >= 2.5 
-                            ? "Good" 
-                            : "Needs Improvement"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          Department Ranking
-                        </span>
-                        <span className="font-medium">Not Available</span>
-                      </div>
+                  ) : progressError ? (
+                    <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                      <AlertCircle className="h-12 w-12 text-red-500" />
+                      <p className="text-red-600 dark:text-red-400 text-center">
+                        {progressError}
+                      </p>
+                      {selected && (
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            fetchAcademicProgress(selected.studentUserId)
+                          }
+                        >
+                          Retry
+                        </Button>
+                      )}
                     </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="bg-white dark:bg-gray-800">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        CGPA
+                  ) : academicProgress ? (
+                    <AcademicProgression
+                      studentId={academicProgress.studentId}
+                      username={academicProgress.username}
+                      fullName={academicProgress.fullName}
+                      department={academicProgress.department}
+                      currentStatus={academicProgress.currentStatus}
+                      currentBatchClassYearSemester={
+                        academicProgress.currentBatchClassYearSemester
+                      }
+                      takenCourses={academicProgress.takenCourses}
+                      totalTakenCourses={academicProgress.totalTakenCourses}
+                      totalTakenCreditHours={
+                        academicProgress.totalTakenCreditHours
+                      }
+                      remainingCourses={academicProgress.remainingCourses}
+                      totalRemainingCourses={
+                        academicProgress.totalRemainingCourses
+                      }
+                      totalRemainingCreditHours={
+                        academicProgress.totalRemainingCreditHours
+                      }
+                      isLoading={false}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <AlertCircle className="h-12 w-12 text-yellow-500" />
+                      <p className="mt-4 text-gray-600 dark:text-gray-400">
+                        No academic data available
                       </p>
-                      <p className={`text-2xl font-bold ${
-                        selected.cgpa >= 3.5 
-                          ? "text-green-600 dark:text-green-400"
-                          : selected.cgpa >= 2.5
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-red-600 dark:text-red-400"
-                      }`}>
-                        {selected.cgpa.toFixed(2)}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-white dark:bg-gray-800">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Academic Status
-                      </p>
-                      <p className={`text-lg font-bold ${
-                        selected.studentStatus === "Active" 
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-blue-600 dark:text-blue-400"
-                      }`}>
-                        {selected.studentStatus}
-                      </p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-white dark:bg-gray-800">
-                    <CardContent className="p-4">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Department
-                      </p>
-                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                        {selected.department}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    Note: Detailed academic records, attendance, and course-specific grades 
-                    are available through the department head or academic records system.
-                  </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </SheetContent>
         </Sheet>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Total Students
-              </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {students.length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Avg CGPA (All)
-              </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {students.length > 0 
-                  ? (students.reduce((a, c) => a + c.cgpa, 0) / students.length).toFixed(2)
-                  : "0.00"}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Active Students
-              </p>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {students.filter(s => s.studentStatus === "Active").length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Graduated
-              </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {students.filter(s => s.studentStatus === "Graduated").length}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Students with CGPA ≥ 3.5
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {students.filter(s => s.cgpa >= 3.5).length}
-                <span className="text-sm font-normal ml-2 text-gray-500">
-                  ({(students.length > 0 
-                    ? (students.filter(s => s.cgpa >= 3.5).length / students.length * 100).toFixed(1)
-                    : "0")}%)
-                </span>
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Students with CGPA &lt; 2.0
-              </p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {students.filter(s => s.cgpa < 2.0).length}
-                <span className="text-sm font-normal ml-2 text-gray-500">
-                  ({(students.length > 0 
-                    ? (students.filter(s => s.cgpa < 2.0).length / students.length * 100).toFixed(1)
-                    : "0")}%)
-                </span>
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Currently Filtered
-              </p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {filtered.length}
-                <span className="text-sm font-normal ml-2 text-gray-500">
-                  of {students.length}
-                </span>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

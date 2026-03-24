@@ -78,6 +78,7 @@ const endPoints = {
   studentsDeactivation: "/students/:id/disable",
   studentsSlip: "/students/slip-production",
   getAllStudentsCGPA_VD: "/vice-deans/get-all-students-cgpa",
+  studentsAcademicProgress: "/students/:userId/academic-progress",
 
   /* =======================     Assessments & Grading  ======================== */
   gradingSystem: "/grading-systems",
@@ -181,7 +182,6 @@ const endPoints = {
     "/registrar/assignments/:teacherCourseAssignmentId/final-approve-all",
   progressionSequences: "/registrar/progression-sequences",
   formTemplates: "/registrar/form-templates",
-  registrarAcademicProgress: "/registrar/students/:userId/academic-progress",
 
   /* =======================     Vice Deans  ======================== */
   createViceDean: "/auth/register/vice-dean",

@@ -47,9 +47,9 @@ function ScreenSizeDebugger() {
     };
 
     handleResize();
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 }
 
@@ -158,8 +158,8 @@ export default function LandingPage() {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
@@ -180,30 +180,36 @@ export default function LandingPage() {
         )}
 
         {/* NAVBAR - FIXED VERSION */}
-        <header className="fixed top-0 left-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg z-50" style={{ backdropFilter: 'blur(12px)' }}>
+        <header
+          className="fixed top-0 left-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-lg z-50"
+          style={{ backdropFilter: "blur(12px)" }}
+        >
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             {/* Logo - Takes less space */}
-            
-        <div className="flex items-center space-x-2 flex-shrink-0">
-          <img
-            src="/assets/companylogo.jpg"
-            alt="Company Logo"
-            className="h-10 w-10 rounded-full object-cover shadow-sm"
-          />
-          {/* Show full name based on screen size using JavaScript */}
-          {windowWidth >= 768 ? (
-            <span className="text-lg font-bold text-gray-800 dark:text-gray-100 whitespace-nowrap">
-              DEUTSCHE HOCHSCHULE FÜR
-            </span>
-          ) : (
-            <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
-              DHF
-            </span>
-          )}
-        </div>
+
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <img
+                src="/assets/companylogo.jpg"
+                alt="Company Logo"
+                className="h-10 w-10 rounded-full object-cover shadow-sm"
+              />
+              {/* Show full name based on screen size using JavaScript */}
+              {windowWidth >= 768 ? (
+                <span className="text-lg font-bold text-gray-800 dark:text-gray-100 whitespace-nowrap">
+                  Deutsche Hochschule für Medizin College, Ethiopia
+                </span>
+              ) : (
+                <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                  DHMC
+                </span>
+              )}
+            </div>
 
             {/* Desktop Navigation - Using CSS media queries as fallback */}
-            <div style={{ display: windowWidth >= 768 ? 'flex' : 'none' }} className="items-center space-x-6 justify-end flex-grow">
+            <div
+              style={{ display: windowWidth >= 768 ? "flex" : "none" }}
+              className="items-center space-x-6 justify-end flex-grow"
+            >
               <nav className="flex items-center space-x-6">
                 <a
                   href="#home"
@@ -230,7 +236,7 @@ export default function LandingPage() {
                   Contact
                 </a>
               </nav>
-              
+
               {/* Desktop Utilities */}
               <div className="flex items-center space-x-4 ml-6">
                 <LanguageSwitcher />
@@ -244,7 +250,10 @@ export default function LandingPage() {
             </div>
 
             {/* Mobile Menu Button and Utilities */}
-            <div style={{ display: windowWidth < 768 ? 'flex' : 'none' }} className="items-center space-x-4 justify-end flex-grow">
+            <div
+              style={{ display: windowWidth < 768 ? "flex" : "none" }}
+              className="items-center space-x-4 justify-end flex-grow"
+            >
               <LanguageSwitcher />
               <ThemeToggle />
               <button
@@ -280,8 +289,11 @@ export default function LandingPage() {
           </div>
 
           {/* Mobile Menu */}
-          {isOpen && (  
-            <div style={{ display: windowWidth < 768 ? 'block' : 'none' }} className="fixed inset-0 z-40 bg-white dark:bg-gray-900 mt-16">              
+          {isOpen && (
+            <div
+              style={{ display: windowWidth < 768 ? "block" : "none" }}
+              className="fixed inset-0 z-40 bg-white dark:bg-gray-900 mt-16"
+            >
               {/* Mobile Navigation Links */}
               <nav className="flex flex-col p-6 space-y-2 bg-white dark:bg-gray-900">
                 <a
@@ -312,7 +324,7 @@ export default function LandingPage() {
                 >
                   Contact
                 </a>
-                
+
                 {/* Mobile Login Button */}
                 <div className="pt-6 px-4">
                   <Link to="/login" onClick={() => setIsOpen(false)}>
@@ -339,81 +351,90 @@ export default function LandingPage() {
                 In the city of Bahirdar
               </p>
               <h2 className="text-4xl mb-4 bg-gradient-to-r from-blue-900 to-blue-200 px-4 py-2 rounded font-serif">
-                <span className="font-bold">DEUTSCHE HOCHSCHULE FÜR MEDIZIN COLLEGE</span> MEDIZIN COLLEGE
+                <span className="font-bold">DEUTSCHE HOCHSCHULE FÜR </span>{" "}
+                MEDIZIN COLLEGE
               </h2>
             </div>
             <div className="absolute left-0 right-0 bottom-0 mx-auto mb-[-40px] max-w-3xl bg-white bg-white/40 backdrop-blur-md rounded-lg p-6 shadow-lg">
-              <p className="text-sm font-semibold text-blue-900 mb-1">About us</p>
+              <p className="text-sm font-semibold text-blue-900 mb-1">
+                About us
+              </p>
               <h2 className="text-xl font-bold uppercase text-blue-600 leading-tight">
-              DEUTSCHE HOCHSCHULE FÜR
-              <br />
+                DEUTSCHE HOCHSCHULE FÜR
+                <br />
                 MEDICIN COLLEGE BAHIRDAR
               </h2>
             </div>
           </section>
 
           {/* Hero Section */}
-<section id="home" className="my-8 container mx-auto px-4 py-10">
-  <div
-    className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center gap-16"
-    ref={heroRef}
-  >
-    {/* Image - Simple fade in */}
-    <motion.div
-      className="w-full px-10 py-10 sm:w-2/5"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <img
-        src="/assets/companylogo.jpg"
-        alt="College Logo"
-        className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center flex-shrink-0"
-      />
-    </motion.div>
+          <section id="home" className="my-8 container mx-auto px-4 py-10">
+            <div
+              className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center gap-16"
+              ref={heroRef}
+            >
+              {/* Image - Simple fade in */}
+              <motion.div
+                className="w-full px-10 py-10 sm:w-2/5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <img
+                  src="/assets/companylogo.jpg"
+                  alt="College Logo"
+                  className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center flex-shrink-0"
+                />
+              </motion.div>
 
-    {/* Text Content */}
-    <div className="w-full sm:w-3/5 text-center sm:text-left max-w-4xl">
-      <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-        <div className="text-blue-600">Excellence In</div>
-        <div className="text-blue-600">
-          <TrueFocus
-            sentence="Medical Education"
-            manualMode={false}
-            blurAmount={5}
-            borderColor="red"
-            animationDuration={2}
-            pauseBetweenAnimations={1}
-          />
-        </div>
-      </h1>
+              {/* Text Content */}
+              <div className="w-full sm:w-3/5 text-center sm:text-left max-w-4xl">
+                <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                  <div className="text-blue-600">Excellence In</div>
+                  <div className="text-blue-600">
+                    <TrueFocus
+                      sentence="Medical Education"
+                      manualMode={false}
+                      blurAmount={5}
+                      borderColor="red"
+                      animationDuration={2}
+                      pauseBetweenAnimations={1}
+                    />
+                  </div>
+                </h1>
 
-      <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl">
-        Join our vibrant University College community! Begin your
-        academic journey by completing the Life History Form for
-        undergraduate admission...
-      </p>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl">
+                  Deutsche Hochschule für Medizin College (DHMC) is a premier
+                  private medical College dedicated to excellence in healthcare
+                  education, research, and community service. Our institution is
+                  committed to preparing competent healthcare professionals with
+                  cutting-edge knowledge and practical skills to meet regional
+                  and global healthcare needs. <br />
+                  Join our vibrant University College community! Begin your
+                  academic journey by completing the Life History Form for
+                  undergraduate admission...
+                </p>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-start">
-        <Link to="/register">
-          <Button size="lg" className="text-lg px-8 py-3">
-            Apply now <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </Link>
-        <Link to="/learn-more">
-          <Button
-            variant="outline"
-            size="lg"
-            className="text-lg px-8 py-3 bg-transparent"
-          >
-            Learn More
-          </Button>
-        </Link>
-      </div>
-    </div>
-  </div>
-</section>
-       
+                <div className="flex flex-col sm:flex-row gap-4 justify-center sm:justify-start">
+                  <Link to="/register">
+                    <Button size="lg" className="text-lg px-8 py-3">
+                      Apply now <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link to="/learn-more">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="text-lg px-8 py-3 bg-transparent"
+                    >
+                      Learn More
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <section className="mx-4 sm:mx-20 my-16 md:my-24">
             <div
               ref={infoRef}
@@ -453,25 +474,34 @@ export default function LandingPage() {
               >
                 <div className="bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl shadow-lg">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-6">
-                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">2017</span>
+                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      2020
+                    </span>
                   </div>
-                  <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-serif mb-3">
-                    Founded in 2017
-                  </h3>
+                  {/* <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-serif mb-3">
+                    Founded in 2020
+                  </h3> */}
                   <p className="text-gray-700 dark:text-gray-300 font-mono text-lg">
-                    The year DEUTSCHE was established, beginning our journey of academic excellence.
+                    DHMC was founded to advance healthcare through high-quality
+                    education, innovative research, and active community
+                    engagement.
                   </p>
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl shadow-lg">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-6">
-                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">500+</span>
+                    <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      500+
+                    </span>
                   </div>
                   <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-serif mb-3">
                     Active Community
                   </h3>
                   <p className="text-gray-700 dark:text-gray-300 font-mono text-lg">
-                    Hundreds of students currently engaged in transformative learning experiences.
+                    As a leading private medical college in Ethiopia, we strive
+                    to produce skilled practitioners who can contribute
+                    meaningfully to society and foster improvements in public
+                    health.
                   </p>
                 </div>
               </motion.div>
@@ -673,7 +703,7 @@ export default function LandingPage() {
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="text-base">
-                      DHM College envisions becoming the premier center of
+                      DHMC College envisions becoming the premier center of
                       academic excellence in Ethiopia by the year 2025...
                     </CardDescription>
                   </CardContent>
@@ -699,7 +729,7 @@ export default function LandingPage() {
                   </CardHeader>
                   <CardContent>
                     <CardDescription className="text-base">
-                      DHM College aims to produce competent professionals at
+                      DHMC College aims to produce competent professionals at
                       different levels relevant to the development needs of the
                       country...
                     </CardDescription>
@@ -802,8 +832,10 @@ export default function LandingPage() {
                 Ready to Start Your Medical Journey?
               </h2>
               <p className="text-xl text-blue-300 mb-8 max-w-2xl mx-auto">
-                Join thousands of successful graduates who have made their mark in
-                the medical field. Your future in healthcare starts here.
+                This is where our journey begins. Get to know our business and
+                what we do, and how we're committed to quality and great
+                service. Join us as we grow and succeed together. We're glad
+                you're here to be a part of our story.
               </p>
               <Link to="/register">
                 <Button
@@ -861,7 +893,7 @@ export default function LandingPage() {
                       </div>
                     </div>
                     <p className="text-blue-600 hover:text-gray-400">
-                      Excellence in medical education since 2017.
+                      Excellence in medical education since 2020.
                     </p>
                   </div>
                   <div>
@@ -905,22 +937,24 @@ export default function LandingPage() {
                     <h4 className="font-semibold mb-4">{t("contact")}</h4>
                     <ul className="space-y-2 ">
                       <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                        Bahirdar Noc
+                        Kebele 14, In front of NOC, Tofik Real Estate, Bahir Dar
                       </li>
                       <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                        Bahirdar, Ethiopia 10115
+                        +251 90 039 2346/+251583207659
                       </li>
                       <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                        058 22 08 158
+                        info@deutsche-hochschule-fuer-medizin.com
                       </li>
                       <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                        dochebahirdar@gmail.com
+                        P.O.Box: 364
                       </li>
                     </ul>
                   </div>
                 </div>
                 <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                  <p>Deutsche Hochschule für Medizin College Bahirdar Website.</p>
+                  <p>
+                    Deutsche Hochschule für Medizin College Bahirdar Website.
+                  </p>
                 </div>
               </div>
             </footer>
