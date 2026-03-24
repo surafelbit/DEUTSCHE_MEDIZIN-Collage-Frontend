@@ -26,7 +26,7 @@ const getBaseURL = () => {
   if (import.meta.env.VITE_API_BASE_URL) {
     console.log(
       "Using API URL from environment:",
-      import.meta.env.VITE_API_BASE_URL
+      import.meta.env.VITE_API_BASE_URL,
     );
     return import.meta.env.VITE_API_BASE_URL;
   }
@@ -56,18 +56,18 @@ apiClient.interceptors.request.use((config) => {
     return urlMatches && methodMatches;
   });
 
-  console.log(`Request to ${config.url}, requires auth: ${requiresAuth}`);
+  // console.log(`Request to ${config.url}, requires auth: ${requiresAuth}`);
 
   const token = localStorage.getItem("xy9a7b");
   if (token && requiresAuth) {
     config.headers.Authorization = `Bearer ${token}`;
-    console.log("Token attached to request");
+    // console.log("Token attached to request");
   } else if (!requiresAuth) {
-    console.log("No auth required for this endpoint");
+    // console.log("No auth required for this endpoint");
     // Explicitly remove Authorization header for no-auth endpoints
     delete config.headers.Authorization;
   } else {
-    console.log("No token found or auth not required");
+    // console.log("No token found or auth not required");
   }
 
   return config;
@@ -76,7 +76,7 @@ apiClient.interceptors.request.use((config) => {
 // Response interceptor to handle 401 and 403 errors
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`Response from ${response.config.url}: ${response.status}`);
+    // console.log(`Response from ${response.config.url}: ${response.status}`);
     return response;
   },
   (error) => {
@@ -84,19 +84,19 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle token expiration - redirect to login or clear token
       localStorage.removeItem("xy9a7b");
-      console.error("Authentication failed: Token expired or invalid");
+      // console.error("Authentication failed: Token expired or invalid");
       // You can add redirect logic here if needed
       // window.location.href = '/login';
     } else if (error.response?.status === 403) {
       // Handle forbidden access - possibly redirect to login or show error
       console.error(
-        "Access forbidden: You do not have permission to access this resource"
+        "Access forbidden: You do not have permission to access this resource",
       );
       // You can add redirect logic here if needed
       // window.location.href = '/login';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

@@ -14,10 +14,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast"; // Adjust the import path as needed
+
 import {
   Mail,
   Phone,
-  MapPin,  
+  MapPin,
   UserCircle,
   AlertCircle,
   Shield,
@@ -70,18 +72,20 @@ interface UpdateViceDeanRequest {
 }
 
 export default function ViceDeanProfileEditable() {
+  const { toast } = useToast();
+
   const [profile, setProfile] = useState<ViceDeanProfileResponse | null>(null);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   // Form state - all name fields are editable
   const [formData, setFormData] = useState<UpdateViceDeanRequest>({});
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -91,7 +95,7 @@ export default function ViceDeanProfileEditable() {
       setLoading(true);
       setError(null);
       const response = await apiClient.get<ViceDeanProfileResponse>(
-        endPoints.getViceDeanProfile
+        endPoints.getViceDeanProfile,
       );
       setProfile(response.data);
       // Initialize form data with all fields
@@ -107,12 +111,12 @@ export default function ViceDeanProfileEditable() {
         title: response.data.title,
         gender: response.data.gender,
       });
-      
+
       // Handle photo data - check if it's base64 with or without data URL prefix
       if (response.data.photo) {
         let photoUrl = response.data.photo;
         // Check if it's already a data URL
-        if (!photoUrl.startsWith('data:')) {
+        if (!photoUrl.startsWith("data:")) {
           // Add data URL prefix for base64 image
           photoUrl = `data:image/jpeg;base64,${response.data.photo}`;
         }
@@ -123,18 +127,20 @@ export default function ViceDeanProfileEditable() {
       setError(
         err.response?.data?.error ||
           err.message ||
-          "Failed to load profile. Please try again later."
+          "Failed to load profile. Please try again later.",
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -146,13 +152,13 @@ export default function ViceDeanProfileEditable() {
         setError("Image file size must be less than 5MB");
         return;
       }
-      
+
       // Check file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setError("Please select an image file");
         return;
       }
-      
+
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -187,11 +193,11 @@ export default function ViceDeanProfileEditable() {
 
       // ALWAYS use FormData - even when there's no photo
       const formDataToSend = new FormData();
-      
+
       // Use Blob to ensure proper encoding
-      const jsonBlob = new Blob([jsonString], { type: 'application/json' });
+      const jsonBlob = new Blob([jsonString], { type: "application/json" });
       formDataToSend.append("data", jsonBlob);
-      
+
       // Add photo if provided
       if (photoFile) {
         formDataToSend.append("photograph", photoFile);
@@ -206,6 +212,13 @@ export default function ViceDeanProfileEditable() {
         },
       });
 
+      // Show success toast
+      toast({
+        title: "Success!",
+        description: "Profile updated successfully!",
+        variant: "default",
+      });
+
       setSuccess("Profile updated successfully!");
       setEditing(false);
       // Refresh profile data
@@ -214,33 +227,31 @@ export default function ViceDeanProfileEditable() {
       setPhotoFile(null);
     } catch (err: any) {
       console.error("Failed to update profile:", err);
-      console.error("Error response:", err.response);
-      console.error("Error status:", err.response?.status);
-      console.error("Error data:", err.response?.data);
-      
-      // Check for specific error types
+
+      let errorMessage = "Failed to update profile. Please try again.";
       if (err.response?.status === 403) {
-        setError("Access Denied: You do not have permission to update the vice-dean profile.");
+        errorMessage =
+          "Access Denied: You do not have permission to update the vice-dean profile.";
       } else if (err.response?.status === 400) {
-        // Handle validation errors
-        const errorMessage = err.response?.data?.error || "Invalid data. Please check your inputs.";
-        setError(errorMessage);
-        
-        // Log the request data for debugging
-        console.error("Request data that caused error:", {
-          firstNameENG: formData.firstNameENG,
-          firstNameAMH: formData.firstNameAMH,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-        });
+        errorMessage =
+          err.response?.data?.error ||
+          "Invalid data. Please check your inputs.";
       } else {
-        setError(
+        errorMessage =
           err.response?.data?.error ||
           err.response?.data?.message ||
           err.message ||
-          "Failed to update profile. Please try again."
-        );
+          errorMessage;
       }
+
+      // Show error toast with the error message
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -265,7 +276,7 @@ export default function ViceDeanProfileEditable() {
       // Reset photo preview to original photo
       if (profile.photo) {
         let photoUrl = profile.photo;
-        if (!photoUrl.startsWith('data:')) {
+        if (!photoUrl.startsWith("data:")) {
           photoUrl = `data:image/jpeg;base64,${profile.photo}`;
         }
         setPhotoPreview(photoUrl);
@@ -296,9 +307,7 @@ export default function ViceDeanProfileEditable() {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-lg text-red-600">
-          {error}
-        </p>
+        <p className="text-lg text-red-600">{error}</p>
         <Button onClick={fetchProfile}>Try Again</Button>
       </div>
     );
@@ -310,10 +319,11 @@ export default function ViceDeanProfileEditable() {
 
   const fullNameEnglish = `${profile.title ? profile.title + " " : ""}${formData.firstNameENG || profile.firstNameENG} ${formData.fatherNameENG || profile.fatherNameENG} ${formData.grandfatherNameENG || profile.grandfatherNameENG}`;
   const fullNameAmharic = `${formData.firstNameAMH || profile.firstNameAMH} ${formData.fatherNameAMH || profile.fatherNameAMH} ${formData.grandfatherNameAMH || profile.grandfatherNameAMH}`;
-  
-  const fullAddress = [profile.residenceWoreda, profile.residenceZone, profile.residenceRegion]
-    .filter(Boolean)
-    .join(", ") || "Address not specified";
+
+  const fullAddress =
+    [profile.residenceWoreda, profile.residenceZone, profile.residenceRegion]
+      .filter(Boolean)
+      .join(", ") || "Address not specified";
 
   const initials = fullNameEnglish
     .split(" ")
@@ -322,15 +332,15 @@ export default function ViceDeanProfileEditable() {
     .toUpperCase()
     .slice(0, 2);
 
-  const handleUploadClick = (type: 'photo') => {
+  const handleUploadClick = (type: "photo") => {
     if (!editing) {
       setEditing(true);
     }
-    
+
     // Trigger file input click
     setTimeout(() => {
-      if (type === 'photo') {
-        document.getElementById('photo-upload')?.click();
+      if (type === "photo") {
+        document.getElementById("photo-upload")?.click();
       }
     }, 100);
   };
@@ -341,8 +351,16 @@ export default function ViceDeanProfileEditable() {
       {success && (
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
           <div className="flex items-center">
-            <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <svg
+              className="h-5 w-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
             </svg>
             {success}
           </div>
@@ -361,7 +379,9 @@ export default function ViceDeanProfileEditable() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              My Profile
+            </h1>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="outline" className="text-sm">
                 <Shield className="h-3 w-3 mr-1" />
@@ -372,7 +392,7 @@ export default function ViceDeanProfileEditable() {
               </Badge>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap gap-2">
             {!editing ? (
               <>
@@ -475,9 +495,7 @@ export default function ViceDeanProfileEditable() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Profile Information</CardTitle>
-            <CardDescription>
-              Update your profile details
-            </CardDescription>
+            <CardDescription>Update your profile details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-4">
@@ -491,23 +509,29 @@ export default function ViceDeanProfileEditable() {
                     value={formData.firstNameENG || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center">
-                    First Name (አማርኛ)
-                  </Label>
+                  <Label className="flex items-center">First Name (አማርኛ)</Label>
                   <Input
                     name="firstNameAMH"
                     value={formData.firstNameAMH || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center">
@@ -518,7 +542,11 @@ export default function ViceDeanProfileEditable() {
                     value={formData.fatherNameENG || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -530,7 +558,11 @@ export default function ViceDeanProfileEditable() {
                     value={formData.fatherNameAMH || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
               </div>
@@ -545,7 +577,11 @@ export default function ViceDeanProfileEditable() {
                     value={formData.grandfatherNameENG || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -557,48 +593,56 @@ export default function ViceDeanProfileEditable() {
                     value={formData.grandfatherNameAMH || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Email Address
-                  </Label>
+                  <Label className="flex items-center">Email Address</Label>
                   <Input
                     name="email"
                     type="email"
                     value={formData.email || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Phone Number
-                  </Label>
+                  <Label className="flex items-center">Phone Number</Label>
                   <Input
                     name="phoneNumber"
                     value={formData.phoneNumber || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Gender
-                  </Label>
+                  <Label className="flex items-center">Gender</Label>
                   <select
                     name="gender"
                     value={formData.gender || ""}
-                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    onChange={(e) =>
+                      setFormData({ ...formData, gender: e.target.value })
+                    }
                     disabled={!editing}
                     className={`w-full px-3 py-2 border rounded-md ${!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}`}
                   >
@@ -608,15 +652,17 @@ export default function ViceDeanProfileEditable() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center">
-                    Academic Title
-                  </Label>
+                  <Label className="flex items-center">Academic Title</Label>
                   <Input
                     name="title"
                     value={formData.title || ""}
                     onChange={handleInputChange}
                     readOnly={!editing}
-                    className={!editing ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed" : "bg-white dark:bg-gray-800"}
+                    className={
+                      !editing
+                        ? "bg-gray-50 dark:bg-gray-800 cursor-not-allowed"
+                        : "bg-white dark:bg-gray-800"
+                    }
                   />
                 </div>
               </div>
@@ -646,7 +692,7 @@ export default function ViceDeanProfileEditable() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label className="text-gray-600">Address</Label>
                   <Input
@@ -685,7 +731,7 @@ export default function ViceDeanProfileEditable() {
                     // Reset to original photo
                     if (profile.photo) {
                       let photoUrl = profile.photo;
-                      if (!photoUrl.startsWith('data:')) {
+                      if (!photoUrl.startsWith("data:")) {
                         photoUrl = `data:image/jpeg;base64,${profile.photo}`;
                       }
                       setPhotoPreview(photoUrl);

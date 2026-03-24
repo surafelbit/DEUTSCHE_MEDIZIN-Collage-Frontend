@@ -132,7 +132,10 @@ export default function StudentProfile() {
 
       // Make the API call using the userId from studentData
       const response = await apiService.get(
-        `/registrar/students/${userId}/academic-progress`,
+        endPoints.studentsAcademicProgress.replace(
+          ":userId",
+          encodeURIComponent(String(userId)),
+        ),
       );
 
       // Transform the response to match component props
