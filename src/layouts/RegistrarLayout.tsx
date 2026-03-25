@@ -5,11 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
 import {
-  GraduationCap,
   LayoutDashboard,
   FileText,
   Users,
-  BookOpen,
   ClipboardList,
   Calendar,
   LogOut,
@@ -82,6 +80,7 @@ export default function RegistrarLayout() {
       href: "/registrar/notifications",
       icon: Bell,
     },
+    { name: "Profile", href: "/registrar/profile", icon: User },
     { name: "Add New Student", href: "/registrar/add-student", icon: UserPlus },
     { name: "Students Information", href: "/registrar/students", icon: Users },
     {

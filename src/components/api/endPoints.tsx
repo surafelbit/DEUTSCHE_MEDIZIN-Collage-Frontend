@@ -182,6 +182,9 @@ const endPoints = {
   progressionSequences: "/registrar/progression-sequences",
   formTemplates: "/registrar/form-templates",
   registrarAcademicProgress: "/registrar/students/:userId/academic-progress",
+  getRegistrarProfile: "/registrar/profile",
+  updateRegistrarProfile: "/registrar/update",
+  getRegistrarPhoto: (id: number) => `/registrar/photo/${id}`,
 
   /* =======================     Vice Deans  ======================== */
   createViceDean: "/auth/register/vice-dean",
