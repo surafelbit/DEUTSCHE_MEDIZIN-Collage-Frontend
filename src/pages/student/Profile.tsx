@@ -59,7 +59,7 @@ interface ProfileResponse {
   departmentEnrolled: string;
   programModality: string;
   documentStatus: string;
-  grade12Result: number;
+  grade12Result: number | null;
 }
 
 export default function StudentProfile() {
@@ -75,7 +75,7 @@ export default function StudentProfile() {
       } catch (err: any) {
         console.error("Failed to load profile:", err);
         setError(
-          err.message || "Failed to load profile. Please try again later."
+          err.message || "Failed to load profile. Please try again later.",
         );
       } finally {
         setLoading(false);
@@ -307,9 +307,13 @@ export default function StudentProfile() {
               <Label>Department</Label>
               <Input value={departmentEnrolled} readOnly />
             </div>
+            {/* Grade 12 Result */}
             <div className="space-y-2">
               <Label>Grade 12 Result (GPA)</Label>
-              <Input value={grade12Result.toFixed(2)} readOnly />
+              <Input
+                value={grade12Result?.toFixed(2) || "Not provided"}
+                readOnly
+              />
             </div>
           </div>
         </CardContent>

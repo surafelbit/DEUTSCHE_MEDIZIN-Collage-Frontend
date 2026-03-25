@@ -30,7 +30,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
 );
 
 const getAlertIcon = (type) => {
@@ -74,10 +74,12 @@ export default function ViceDeanDashboard() {
     if (!dashboardData) return {};
 
     // For Students by Department chart
-    const departmentEntries = Object.entries(dashboardData.studentsPerDepartment || {})
+    const departmentEntries = Object.entries(
+      dashboardData.studentsPerDepartment || {},
+    )
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
-    
+
     const departmentLabels = departmentEntries.map(([dept]) => dept);
     const departmentData = departmentEntries.map(([, count]) => count);
 
@@ -92,14 +94,14 @@ export default function ViceDeanDashboard() {
     // Generate alerts based on actual data
     const generateAlerts = () => {
       const alerts = [];
-      
+
       // Always show total students info
       alerts.push({
         id: 1,
         type: "info",
         text: `${dashboardData.totalStudents || 0} total students enrolled across all programs`,
       });
-      
+
       // Show warning if exit exam pass rate is low
       if (dashboardData.exitExamPassRate < 85) {
         alerts.push({
@@ -108,7 +110,7 @@ export default function ViceDeanDashboard() {
           text: `Exit exam pass rate is ${dashboardData.exitExamPassRate || 0}% - below target of 85%`,
         });
       }
-      
+
       // Show department heads count
       alerts.push({
         id: 3,
@@ -199,14 +201,14 @@ export default function ViceDeanDashboard() {
           <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             Vice Dean Dashboard
           </h1>
-          <div className="flex gap-2">
+          {/* <div className="flex gap-2">
             <Link to="/vice-dean/create-department-head">
               <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
                 <UserPlus className="h-4 w-4" />
                 Create Department Head
               </Button>
             </Link>
-          </div>
+          </div> */}
         </div>
 
         {/* Totals */}
@@ -363,19 +365,21 @@ export default function ViceDeanDashboard() {
                 Students by Level
               </h3>
               <div className="space-y-2">
-                {Object.entries(dashboardData.studentsByLevel || {}).map(([level, count]) => (
-                  <div
-                    key={level}
-                    className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {level}
-                    </span>
-                    <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                      {count} students
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(dashboardData.studentsByLevel || {}).map(
+                  ([level, count]) => (
+                    <div
+                      key={level}
+                      className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
+                    >
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {level}
+                      </span>
+                      <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                        {count} students
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </CardContent>
           </Card>
@@ -385,19 +389,21 @@ export default function ViceDeanDashboard() {
                 Students by Modality
               </h3>
               <div className="space-y-2">
-                {Object.entries(dashboardData.studentsByModality || {}).map(([modality, count]) => (
-                  <div
-                    key={modality}
-                    className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-                  >
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {modality}
-                    </span>
-                    <span className="text-green-600 dark:text-green-400 font-semibold">
-                      {count} students
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(dashboardData.studentsByModality || {}).map(
+                  ([modality, count]) => (
+                    <div
+                      key={modality}
+                      className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
+                    >
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {modality}
+                      </span>
+                      <span className="text-green-600 dark:text-green-400 font-semibold">
+                        {count} students
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </CardContent>
           </Card>

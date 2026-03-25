@@ -231,14 +231,14 @@ export const AcademicProgression: React.FC<AcademicProgressionProps> = ({
                       {takenCourses && takenCourses.length > 0 ? (
                         takenCourses.map((course) => {
                           // Debug: log each course to see what's coming from API
-                          console.log(
-                            "Course:",
-                            course.courseCode,
-                            "isReleased:",
-                            course.isReleased,
-                            "Type:",
-                            typeof course.isReleased,
-                          );
+                          // console.log(
+                          //   "Course:",
+                          //   course.courseCode,
+                          //   "isReleased:",
+                          //   course.isReleased,
+                          //   "Type:",
+                          //   typeof course.isReleased,
+                          // );
 
                           // Determine status text and color based on isReleased
                           const isReleased = course.isReleased === true; // Ensure boolean
