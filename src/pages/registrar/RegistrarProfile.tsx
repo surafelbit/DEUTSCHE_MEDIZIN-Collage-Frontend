@@ -10,16 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Mail,
   Phone,
-  User,
-  Briefcase,
-  CalendarDays,
   UserCircle,
   AlertCircle,
   Shield,
@@ -79,14 +75,14 @@ export default function RegistrarProfile() {
     fetchProfile();
   }, []);
 
-  // Fetch registrar profile
+  // Fetch registrar profile using endpoint
   const fetchProfile = async () => {
     try {
       setLoading(true);
       setError(null);
 
       const response = await apiClient.get<RegistrarProfileResponse>(
-        "/registrar/profile"
+        endPoints.getRegistrarProfile
       );
       const data = response.data;
       setProfile(data);
@@ -102,7 +98,7 @@ export default function RegistrarProfile() {
       };
       setFormData(initialFormData);
 
-      // Fetch photo if hasPhoto is true
+      // Fetch photo if hasPhoto is true using endpoint
       if (data.hasPhoto) {
         await fetchPhoto(data.id);
       }
@@ -122,11 +118,11 @@ export default function RegistrarProfile() {
     }
   };
 
-  // Fetch registrar photo
+  // Fetch registrar photo using endpoint
   const fetchPhoto = async (registrarId: number) => {
     try {
       setLoadingPhoto(true);
-      const response = await apiClient.get(`/registrar/photo/${registrarId}`, {
+      const response = await apiClient.get(endPoints.getRegistrarPhoto(registrarId), {
         responseType: "arraybuffer",
       });
 
@@ -142,7 +138,6 @@ export default function RegistrarProfile() {
       setPhotoPreview(photoUrl);
     } catch (err: any) {
       console.error("Failed to load photo:", err);
-      // Don't set error for photo, just log it
       setPhotoBase64(null);
     } finally {
       setLoadingPhoto(false);
@@ -150,7 +145,7 @@ export default function RegistrarProfile() {
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -221,7 +216,7 @@ export default function RegistrarProfile() {
         formDataToSend.append("nationalIdImage", nationalIdFile);
       }
 
-      await apiClient.patch("/registrar/update", formDataToSend, {
+      await apiClient.patch(endPoints.updateRegistrarProfile, formDataToSend, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -229,7 +224,7 @@ export default function RegistrarProfile() {
 
       setSuccess("Profile updated successfully!");
       setEditing(false);
-      await fetchProfile(); // Refresh profile data
+      await fetchProfile();
       setPhotoFile(null);
       setNationalIdFile(null);
     } catch (err: any) {
@@ -710,7 +705,7 @@ export default function RegistrarProfile() {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center">
-                <CalendarDays className="h-4 w-4 mr-2" />
+                <UserCircle className="h-4 w-4 mr-2" />
                 Account Created
               </Label>
               <Input value="Registrar Account" readOnly className="bg-gray-50 dark:bg-gray-800" />
