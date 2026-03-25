@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Building } from "lucide-react";
+import { ArrowLeft, Building, Layers, GraduationCap, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,7 +42,7 @@ export default function DeanDepartmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [department, setDepartment] = useState<Department | null>(null);
-  const [courseError, setCourseError] = useState(null);
+  const [courseError, setCourseError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -61,6 +62,8 @@ export default function DeanDepartmentDetails() {
     creditHours: number;
     prerequisites: string[];
     teacher?: string; // optional - you don't have this yet
+    classYear: string;
+    semester: string;
   }
   const [courses, setCourses] = useState<DisplayCourse[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
@@ -71,25 +74,8 @@ export default function DeanDepartmentDetails() {
       setCourses([]);
 
       try {
-        const params = {
-          departmentId: Number(id), // ← use the :id from URL (department id)
-          // categoryId: ???,                 // add later when you have UI selector
-          classYearId: 1, // ← temporary – replace with real value
-          semesterId: 1, // ← temporary – replace with real value
-        };
-
-        const query = new URLSearchParams(
-          Object.fromEntries(
-            Object.entries(params).filter(([_, v]) => v != null)
-          )
-        ).toString();
-
-        const url = `/courses?${query}`; // adjust base path if needed
-        // or: const url = `${endPoints.courses}?${query}`;
-
-        console.log("Fetching courses from:", url);
-
-        const res = await apiService.get(endPoints.allCourses);
+        const params = { departmentId: id ? Number(id) : undefined };
+        const res = await apiService.get(endPoints.allCourses, params);
         //    or if apiService returns axios-like → res.data
         //    if it's raw fetch → await (await fetch(url)).json()
 
@@ -119,6 +105,8 @@ export default function DeanDepartmentDetails() {
               ? raw.prerequisites
               : [],
             teacher: raw.teacher || raw.instructor || "Not Assigned",
+            classYear: raw.classYear?.name || "Year " + (raw.classYear?.id || "N/A"),
+            semester: raw.semester?.name || "Semester " + (raw.semester?.code || "N/A"),
           };
         });
 
@@ -154,15 +142,14 @@ export default function DeanDepartmentDetails() {
 
       // Fetch department details
       const deptResponse = await apiService.get(
-        endPoints.getDepartmentById(id)
+        endPoints.getDepartmentById(id!)
       );
       setDepartment(deptResponse);
 
       // Note: The API doesn't provide courses by department in the current structure
       // For now, we'll show a placeholder message
       // In a real app, you would fetch courses for this department from another endpoint
-      setCourses([]);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching department details:", err);
       setError(err.response?.data?.error || "Department not found");
     } finally {
@@ -176,10 +163,49 @@ export default function DeanDepartmentDetails() {
 
   if (loading) {
     return (
-      <div className="p-10 space-y-10">
-        <Skeleton className="h-10 w-32" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <Skeleton className="h-64 w-full rounded-xl" />
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center space-y-6 p-8"
+        >
+          <div className="relative">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="w-24 h-24 border-4 border-blue-100 dark:border-blue-900/30 border-t-blue-600 rounded-full shadow-inner"
+            />
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0.5 }}
+              animate={{ scale: [0.8, 1.1, 0.8], opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <GraduationCap className="h-10 w-10 text-blue-600 dark:text-blue-400" />
+            </motion.div>
+          </div>
+
+          <div className="text-center space-y-2">
+            <motion.h2
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
+            >
+              Deutsche Medizin College
+            </motion.h2>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="h-1 bg-blue-600 rounded-full mx-auto"
+            />
+            <p className="text-gray-500 dark:text-gray-400 font-medium animate-pulse tracking-wide uppercase text-xs mt-4">
+              Loading Department Details...
+            </p>
+          </div>
+        </motion.div>
       </div>
     );
   }
@@ -212,6 +238,15 @@ export default function DeanDepartmentDetails() {
     );
   }
 
+  // Group courses by class year and semester
+  const groupedCourses = courses.reduce((acc, course) => {
+    const key = `${course.classYear} - ${course.semester}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(course);
+    return acc;
+  }, {} as Record<string, DisplayCourse[]>);
+
+  // Get unique teachers across all courses for the filter
   const allTeachers = Array.from(new Set(courses.map((c) => c.teacher))).sort();
 
   return (
@@ -289,7 +324,14 @@ export default function DeanDepartmentDetails() {
           Courses
         </h2>
 
-        {courses.length === 0 ? (
+        {loadingCourses ? (
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <p className="text-sm text-gray-500 animate-pulse">
+              Fetching courses...
+            </p>
+          </div>
+        ) : courses.length === 0 ? (
           <div className="text-center py-12">
             <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300">
@@ -306,51 +348,75 @@ export default function DeanDepartmentDetails() {
             </p>
           </div>
         ) : (
-          <table className="w-full border-collapse text-gray-800 dark:text-gray-200">
-            <thead>
-              <tr className="bg-gray-100 dark:bg-gray-800 text-left">
-                <th className="p-3 border">Course Code</th>
-                <th className="p-3 border">Course Name</th>
-                <th className="p-3 border">Credit Hours</th>
-                <th className="p-3 border">Prerequisites</th>
-                <th className="p-3 border">Teacher</th>
-              </tr>
-            </thead>
-            <tbody>
-              {courses
-                .filter((course) => {
-                  const matchesSearch =
-                    course.name
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase()) ||
-                    course.code
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase());
-                  const matchesTeacher =
-                    selectedTeacher === "" ||
-                    course.teacher === selectedTeacher;
-                  return matchesSearch && matchesTeacher;
-                })
-                .map((course) => (
-                  <tr
-                    key={course.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <td className="p-3 border font-mono">{course.code}</td>
-                    <td className="p-3 border">{course.name}</td>
-                    <td className="p-3 border text-center">
-                      {course.creditHours}
-                    </td>
-                    <td className="p-3 border">
-                      {course.prerequisites.length > 0
-                        ? course.prerequisites.join(", ")
-                        : "None"}
-                    </td>
-                    <td className="p-3 border">{course.teacher}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+          <div className="space-y-12">
+            {Object.entries(groupedCourses).map(([groupKey, groupCourses]) => (
+              <div
+                key={groupKey}
+                className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm"
+              >
+                <div className="flex items-center gap-3 mb-6 border-b border-gray-200 dark:border-gray-700 pb-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Layers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                    {groupKey}
+                  </h3>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-gray-800 dark:text-gray-200">
+                    <thead>
+                      <tr className="bg-gray-100 dark:bg-gray-800 text-left">
+                        <th className="p-3 border">Course Code</th>
+                        <th className="p-3 border">Course Name</th>
+                        <th className="p-3 border">Credit Hours</th>
+                        <th className="p-3 border">Prerequisites</th>
+                        <th className="p-3 border">Teacher</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupCourses
+                        .filter((course) => {
+                          const matchesSearch =
+                            course.name
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase()) ||
+                            course.code
+                              .toLowerCase()
+                              .includes(searchTerm.toLowerCase());
+                          const matchesTeacher =
+                            selectedTeacher === "" ||
+                            course.teacher === selectedTeacher;
+                          return matchesSearch && matchesTeacher;
+                        })
+                        .map((course) => (
+                          <tr
+                            key={course.id}
+                            className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <td className="p-3 border font-mono">
+                              {course.code}
+                            </td>
+                            <td className="p-3 border font-medium">
+                              {course.name}
+                            </td>
+                            <td className="p-3 border text-center">
+                              {course.creditHours}
+                            </td>
+                            <td className="p-3 border text-sm">
+                              {course.prerequisites.length > 0
+                                ? course.prerequisites.join(", ")
+                                : "None"}
+                            </td>
+                            <td className="p-3 border">{course.teacher}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -428,11 +494,10 @@ export default function DeanDepartmentDetails() {
                 Program Active:
               </span>
               <span
-                className={`font-medium ${
-                  department.programLevel?.active
-                    ? "text-green-600"
-                    : "text-red-600"
-                }`}
+                className={`font-medium ${department.programLevel?.active
+                  ? "text-green-600"
+                  : "text-red-600"
+                  }`}
               >
                 {department.programLevel?.active ? "Yes" : "No"}
               </span>
