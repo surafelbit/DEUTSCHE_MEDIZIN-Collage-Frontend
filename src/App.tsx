@@ -15,18 +15,7 @@ import MultiStepRegistrationForm from "./registeration/MultiStepRegistrationForm
 import NotFound from "./pages/NotFound/NotFound";
 import SigningUp from "./registeration/SigningUp";
 
-// Lazy load all components for code splitting
-// const LandingPage = React.lazy(() => import("./pages/public/LandingPage"));
-// const LearnMore = React.lazy(() => import("./pages/public/LearnMore"));
-// const MultiStepRegistrationForm = React.lazy(
-//   () => import("./registeration/MultiStepRegistrationForm")
-// );
-// const NotFound = React.lazy(() => import("./pages/NotFound/NotFound"));
-// const SigningUp = React.lazy(() => import("./registeration/SigningUp"));
 
-// ------------- Unused Public Pages (Consider removing if not needed) -------------
-// const LoginPage = React.lazy(() => import("./pages/public/LoginPage"));
-// const RegisterPage = React.lazy(() => import("./pages/public/RegisterPage"));
 
 // Student Pages
 const StudentLayout = React.lazy(() => import("./layouts/StudentLayout"));
@@ -85,6 +74,7 @@ const TeacherProfileDetail = React.lazy(
 const StudentCourseScoreTab = React.lazy(
   () => import("./pages/registrar/Courses")
 );
+const RegistrarProfile = React.lazy(() => import("./pages/registrar/RegistrarProfile"));
 const RegistrarNotifications = React.lazy(
   () => import("./pages/registrar/Notifications")
 );
@@ -232,9 +222,6 @@ const ViceDepartmentDetail = React.lazy(
 const ManagerLayout = React.lazy(() => import("./layouts/ManagerLayout"));
 const ManagerReports = React.lazy(() => import("./pages/manager/Reports"));
 
-// const ManagerDashboard = React.lazy(
-//   () => import("./pages/manager/GeneralManagerDashboard")
-// );
 const GeneralManagerProfile = React.lazy(
   () => import("./pages/manager/GeneralManagerProfile")
 );
@@ -285,9 +272,6 @@ const ManagerTeachers = React.lazy(
 const DeanProfile = React.lazy(() => import("./pages/manager/DeanProfile"));
 const ViceDeanProfile = React.lazy(
   () => import("./pages/manager/ViceDeanProfile")
-);
-const RegistrarProfile = React.lazy(
-  () => import("./pages/manager/RegistrarProfile")
 );
 const RegistrationSlip = React.lazy(
   () => import("./pages/registrar/RegistrationSlips")
@@ -379,6 +363,7 @@ function App() {
                   path="notifications"
                   element={<RegistrarNotifications />}
                 />
+                <Route path="profile" element={<RegistrarProfile />} />
                 <Route path="departments/:id" element={<DepartmentDetail />} />
                 <Route path="applications/:id" element={<ApplicantDetail />} />
                 <Route path="students/:id" element={<StudentDetail />} />
