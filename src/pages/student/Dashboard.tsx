@@ -69,7 +69,7 @@ export default function StudentDashboard() {
     const loadDashboard = async () => {
       try {
         const response = await apiService.get<DashboardResponse>(
-          endPoints.studentDashboard
+          endPoints.studentDashboard,
         );
         setData(response);
       } catch (error) {
@@ -110,7 +110,7 @@ export default function StudentDashboard() {
 
   const currentSemesterCredits = currentSemesterCourses.reduce(
     (sum, course) => sum + course.creditHours,
-    0
+    0,
   );
 
   const firstName = profileSummary.fullName.split(" ")[0];
@@ -256,55 +256,6 @@ export default function StudentDashboard() {
         </Card>
 
         {/* Recent Grades - FIXED HERE */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              Recent Grades
-            </CardTitle>
-            <CardDescription>From previous semester</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentGrades.map((grade) => (
-                <div
-                  key={grade.courseCode}
-                  className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
-                  <div>
-                    {/* FIXED: was "course.courseCode" → now "grade.courseCode" */}
-                    <p className="font-medium text-sm">{grade.courseCode}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {grade.courseTitle}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    {grade.letterGrade ? (
-                      <>
-                        <Badge
-                          variant={
-                            grade.letterGrade.startsWith("A")
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {grade.letterGrade}
-                        </Badge>
-                        {grade.gradePoint !== null && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {grade.gradePoint.toFixed(1)} pts
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <Badge variant="outline">Pending</Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Quick Actions */}
@@ -315,17 +266,25 @@ export default function StudentDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-24 flex flex-col">
+            <Button
+              onClick={() => {
+                navigate("/student/grades");
+              }}
+              variant="outline"
+              className="h-24 flex flex-col"
+            >
               <BookOpen className="h-8 w-8 mb-2" />
               <span className="text-sm">View Grades</span>
             </Button>
-            <Button variant="outline" className="h-24 flex flex-col">
-              <Calendar className="h-8 w-8 mb-2" />
-              <span className="text-sm">Schedule</span>
-            </Button>
-            <Button variant="outline" className="h-24 flex flex-col">
+            <Button
+              onClick={() => {
+                navigate("/student/forms-center");
+              }}
+              variant="outline"
+              className="h-24 flex flex-col"
+            >
               <GraduationCap className="h-8 w-8 mb-2" />
-              <span className="text-sm">My Courses</span>
+              <span className="text-sm">School Forms and Templates</span>
             </Button>
             <Button
               onClick={() => {

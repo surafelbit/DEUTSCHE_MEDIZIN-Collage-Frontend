@@ -22,7 +22,7 @@ import {
   Award,
   ClipboardList,
   BarChart3,
-   Hash,
+  Hash,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -50,7 +50,8 @@ interface TeacherDashboardResponse {
 }
 
 export default function TeacherDashboard() {
-  const [dashboardData, setDashboardData] = useState<TeacherDashboardResponse | null>(null);
+  const [dashboardData, setDashboardData] =
+    useState<TeacherDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,15 +61,15 @@ export default function TeacherDashboard() {
         setLoading(true);
         setError(null);
         const response = await apiClient.get<TeacherDashboardResponse>(
-          endPoints.teacherDashboard
+          endPoints.teacherDashboard,
         );
         setDashboardData(response.data);
       } catch (err: any) {
         console.error("Error fetching dashboard data:", err);
         setError(
-          err.response?.data?.error || 
-          err.message || 
-          "Failed to load dashboard data. Please try again later."
+          err.response?.data?.error ||
+            err.message ||
+            "Failed to load dashboard data. Please try again later.",
         );
       } finally {
         setLoading(false);
@@ -80,11 +81,11 @@ export default function TeacherDashboard() {
 
   const formatDate = () => {
     const now = new Date();
-    return now.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return now.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -111,10 +112,7 @@ export default function TeacherDashboard() {
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
         <p className="text-lg text-red-600">{error}</p>
-        <Button
-          variant="outline"
-          onClick={() => window.location.reload()}
-        >
+        <Button variant="outline" onClick={() => window.location.reload()}>
           Try Again
         </Button>
       </div>
@@ -130,9 +128,12 @@ export default function TeacherDashboard() {
   const recentCourses = dashboardData?.recentCourses || [];
 
   // Calculate assessment completion percentage
-  const assessmentCompletion = totalAssessments > 0 
-    ? Math.round(((totalAssessments - pendingAssessments) / totalAssessments) * 100)
-    : 0;
+  const assessmentCompletion =
+    totalAssessments > 0
+      ? Math.round(
+          ((totalAssessments - pendingAssessments) / totalAssessments) * 100,
+        )
+      : 0;
 
   return (
     <div className="space-y-6">
@@ -145,7 +146,9 @@ export default function TeacherDashboard() {
             </h1>
             <p className="text-blue-100 opacity-90">
               {dashboardData?.teacherNameAMH && (
-                <span className="block mb-1">{dashboardData.teacherNameAMH}</span>
+                <span className="block mb-1">
+                  {dashboardData.teacherNameAMH}
+                </span>
               )}
               Ready to inspire the next generation of professionals?
             </p>
@@ -153,7 +156,10 @@ export default function TeacherDashboard() {
               Today is {formatDate()}
             </p>
           </div>
-          <Badge variant="secondary" className="text-lg px-4 py-2 bg-white/20 backdrop-blur-sm">
+          <Badge
+            variant="secondary"
+            className="text-lg px-4 py-2 bg-white/20 backdrop-blur-sm"
+          >
             {department} Department
           </Badge>
         </div>
@@ -204,9 +210,7 @@ export default function TeacherDashboard() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium">
-              Assessments
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Assessments</CardTitle>
             <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
           </CardHeader>
           <CardContent>
@@ -216,7 +220,9 @@ export default function TeacherDashboard() {
             </p>
             <div className="mt-3 space-y-1">
               <div className="flex justify-between text-xs">
-                <span className="text-gray-600 dark:text-gray-400">Pending</span>
+                <span className="text-gray-600 dark:text-gray-400">
+                  Pending
+                </span>
                 <span className="font-medium">{pendingAssessments}</span>
               </div>
               <Progress value={assessmentCompletion} className="h-1.5" />
@@ -226,9 +232,7 @@ export default function TeacherDashboard() {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-medium">
-              Teaching Load
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Teaching Load</CardTitle>
             <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
           </CardHeader>
           <CardContent>
@@ -241,7 +245,7 @@ export default function TeacherDashboard() {
             <div className="mt-3 flex items-center">
               <Clock className="h-3 w-3 text-blue-500 mr-1" />
               <span className="text-xs text-gray-600 dark:text-gray-400">
-                {totalCourses} course{totalCourses !== 1 ? 's' : ''}
+                {totalCourses} course{totalCourses !== 1 ? "s" : ""}
               </span>
             </div>
           </CardContent>
@@ -262,7 +266,10 @@ export default function TeacherDashboard() {
             {recentCourses.length > 0 ? (
               <div className="space-y-4">
                 {recentCourses.map((course, index) => (
-                  <div key={course.assignmentId} className="space-y-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <div
+                    key={course.assignmentId}
+                    className="space-y-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="font-medium text-gray-900 dark:text-gray-100">
@@ -277,18 +284,22 @@ export default function TeacherDashboard() {
                         {course.batchClassYearSemester}
                       </Badge>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center text-gray-600 dark:text-gray-400">
                         <Users className="h-3 w-3 mr-1" />
-                        {course.studentCount} student{course.studentCount !== 1 ? 's' : ''}
+                        {course.studentCount} student
+                        {course.studentCount !== 1 ? "s" : ""}
                       </div>
                       <div className="flex space-x-2">
-                        <Link to={`/teacher/assessments/${course.assignmentId}`} state={{
-                          courseTitle: course.courseTitle,
-                          courseCode: course.courseCode,
-                          batch: course.batchClassYearSemester
-                        }}>
+                        <Link
+                          to={`/teacher/assessments/${course.assignmentId}`}
+                          state={{
+                            courseTitle: course.courseTitle,
+                            courseCode: course.courseCode,
+                            batch: course.batchClassYearSemester,
+                          }}
+                        >
                           <Button size="sm" variant="ghost" className="h-7">
                             <FileText className="h-3 w-3 mr-1" />
                             Assessments
@@ -324,7 +335,9 @@ export default function TeacherDashboard() {
               <BarChart3 className="mr-2 h-5 w-5" />
               Teaching Statistics
             </CardTitle>
-            <CardDescription>Your academic performance overview</CardDescription>
+            <CardDescription>
+              Your academic performance overview
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
@@ -338,14 +351,21 @@ export default function TeacherDashboard() {
                 </div>
                 <div className="space-y-1">
                   {recentCourses.map((course) => (
-                    <div key={course.assignmentId} className="flex items-center justify-between text-xs">
+                    <div
+                      key={course.assignmentId}
+                      className="flex items-center justify-between text-xs"
+                    >
                       <span className="text-gray-600 dark:text-gray-400 truncate mr-2">
                         {course.courseCode}
                       </span>
                       <div className="flex items-center flex-1">
-                        <Progress 
-                          value={totalStudents > 0 ? (course.studentCount / totalStudents) * 100 : 0} 
-                          className="h-2 flex-1 mx-2" 
+                        <Progress
+                          value={
+                            totalStudents > 0
+                              ? (course.studentCount / totalStudents) * 100
+                              : 0
+                          }
+                          className="h-2 flex-1 mx-2"
                         />
                         <span className="font-medium min-w-[40px] text-right">
                           {course.studentCount}
@@ -361,7 +381,8 @@ export default function TeacherDashboard() {
                 <div className="flex justify-between text-sm">
                   <span className="font-medium">Assessment Status</span>
                   <span className="text-gray-600 dark:text-gray-400">
-                    {totalAssessments - pendingAssessments} of {totalAssessments}
+                    {totalAssessments - pendingAssessments} of{" "}
+                    {totalAssessments}
                   </span>
                 </div>
                 <div className="space-y-3">
@@ -381,10 +402,7 @@ export default function TeacherDashboard() {
                     </div>
                     <span className="font-medium">{pendingAssessments}</span>
                   </div>
-                  <Progress 
-                    value={assessmentCompletion} 
-                    className="h-2" 
-                  />
+                  <Progress value={assessmentCompletion} className="h-2" />
                 </div>
               </div>
 
@@ -398,7 +416,8 @@ export default function TeacherDashboard() {
                   <Badge variant="outline">{department}</Badge>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                  You're contributing to the {department} department with {totalCourses} active course{totalCourses !== 1 ? 's' : ''}
+                  You're contributing to the {department} department with{" "}
+                  {totalCourses} active course{totalCourses !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -418,7 +437,10 @@ export default function TeacherDashboard() {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link to="/teacher/courses">
-              <Button variant="outline" className="h-20 w-full flex-col bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20">
+              <Button
+                variant="outline"
+                className="h-20 w-full flex-col bg-transparent hover:bg-blue-50 dark:hover:bg-blue-900/20"
+              >
                 <BookOpen className="h-6 w-6 mb-2 text-blue-600 dark:text-blue-400" />
                 <span className="font-medium">My Courses</span>
                 <span className="text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -427,14 +449,20 @@ export default function TeacherDashboard() {
               </Button>
             </Link>
 
-            <Link to={`/teacher/assessments/${recentCourses[0]?.assignmentId || ''}`} 
-                  state={recentCourses[0] ? {
-                    courseTitle: recentCourses[0].courseTitle,
-                    courseCode: recentCourses[0].courseCode,
-                    batch: recentCourses[0].batchClassYearSemester
-                  } : {}}>
-              <Button 
-                variant="outline" 
+            <Link
+              to={`/teacher/assessments/${recentCourses[0]?.assignmentId || ""}`}
+              state={
+                recentCourses[0]
+                  ? {
+                      courseTitle: recentCourses[0].courseTitle,
+                      courseCode: recentCourses[0].courseCode,
+                      batch: recentCourses[0].batchClassYearSemester,
+                    }
+                  : {}
+              }
+            >
+              <Button
+                variant="outline"
                 className="h-20 w-full flex-col bg-transparent hover:bg-green-50 dark:hover:bg-green-900/20"
                 disabled={!recentCourses[0]}
               >
@@ -447,7 +475,10 @@ export default function TeacherDashboard() {
             </Link>
 
             <Link to="/teacher/profile">
-              <Button variant="outline" className="h-20 w-full flex-col bg-transparent hover:bg-purple-50 dark:hover:bg-purple-900/20">
+              <Button
+                variant="outline"
+                className="h-20 w-full flex-col bg-transparent hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              >
                 <ClipboardList className="h-6 w-6 mb-2 text-purple-600 dark:text-purple-400" />
                 <span className="font-medium">Profile</span>
                 <span className="text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -456,7 +487,7 @@ export default function TeacherDashboard() {
               </Button>
             </Link>
 
-            <Button 
+            {/* <Button 
               variant="outline" 
               className="h-20 w-full flex-col bg-transparent hover:bg-orange-50 dark:hover:bg-orange-900/20"
               onClick={() => window.open('/teacher/reports', '_blank')}
@@ -466,7 +497,7 @@ export default function TeacherDashboard() {
               <span className="text-xs text-gray-600 dark:text-gray-400 mt-1">
                 Generate reports
               </span>
-            </Button>
+            </Button> */}
           </div>
         </CardContent>
       </Card>

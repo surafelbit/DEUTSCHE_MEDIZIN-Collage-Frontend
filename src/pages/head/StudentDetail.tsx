@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
+import { AcademicProgression } from "@/components/Extra/AcademicProgression";
 import {
   Card,
   CardContent,
@@ -95,62 +96,95 @@ interface StudentDetail {
   exitExamUserID: string | null;
   exitExamScore: number | null;
   isStudentPassExitExam: boolean;
-  grade12Result: number;
+  grade12Result: number | null; // Change this to allow null
 }
 
 export default function StudentDetail() {
   const params = useParams();
   const navigate = useNavigate();
   const studentId = params.id as string;
-  
+
   const [student, setStudent] = useState<StudentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [academicProgression, setAcademicProgression] = useState<any>(null);
+  const [loadingProgression, setLoadingProgression] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
 
   useEffect(() => {
     fetchStudentDetails();
   }, [studentId]);
 
+  useEffect(() => {
+    if (
+      activeTab === "academic-progression" &&
+      student?.userId &&
+      !academicProgression &&
+      !loadingProgression
+    ) {
+      fetchAcademicProgression();
+    }
+  }, [activeTab, student?.userId, academicProgression, loadingProgression]);
+
   const fetchStudentDetails = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiClient.get<StudentDetail>(
-        `${endPoints.studentById}/${studentId}` 
+        `${endPoints.studentById}/${studentId}`,
       );
       setStudent(response.data);
     } catch (err: any) {
       console.error("Failed to load student details:", err);
       setError(
         err.response?.data?.error ||
-        err.message ||
-        "Failed to load student details. Please try again later."
+          err.message ||
+          "Failed to load student details. Please try again later.",
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchAcademicProgression = async () => {
+    if (!student.userId) return;
+
+    try {
+      setLoadingProgression(true);
+      // Replace :userId with actual userId from student data
+      const url = endPoints.studentsAcademicProgress.replace(
+        ":userId",
+        student.userId.toString(),
+      );
+      const response = await apiClient.get(url);
+      setAcademicProgression(response.data);
+    } catch (err: any) {
+      console.error("Failed to load academic progression:", err);
+      // Optionally set error state for this section
+    } finally {
+      setLoadingProgression(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700';
-      case 'inactive':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-700';
+      case "active":
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700";
+      case "inactive":
+        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-300 dark:border-red-700";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700';
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700";
     }
   };
 
   const getDocumentStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'complete':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700';
-      case 'incomplete':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300 dark:border-yellow-700';
+      case "complete":
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700";
+      case "incomplete":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300 dark:border-yellow-700";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700';
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700";
     }
   };
 
@@ -167,8 +201,12 @@ export default function StudentDetail() {
     }
   };
 
-  const getInitials = (firstName: string, fatherName: string, grandfatherName: string) => {
-    return `${firstName?.[0] || ''}${fatherName?.[0] || ''}${grandfatherName?.[0] || ''}`.toUpperCase();
+  const getInitials = (
+    firstName: string,
+    fatherName: string,
+    grandfatherName: string,
+  ) => {
+    return `${firstName?.[0] || ""}${fatherName?.[0] || ""}${grandfatherName?.[0] || ""}`.toUpperCase();
   };
 
   if (loading) {
@@ -186,9 +224,7 @@ export default function StudentDetail() {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-lg text-red-600 text-center px-4">
-          {error}
-        </p>
+        <p className="text-lg text-red-600 text-center px-4">{error}</p>
         <div className="flex space-x-4">
           <Button variant="outline" onClick={() => navigate(-1)}>
             Go Back
@@ -218,7 +254,15 @@ export default function StudentDetail() {
   const placeOfBirth = `${student.placeOfBirthWoredaName}, ${student.placeOfBirthZoneName}, ${student.placeOfBirthRegionName}`;
   const currentAddress = `${student.currentAddressWoredaName}, ${student.currentAddressZoneName}, ${student.currentAddressRegionName}`;
 
-  const TabButton = ({ id, label, icon }: { id: string; label: string; icon: React.ReactNode }) => (
+  const TabButton = ({
+    id,
+    label,
+    icon,
+  }: {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+  }) => (
     <Button
       variant={activeTab === id ? "default" : "ghost"}
       onClick={() => setActiveTab(id)}
@@ -250,36 +294,42 @@ export default function StudentDetail() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className={`${getStatusColor(student.studentRecentStatusName)}`}>
+          <Badge
+            className={`${getStatusColor(student.studentRecentStatusName)}`}
+          >
             {student.studentRecentStatusName}
           </Badge>
-          <Badge variant="outline">
-            {student.programModalityName}
-          </Badge>
+          <Badge variant="outline">{student.programModalityName}</Badge>
         </div>
       </div>
 
       {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 border-b pb-2">
-        <TabButton 
-          id="personal" 
-          label="Personal" 
-          icon={<User className="h-4 w-4" />} 
+        <TabButton
+          id="personal"
+          label="Personal"
+          icon={<User className="h-4 w-4" />}
         />
-        <TabButton 
-          id="academic" 
-          label="Academic" 
-          icon={<GraduationCap className="h-4 w-4" />} 
+        <TabButton
+          id="academic"
+          label="Academic"
+          icon={<GraduationCap className="h-4 w-4" />}
         />
-        <TabButton 
-          id="contact" 
-          label="Contact" 
-          icon={<Users className="h-4 w-4" />} 
+        <TabButton
+          id="contact"
+          label="Contact"
+          icon={<Users className="h-4 w-4" />}
         />
-        <TabButton 
-          id="documents" 
-          label="Documents" 
-          icon={<FileText className="h-4 w-4" />} 
+        <TabButton
+          id="documents"
+          label="Documents"
+          icon={<FileText className="h-4 w-4" />}
+        />
+        {/* Add this new tab button */}
+        <TabButton
+          id="academic-progression"
+          label="Academic Progression"
+          icon={<GraduationCap className="h-4 w-4" />}
         />
       </div>
 
@@ -300,7 +350,11 @@ export default function StudentDetail() {
                       />
                     ) : (
                       <AvatarFallback className="text-2xl bg-blue-600 text-white font-semibold">
-                        {getInitials(student.firstNameENG, student.fatherNameENG, student.grandfatherNameENG)}
+                        {getInitials(
+                          student.firstNameENG,
+                          student.fatherNameENG,
+                          student.grandfatherNameENG,
+                        )}
                       </AvatarFallback>
                     )}
                   </Avatar>
@@ -352,33 +406,57 @@ export default function StudentDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>First Name (English)</Label>
-                    <Input value={student.firstNameENG} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.firstNameENG}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>First Name (አማርኛ)</Label>
-                    <Input value={student.firstNameAMH} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.firstNameAMH}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Father's Name (English)</Label>
-                    <Input value={student.fatherNameENG} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.fatherNameENG}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Father's Name (አማርኛ)</Label>
-                    <Input value={student.fatherNameAMH} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.fatherNameAMH}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Grandfather's Name (English)</Label>
-                    <Input value={student.grandfatherNameENG} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.grandfatherNameENG}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Grandfather's Name (አማርኛ)</Label>
-                    <Input value={student.grandfatherNameAMH} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.grandfatherNameAMH}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
 
@@ -387,33 +465,57 @@ export default function StudentDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Mother's Name (English)</Label>
-                    <Input value={motherFullName} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={motherFullName}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Mother's Father Name (English)</Label>
-                    <Input value={student.motherFatherNameENG} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.motherFatherNameENG}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Gender</Label>
-                    <Input value={student.gender} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.gender}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Marital Status</Label>
-                    <Input value={student.maritalStatus} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.maritalStatus}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Date of Birth (GC)</Label>
-                    <Input value={formatDate(student.dateOfBirthGC)} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={formatDate(student.dateOfBirthGC)}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
 
                 {student.impairmentDescription && (
                   <div className="space-y-2">
                     <Label>Special Needs / Impairment</Label>
-                    <Input value={student.impairmentDescription} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.impairmentDescription}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 )}
               </CardContent>
@@ -431,21 +533,33 @@ export default function StudentDetail() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Address</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Address
+                  </p>
                   <p className="font-medium">{placeOfBirth}</p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div className="space-y-1">
-                    <p className="text-gray-500 dark:text-gray-400">Region Code</p>
-                    <p className="font-mono">{student.placeOfBirthRegionCode}</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Region Code
+                    </p>
+                    <p className="font-mono">
+                      {student.placeOfBirthRegionCode}
+                    </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-gray-500 dark:text-gray-400">Zone Code</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Zone Code
+                    </p>
                     <p className="font-mono">{student.placeOfBirthZoneCode}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-gray-500 dark:text-gray-400">Woreda Code</p>
-                    <p className="font-mono">{student.placeOfBirthWoredaCode}</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Woreda Code
+                    </p>
+                    <p className="font-mono">
+                      {student.placeOfBirthWoredaCode}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -460,21 +574,35 @@ export default function StudentDetail() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Address</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Address
+                  </p>
                   <p className="font-medium">{currentAddress}</p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div className="space-y-1">
-                    <p className="text-gray-500 dark:text-gray-400">Region Code</p>
-                    <p className="font-mono">{student.currentAddressRegionCode}</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Region Code
+                    </p>
+                    <p className="font-mono">
+                      {student.currentAddressRegionCode}
+                    </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-gray-500 dark:text-gray-400">Zone Code</p>
-                    <p className="font-mono">{student.currentAddressZoneCode}</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Zone Code
+                    </p>
+                    <p className="font-mono">
+                      {student.currentAddressZoneCode}
+                    </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-gray-500 dark:text-gray-400">Woreda Code</p>
-                    <p className="font-mono">{student.currentAddressWoredaCode}</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      Woreda Code
+                    </p>
+                    <p className="font-mono">
+                      {student.currentAddressWoredaCode}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -489,36 +617,62 @@ export default function StudentDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Academic Information</CardTitle>
-              <CardDescription>Current academic status and history</CardDescription>
+              <CardDescription>
+                Current academic status and history
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label>Department</Label>
-                  <Input value={student.departmentEnrolledName} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={student.departmentEnrolledName || "N/A"}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Program Modality</Label>
-                  <Input value={student.programModalityName} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={student.programModalityName || "N/A"}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Current Batch/Class</Label>
-                  <Input value={student.batchClassYearSemesterName} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={student.batchClassYearSemesterName || "N/A"}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>School Background</Label>
-                  <Input value={student.schoolBackgroundName} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={student.schoolBackgroundName || "N/A"}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Date Enrolled (GC)</Label>
-                  <Input value={formatDate(student.dateEnrolledGC)} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={formatDate(student.dateEnrolledGC)}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Date Enrolled (EC)</Label>
-                  <Input value={student.dateEnrolledEC} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={student.dateEnrolledEC || "N/A"}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
               </div>
 
@@ -529,22 +683,38 @@ export default function StudentDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Grade 12 Result</Label>
-                    <Input value={student.grade12Result.toFixed(2)} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={
+                        student.grade12Result != null
+                          ? student.grade12Result.toFixed(2)
+                          : "N/A"
+                      }
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Exit Exam Score</Label>
-                    <Input 
-                      value={student.exitExamScore ? student.exitExamScore.toFixed(2) : "N/A"} 
-                      readOnly 
-                      className="bg-gray-50 dark:bg-gray-800" 
+                    <Input
+                      value={
+                        student.exitExamScore != null
+                          ? student.exitExamScore.toFixed(2)
+                          : "N/A"
+                      }
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Exit Exam Status</Label>
-                    <Input 
-                      value={student.isStudentPassExitExam ? "Passed" : "Not Taken/Failed"} 
-                      readOnly 
-                      className="bg-gray-50 dark:bg-gray-800" 
+                    <Input
+                      value={
+                        student.isStudentPassExitExam
+                          ? "Passed"
+                          : "Not Taken/Failed"
+                      }
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
                     />
                   </div>
                 </div>
@@ -580,11 +750,19 @@ export default function StudentDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Phone Number</Label>
-                    <Input value={student.phoneNumber} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.phoneNumber}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Email Address</Label>
-                    <Input value={student.email || "Not provided"} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.email || "Not provided"}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
               </div>
@@ -596,20 +774,36 @@ export default function StudentDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Full Name</Label>
-                    <Input value={`${student.contactPersonFirstNameENG} ${student.contactPersonLastNameENG}`} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={`${student.contactPersonFirstNameENG} ${student.contactPersonLastNameENG}`}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Relationship</Label>
-                    <Input value={student.contactPersonRelation} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.contactPersonRelation}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Phone Number</Label>
-                    <Input value={student.contactPersonPhoneNumber} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                    <Input
+                      value={student.contactPersonPhoneNumber}
+                      readOnly
+                      className="bg-gray-50 dark:bg-gray-800"
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Name (አማርኛ)</Label>
-                  <Input value={`${student.contactPersonFirstNameAMH} ${student.contactPersonLastNameAMH}`} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                  <Input
+                    value={`${student.contactPersonFirstNameAMH} ${student.contactPersonLastNameAMH}`}
+                    readOnly
+                    className="bg-gray-50 dark:bg-gray-800"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -623,16 +817,22 @@ export default function StudentDetail() {
           <Card>
             <CardHeader>
               <CardTitle>Documents & Status</CardTitle>
-              <CardDescription>Document verification and status</CardDescription>
+              <CardDescription>
+                Document verification and status
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold">Document Status</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Overall document completion status</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Overall document completion status
+                    </p>
                   </div>
-                  <Badge className={`${getDocumentStatusColor(student.documentStatus)}`}>
+                  <Badge
+                    className={`${getDocumentStatusColor(student.documentStatus)}`}
+                  >
                     {student.documentStatus}
                   </Badge>
                 </div>
@@ -660,7 +860,9 @@ export default function StudentDetail() {
                           <div>
                             <p className="font-medium">Student Photo</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {student.studentPhoto ? "Uploaded" : "Not uploaded"}
+                              {student.studentPhoto
+                                ? "Uploaded"
+                                : "Not uploaded"}
                             </p>
                           </div>
                         </div>
@@ -702,6 +904,35 @@ export default function StudentDetail() {
         </div>
       )}
 
+      {/* Academic Progression Tab */}
+      {activeTab === "academic-progression" && (
+        <div className="space-y-6">
+          <AcademicProgression
+            studentId={academicProgression?.studentId}
+            username={academicProgression?.username}
+            fullName={academicProgression?.fullName}
+            department={academicProgression?.department}
+            currentStatus={academicProgression?.currentStatus}
+            currentBatchClassYearSemester={
+              academicProgression?.currentBatchClassYearSemester
+            }
+            takenCourses={academicProgression?.takenCourses || []}
+            totalTakenCourses={academicProgression?.totalTakenCourses || 0}
+            totalTakenCreditHours={
+              academicProgression?.totalTakenCreditHours || 0
+            }
+            remainingCourses={academicProgression?.remainingCourses || []}
+            totalRemainingCourses={
+              academicProgression?.totalRemainingCourses || 0
+            }
+            totalRemainingCreditHours={
+              academicProgression?.totalRemainingCreditHours || 0
+            }
+            isLoading={loadingProgression}
+          />
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex justify-end gap-4 pt-6 border-t">
         <Button variant="outline" onClick={() => navigate(-1)}>
@@ -713,14 +944,24 @@ export default function StudentDetail() {
 }
 
 // Helper components
-const Label = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <label className={`text-sm font-medium ${className}`}>
-    {children}
-  </label>
-);
+const Label = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => <label className={`text-sm font-medium ${className}`}>{children}</label>;
 
-const Input = ({ value, readOnly, className }: { value: string; readOnly?: boolean; className?: string }) => (
-  <div className={`px-3 py-2 border rounded-md ${className || ''}`}>
+const Input = ({
+  value,
+  readOnly,
+  className,
+}: {
+  value: string;
+  readOnly?: boolean;
+  className?: string;
+}) => (
+  <div className={`px-3 py-2 border rounded-md ${className || ""}`}>
     {value}
   </div>
 );

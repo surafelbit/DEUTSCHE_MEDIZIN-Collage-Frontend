@@ -21,11 +21,15 @@ import {
   XCircle,
   Filter,
   Calendar,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AcademicProgression } from "@/components/Extra/AcademicProgression"; // Adjust path as needed
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Student {
   studentId: number;
+  studentUserId: number; // Add this
   idNumber: string;
   fullName: string;
   department: string;
@@ -70,6 +74,22 @@ interface LookupsResponse {
   programModalities: LookupOption[];
 }
 
+// Interface for academic progress data
+interface AcademicProgressData {
+  studentId: number;
+  username: string;
+  fullName: string;
+  department: string;
+  currentStatus: string;
+  currentBatchClassYearSemester: string;
+  takenCourses: any[];
+  totalTakenCourses: number;
+  totalTakenCreditHours: number;
+  remainingCourses: any[];
+  totalRemainingCourses: number;
+  totalRemainingCreditHours: number;
+}
+
 export default function DeanStudents() {
   const [query, setQuery] = useState("");
   const [selectedBcys, setSelectedBcys] = useState<string>("All");
@@ -86,6 +106,16 @@ export default function DeanStudents() {
     filteredActiveCount: 0,
   });
   const [lookups, setLookups] = useState<LookupsResponse | null>(null);
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
+    null,
+  );
+  const [academicProgress, setAcademicProgress] =
+    useState<AcademicProgressData | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStudents();
@@ -215,6 +245,46 @@ export default function DeanStudents() {
     } finally {
       setLoadingLookups(false);
     }
+  };
+
+  // Fetch academic progress when student is selected
+  const fetchAcademicProgress = async (studentUserId: number) => {
+    try {
+      setLoadingProgress(true);
+      setProgressError(null);
+      // Replace :userId with the actual studentUserId
+      const endpoint = endPoints.studentsAcademicProgress.replace(
+        ":userId",
+        studentUserId.toString(),
+      );
+      const response = await apiClient.get(endpoint);
+      console.log("Academic Progress Response:", response.data);
+      setAcademicProgress(response.data);
+    } catch (err: any) {
+      console.error("Failed to load academic progress:", err);
+      setProgressError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to load academic progress",
+      );
+    } finally {
+      setLoadingProgress(false);
+    }
+  };
+
+  // Handle student click
+  const handleStudentClick = (student: Student) => {
+    setSelectedStudentId(student.studentUserId); // Use studentUserId instead of studentId
+    setIsModalOpen(true);
+    fetchAcademicProgress(student.studentUserId); // Pass studentUserId
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedStudentId(null);
+    setAcademicProgress(null);
+    setProgressError(null);
   };
 
   const filtered = useMemo(() => {
@@ -589,7 +659,8 @@ export default function DeanStudents() {
                   filtered.map((student) => (
                     <tr
                       key={student.studentId}
-                      className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                      className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 cursor-pointer"
+                      onClick={() => handleStudentClick(student)}
                     >
                       <td className="py-3 px-4">
                         <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm text-gray-800 dark:text-gray-100 font-mono">
@@ -677,6 +748,98 @@ export default function DeanStudents() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Right Side Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={closeModal}
+            />
+
+            {/* Modal Panel - Slides from right */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+              className="fixed top-0 right-0 h-full w-[70%] bg-white dark:bg-gray-900 shadow-2xl z-50 overflow-y-auto"
+            >
+              {/* Close button */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors z-10"
+              >
+                <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+              </button>
+
+              {/* Content */}
+              <div className="p-6 pt-16">
+                {loadingProgress ? (
+                  <div className="flex flex-col items-center justify-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">
+                      Loading academic progress...
+                    </p>
+                  </div>
+                ) : progressError ? (
+                  <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                    <XCircle className="h-12 w-12 text-red-500" />
+                    <p className="text-red-600 dark:text-red-400 text-center">
+                      {progressError}
+                    </p>
+                    {selectedStudentId && (
+                      <Button
+                        variant="outline"
+                        onClick={() => fetchAcademicProgress(selectedStudentId)}
+                      >
+                        Retry
+                      </Button>
+                    )}
+                  </div>
+                ) : academicProgress ? (
+                  <AcademicProgression
+                    studentId={academicProgress.studentId}
+                    username={academicProgress.username}
+                    fullName={academicProgress.fullName}
+                    department={academicProgress.department}
+                    currentStatus={academicProgress.currentStatus}
+                    currentBatchClassYearSemester={
+                      academicProgress.currentBatchClassYearSemester
+                    }
+                    takenCourses={academicProgress.takenCourses}
+                    totalTakenCourses={academicProgress.totalTakenCourses}
+                    totalTakenCreditHours={
+                      academicProgress.totalTakenCreditHours
+                    }
+                    remainingCourses={academicProgress.remainingCourses}
+                    totalRemainingCourses={
+                      academicProgress.totalRemainingCourses
+                    }
+                    totalRemainingCreditHours={
+                      academicProgress.totalRemainingCreditHours
+                    }
+                    isLoading={false}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-64">
+                    <AlertCircle className="h-12 w-12 text-yellow-500" />
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">
+                      No academic data available
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
