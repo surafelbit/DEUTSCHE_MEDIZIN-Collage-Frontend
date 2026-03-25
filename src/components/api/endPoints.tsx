@@ -78,6 +78,7 @@ const endPoints = {
   studentsDeactivation: "/students/:id/disable",
   studentsSlip: "/students/slip-production",
   getAllStudentsCGPA_VD: "/vice-deans/get-all-students-cgpa",
+  studentsAcademicProgress: "/students/:userId/academic-progress",
 
   /* =======================     Assessments & Grading  ======================== */
   gradingSystem: "/grading-systems",

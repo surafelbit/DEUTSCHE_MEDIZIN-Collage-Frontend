@@ -45,7 +45,7 @@ interface GeneralManagerProfileResponse {
 
 export default function GeneralManagerProfile() {
   const [profile, setProfile] = useState<GeneralManagerProfileResponse | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function GeneralManagerProfile() {
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [nationalIdPreview, setNationalIdPreview] = useState<string | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function GeneralManagerProfile() {
       setLoading(true);
       setError(null);
       const response = await apiClient.get<GeneralManagerProfileResponse>(
-        endPoints.getGeneralManagerProfile
+        endPoints.getGeneralManagerProfile,
       );
       setProfile(response.data);
 
@@ -93,12 +93,12 @@ export default function GeneralManagerProfile() {
       setPhotoPreview(
         response.data.photograph
           ? `data:image/jpeg;base64,${response.data.photograph}`
-          : null
+          : null,
       );
       setNationalIdPreview(
         response.data.nationalIdImage
           ? `data:image/jpeg;base64,${response.data.nationalIdImage}`
-          : null
+          : null,
       );
     } catch (err: any) {
       console.error(err);
@@ -163,19 +163,19 @@ export default function GeneralManagerProfile() {
     try {
       const response = await apiClient.patch<GeneralManagerProfileResponse>(
         endPoints.updateGeneralManagerProfile,
-        payload
+        payload,
       );
       setProfile(response.data);
 
       setPhotoPreview(
         response.data.photograph
           ? `data:image/jpeg;base64,${response.data.photograph}`
-          : null
+          : null,
       );
       setNationalIdPreview(
         response.data.nationalIdImage
           ? `data:image/jpeg;base64,${response.data.nationalIdImage}`
-          : null
+          : null,
       );
 
       setIsEditing(false);
@@ -218,12 +218,12 @@ export default function GeneralManagerProfile() {
       setPhotoPreview(
         profile.photograph
           ? `data:image/jpeg;base64,${profile.photograph}`
-          : null
+          : null,
       );
       setNationalIdPreview(
         profile.nationalIdImage
           ? `data:image/jpeg;base64,${profile.nationalIdImage}`
-          : null
+          : null,
       );
     }
   };
@@ -321,7 +321,7 @@ export default function GeneralManagerProfile() {
             {/* National ID */}
             <div className="space-y-3">
               <Label className="text-lg font-semibold flex items-center justify-center gap-2">
-                <IdCard className="h-5 w-5" /> National ID Document
+                <IdCard className="h-5 w-5" /> National ID
               </Label>
               <div className="relative mx-auto w-64 h-40 bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden border border-gray-300 dark:border-gray-600 shadow">
                 {nationalIdPreview ? (
