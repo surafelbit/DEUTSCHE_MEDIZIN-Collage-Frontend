@@ -81,7 +81,7 @@ export default function HeadStudents() {
 
     const storedTime = parseInt(timestamp, 10);
     const currentTime = Date.now();
-    const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+    const oneHour = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
     return currentTime - storedTime < oneHour;
   };

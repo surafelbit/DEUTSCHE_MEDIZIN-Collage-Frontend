@@ -2,7 +2,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { UserPlus, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import {
+  UserPlus,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
 import { Bar, Line, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -33,7 +40,16 @@ ChartJS.register(
   ArcElement,
 );
 
-const getAlertIcon = (type) => {
+// Cache configuration - adjust this value to change how long data stays cached (in hours)
+const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
+const CACHE_KEY = "vice_dean_dashboard_data";
+
+interface CachedData {
+  data: any;
+  timestamp: number;
+}
+
+const getAlertIcon = (type: string) => {
   switch (type) {
     case "warning":
       return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
@@ -47,26 +63,97 @@ const getAlertIcon = (type) => {
 };
 
 export default function ViceDeanDashboard() {
-  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const isCacheValid = (cachedData: CachedData | null): boolean => {
+    if (!cachedData) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cachedData.timestamp;
+    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
+
+    return cacheAge < cacheDurationMs;
+  };
+
+  const saveToCache = (data: any) => {
     try {
+      const cacheData: CachedData = {
+        data,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to save to session storage:", err);
+    }
+  };
+
+  const loadFromCache = (): any | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const cachedData: CachedData = JSON.parse(cached);
+
+      if (isCacheValid(cachedData)) {
+        setLastUpdated(new Date(cachedData.timestamp));
+        return cachedData.data;
+      }
+
+      // Cache expired, remove it
+      sessionStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (err) {
+      console.error("Failed to load from session storage:", err);
+      return null;
+    }
+  };
+
+  const fetchDashboardData = async (forceRefresh: boolean = false) => {
+    try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fetch from API if no cache or force refresh
       setLoading(true);
       setError(null);
       const data = await apiService.get(endPoints.viceDeanDashboard);
       setDashboardData(data);
-    } catch (err) {
+      saveToCache(data);
+    } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(err.response?.data?.error || "Failed to load dashboard data");
+
+      // If API fails but we have expired cache, use it as fallback
+      const expiredCache = loadFromCache();
+      if (expiredCache) {
+        setDashboardData(expiredCache);
+        setError(null); // Clear error since we have fallback data
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboardData(true);
   };
 
   // Transform API data for charts
@@ -77,7 +164,7 @@ export default function ViceDeanDashboard() {
     const departmentEntries = Object.entries(
       dashboardData.studentsPerDepartment || {},
     )
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
       .slice(0, 5);
 
     const departmentLabels = departmentEntries.map(([dept]) => dept);
@@ -175,7 +262,7 @@ export default function ViceDeanDashboard() {
     );
   }
 
-  if (error) {
+  if (error && !dashboardData) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <Card className="max-w-md">
@@ -185,7 +272,7 @@ export default function ViceDeanDashboard() {
               Error Loading Dashboard
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-            <Button onClick={fetchDashboardData}>Retry</Button>
+            <Button onClick={() => fetchDashboardData(true)}>Retry</Button>
           </CardContent>
         </Card>
       </div>
@@ -197,18 +284,38 @@ export default function ViceDeanDashboard() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-            Vice Dean Dashboard
-          </h1>
-          {/* <div className="flex gap-2">
-            <Link to="/vice-dean/create-department-head">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              Vice Dean Dashboard
+            </h1>
+            {lastUpdated && (
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                Last updated: {lastUpdated.toLocaleString()}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              disabled={refreshing}
+              className="flex items-center gap-2 border-gray-300 dark:border-gray-600"
+            >
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </Button>
+            {/* <Link to="/vice-dean/create-department-head">
               <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
                 <UserPlus className="h-4 w-4" />
                 Create Department Head
               </Button>
-            </Link>
-          </div> */}
+            </Link> */}
+          </div>
         </div>
 
         {/* Totals */}
@@ -263,7 +370,7 @@ export default function ViceDeanDashboard() {
                 Quick Alerts
               </h2>
               <ul className="space-y-2">
-                {chartData.alerts?.map((a) => (
+                {chartData.alerts?.map((a: any) => (
                   <li
                     key={a.id}
                     className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"

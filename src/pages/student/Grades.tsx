@@ -19,10 +19,16 @@ import {
   User,
   School,
   AlertCircle,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+
+// Cache configuration - adjust this value to change how long data stays cached (in days)
+const CACHE_DURATION_DAYS = 7; // Cache for 7 days
+const CACHE_KEY = "student_grade_report_data";
 
 interface Course {
   courseCode: string;
@@ -55,10 +61,17 @@ interface StudentData {
   studentCopies: StudentCopy[];
 }
 
+interface CachedData {
+  data: StudentData;
+  timestamp: number;
+}
+
 export default function StudentGradeReport() {
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [openYears, setOpenYears] = useState<{ [key: number]: boolean }>({});
   const [openSemesters, setOpenSemesters] = useState<{
@@ -66,46 +79,130 @@ export default function StudentGradeReport() {
   }>({});
 
   useEffect(() => {
-    const fetchGradeReport = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await apiService.get(endPoints.studentGradeReports); // "/api/student/grade-reports"
-        console.log(response);
-        const apiData = response;
-
-        // Correctly extract the first student from gradeReports array
-        if (apiData.gradeReports && apiData.gradeReports.length > 0) {
-          const student = apiData.gradeReports[0];
-
-          // Ensure studentCopies exists
-          if (student.studentCopies && student.studentCopies.length > 0) {
-            setStudentData(student);
-
-            // Auto-open first year and first semester
-            setOpenYears({ 0: true });
-            setOpenSemesters({ "0-0": true });
-          } else {
-            setError("No semester grade data available for this student.");
-          }
-        } else {
-          setError("No student grade report found.");
-        }
-      } catch (err: any) {
-        console.error("Error fetching grade report:", err);
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Failed to load grade report. Please try again.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchGradeReport();
   }, []);
+
+  const isCacheValid = (cachedData: CachedData | null): boolean => {
+    if (!cachedData) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cachedData.timestamp;
+    const cacheDurationMs = CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000;
+
+    return cacheAge < cacheDurationMs;
+  };
+
+  const saveToCache = (data: StudentData) => {
+    try {
+      const cacheData: CachedData = {
+        data,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to save to session storage:", err);
+    }
+  };
+
+  const loadFromCache = (): StudentData | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const cachedData: CachedData = JSON.parse(cached);
+
+      if (isCacheValid(cachedData)) {
+        setLastUpdated(new Date(cachedData.timestamp));
+        return cachedData.data;
+      }
+
+      // Cache expired, remove it
+      sessionStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (err) {
+      console.error("Failed to load from session storage:", err);
+      return null;
+    }
+  };
+
+  const fetchGradeReport = async (forceRefresh: boolean = false) => {
+    try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          setStudentData(cachedData);
+
+          // Auto-open first year and first semester for cached data
+          if (cachedData.studentCopies && cachedData.studentCopies.length > 0) {
+            setOpenYears({ 0: true });
+            setOpenSemesters({ "0-0": true });
+          }
+
+          setLoading(false);
+          return;
+        }
+      }
+
+      setLoading(true);
+      setError(null);
+
+      const response = await apiService.get(endPoints.studentGradeReports);
+      console.log(response);
+      const apiData = response;
+
+      // Correctly extract the first student from gradeReports array
+      if (apiData.gradeReports && apiData.gradeReports.length > 0) {
+        const student = apiData.gradeReports[0];
+
+        // Ensure studentCopies exists
+        if (student.studentCopies && student.studentCopies.length > 0) {
+          setStudentData(student);
+          saveToCache(student);
+
+          // Auto-open first year and first semester
+          setOpenYears({ 0: true });
+          setOpenSemesters({ "0-0": true });
+        } else {
+          setError("No semester grade data available for this student.");
+        }
+      } else {
+        setError("No student grade report found.");
+      }
+    } catch (err: any) {
+      console.error("Error fetching grade report:", err);
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to load grade report. Please try again.",
+      );
+
+      // If API fails but we have expired cache, use it as fallback
+      const expiredCache = loadFromCache();
+      if (expiredCache) {
+        setStudentData(expiredCache);
+        setError(null); // Clear error since we have fallback data
+
+        // Auto-open first year and first semester for expired cache fallback
+        if (
+          expiredCache.studentCopies &&
+          expiredCache.studentCopies.length > 0
+        ) {
+          setOpenYears({ 0: true });
+          setOpenSemesters({ "0-0": true });
+        }
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchGradeReport(true);
+  };
 
   // Calculations
   const totalCreditsAttempted =
@@ -184,7 +281,7 @@ export default function StudentGradeReport() {
               {error || "No data available."}
             </p>
             <Button
-              onClick={() => window.location.reload()}
+              onClick={() => fetchGradeReport(true)}
               className="mt-4 bg-blue-600"
             >
               Retry
@@ -200,13 +297,35 @@ export default function StudentGradeReport() {
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Academic Grade Report
-          </h1>
-          {/* <Button className="bg-blue-600 hover:bg-blue-700">
-            <Download className="mr-2 h-4 w-4" />
-            Download Report
-          </Button> */}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Academic Grade Report
+            </h1>
+            {lastUpdated && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Last updated: {lastUpdated.toLocaleString()}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              disabled={refreshing}
+              className="flex items-center gap-2"
+            >
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {refreshing ? "Refreshing..." : "Refresh Data"}
+            </Button>
+            {/* <Button className="bg-blue-600 hover:bg-blue-700">
+              <Download className="mr-2 h-4 w-4" />
+              Download Report
+            </Button> */}
+          </div>
         </div>
 
         {/* Student Info */}

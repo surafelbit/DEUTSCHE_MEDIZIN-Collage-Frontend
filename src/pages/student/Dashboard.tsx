@@ -18,11 +18,17 @@ import {
   AlertTriangle,
   CheckCircle,
   User,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+
+// Cache configuration - adjust this value to change how long data stays cached (in hours)
+const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
+const CACHE_KEY = "student_dashboard_data";
 
 interface DashboardResponse {
   profileSummary: {
@@ -59,33 +65,127 @@ interface DashboardResponse {
   };
 }
 
+interface CachedData {
+  data: DashboardResponse;
+  timestamp: number;
+}
+
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation(["student", "common"]);
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const response = await apiService.get<DashboardResponse>(
-          endPoints.studentDashboard,
-        );
-        setData(response);
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadDashboard();
   }, []);
+
+  const isCacheValid = (cachedData: CachedData | null): boolean => {
+    if (!cachedData) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cachedData.timestamp;
+    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
+
+    return cacheAge < cacheDurationMs;
+  };
+
+  const saveToCache = (dashboardData: DashboardResponse) => {
+    try {
+      const cacheData: CachedData = {
+        data: dashboardData,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to save to session storage:", err);
+    }
+  };
+
+  const loadFromCache = (): DashboardResponse | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const cachedData: CachedData = JSON.parse(cached);
+
+      if (isCacheValid(cachedData)) {
+        setLastUpdated(new Date(cachedData.timestamp));
+        return cachedData.data;
+      }
+
+      // Cache expired, remove it
+      sessionStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (err) {
+      console.error("Failed to load from session storage:", err);
+      return null;
+    }
+  };
+
+  const loadDashboard = async (forceRefresh: boolean = false) => {
+    try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          setData(cachedData);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setLoading(true);
+      setError(null);
+      const response = await apiService.get<DashboardResponse>(
+        endPoints.studentDashboard,
+      );
+      setData(response);
+      saveToCache(response);
+    } catch (error: any) {
+      console.error("Error loading dashboard data:", error);
+      setError(error.response?.data?.error || "Failed to load dashboard data");
+
+      // If API fails but we have expired cache, use it as fallback
+      const expiredCache = loadFromCache();
+      if (expiredCache) {
+        setData(expiredCache);
+        setError(null); // Clear error since we have fallback data
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboard(true);
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">{t("common:loading") || "Loading..."}</div>
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <div className="text-lg">{t("common:loading") || "Loading..."}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <AlertTriangle className="h-12 w-12 text-red-600" />
+        <div className="text-lg text-red-600">{error}</div>
+        <Button onClick={() => loadDashboard(true)} variant="outline">
+          Retry
+        </Button>
       </div>
     );
   }
@@ -123,25 +223,50 @@ export default function StudentDashboard() {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">
-          {t("dashboard.welcome", { name: firstName }) ||
-            `Welcome back, ${firstName}`}
-        </h1>
-        <p className="text-blue-100">
-          {profileSummary.department} • Year {profileSummary.currentClassYear} •{" "}
-          {profileSummary.currentSemester}
-        </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">
+              {t("dashboard.welcome", { name: firstName }) ||
+                `Welcome back, ${firstName}`}
+            </h1>
+            <p className="text-blue-100">
+              {profileSummary.department} • Year{" "}
+              {profileSummary.currentClassYear} •{" "}
+              {profileSummary.currentSemester}
+            </p>
+            {lastUpdated && (
+              <p className="text-xs text-blue-200 mt-2">
+                Last updated: {lastUpdated.toLocaleString()}
+              </p>
+            )}
+          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="secondary"
+            disabled={refreshing}
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-0"
+          >
+            {refreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            {refreshing ? "Refreshing..." : "Refresh Data"}
+          </Button>
+        </div>
       </div>
 
       {/* Document Status Warning */}
       {hasDocumentIssues && (
-        <Card className="border-yellow-500 bg-yellow-50">
+        <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-yellow-900">Action Required</p>
-                <p className="text-sm text-yellow-800 mt-1">
+                <p className="font-medium text-yellow-900 dark:text-yellow-200">
+                  Action Required
+                </p>
+                <p className="text-sm text-yellow-800 dark:text-yellow-300 mt-1">
                   {documentStatus.registrationDocumentStatus === "INCOMPLETE" &&
                     "Your registration documents are incomplete. "}
                   {documentStatus.studentPhotoUploadStatus === "NOT_UPLOADED" &&
@@ -237,25 +362,82 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {currentSemesterCourses.map((course) => (
-                <div
-                  key={course.courseCode}
-                  className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{course.courseCode}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {course.courseTitle}
-                    </p>
+              {currentSemesterCourses.length > 0 ? (
+                currentSemesterCourses.map((course) => (
+                  <div
+                    key={course.courseCode}
+                    className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium text-sm">{course.courseCode}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {course.courseTitle}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">{course.creditHours} Cr</Badge>
                   </div>
-                  <Badge variant="secondary">{course.creditHours} Cr</Badge>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No courses enrolled for this semester
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Grades - FIXED HERE */}
+        {/* Recent Grades */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Recent Grades
+            </CardTitle>
+            <CardDescription>Your latest academic performance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentGrades.length > 0 ? (
+                recentGrades.slice(0, 5).map((grade, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium text-sm">{grade.courseCode}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {grade.courseTitle} • {grade.semester} {grade.classYear}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <Badge
+                        variant={
+                          grade.letterGrade === "A" ||
+                          grade.letterGrade === "A+"
+                            ? "default"
+                            : grade.letterGrade === "F"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {grade.letterGrade || "N/A"}
+                      </Badge>
+                      {grade.gradePoint && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {grade.gradePoint.toFixed(2)} GPA
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No grades available yet
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}

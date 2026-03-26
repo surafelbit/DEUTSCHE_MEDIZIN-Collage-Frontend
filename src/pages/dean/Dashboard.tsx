@@ -2,13 +2,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { 
-  UserPlus, 
-  Users, 
-  Building, 
-  UserCog, 
-  GraduationCap, 
-  Award, 
+import {
+  UserPlus,
+  Users,
+  Building,
+  UserCog,
+  GraduationCap,
+  Award,
   TrendingUp,
   AlertTriangle,
   FileText,
@@ -17,7 +17,8 @@ import {
   User,
   CheckCircle,
   XCircle,
-  Loader2
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
 import { useLocation } from "react-router-dom";
@@ -46,7 +47,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
 );
 
 interface DeanDashboardData {
@@ -64,6 +65,15 @@ interface DeanDashboardData {
   averageGrade12Result: number;
   exitExamPassRate: number;
 }
+
+interface CachedData {
+  data: DeanDashboardData;
+  timestamp: number;
+}
+
+// Cache configuration - adjust this value to change how long data stays cached (in hours)
+const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
+const CACHE_KEY = "dean_dashboard_data";
 
 const upcomingEvents = [
   { id: 1, title: "Midterm Exams", date: "Oct 12", note: "All departments" },
@@ -90,40 +100,113 @@ const alerts = [
 export default function DeanDashboard() {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dashboardData, setDashboardData] = useState<DeanDashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<DeanDashboardData | null>(
+    null,
+  );
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const isCacheValid = (cachedData: CachedData | null): boolean => {
+    if (!cachedData) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cachedData.timestamp;
+    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
+
+    return cacheAge < cacheDurationMs;
+  };
+
+  const saveToCache = (data: DeanDashboardData) => {
     try {
-      setLoading(true);
+      const cacheData: CachedData = {
+        data,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to save to session storage:", err);
+    }
+  };
+
+  const loadFromCache = (): DeanDashboardData | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const cachedData: CachedData = JSON.parse(cached);
+
+      if (isCacheValid(cachedData)) {
+        setLastUpdated(new Date(cachedData.timestamp));
+        return cachedData.data;
+      }
+
+      // Cache expired, remove it
+      sessionStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (err) {
+      console.error("Failed to load from session storage:", err);
+      return null;
+    }
+  };
+
+  const fetchDashboardData = async (forceRefresh: boolean = false) => {
+    try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fetch from API if no cache or force refresh
       setError(null);
       const response = await apiClient.get<DeanDashboardData>(
-        endPoints.deanDashboard
+        endPoints.deanDashboard,
       );
+
       setDashboardData(response.data);
+      saveToCache(response.data);
     } catch (err: any) {
       console.error("Failed to load dashboard data:", err);
       setError(
         err.response?.data?.error ||
-        err.message ||
-        "Failed to load dashboard data. Please try again later."
+          err.message ||
+          "Failed to load dashboard data. Please try again later.",
       );
+
+      // If API fails but we have expired cache, use it as fallback
+      const expiredCache = loadFromCache();
+      if (expiredCache) {
+        setDashboardData(expiredCache);
+        setError(null); // Clear error since we have fallback data
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboardData(true);
   };
 
   // Prepare chart data from API response
   const prepareDepartmentChartData = () => {
     if (!dashboardData?.studentsPerDepartment) return null;
-    
+
     const labels = Object.keys(dashboardData.studentsPerDepartment);
     const data = Object.values(dashboardData.studentsPerDepartment);
-    
+
     // Generate colors based on number of departments
     const colors = labels.map((_, index) => {
       const hue = (index * 137.508) % 360; // Golden angle approximation
@@ -134,10 +217,10 @@ export default function DeanDashboard() {
       labels,
       datasets: [
         {
-          label: 'Students',
+          label: "Students",
           data,
           backgroundColor: colors,
-          borderColor: colors.map(color => color.replace('60%)', '40%)')),
+          borderColor: colors.map((color) => color.replace("60%)", "40%)")),
           borderWidth: 1,
         },
       ],
@@ -146,20 +229,20 @@ export default function DeanDashboard() {
 
   const prepareGenderChartData = () => {
     if (!dashboardData?.genderDistribution) return null;
-    
-    const labels = Object.keys(dashboardData.genderDistribution).map(gender => 
-      gender === 'MALE' ? 'Male' : 'Female'
+
+    const labels = Object.keys(dashboardData.genderDistribution).map(
+      (gender) => (gender === "MALE" ? "Male" : "Female"),
     );
     const data = Object.values(dashboardData.genderDistribution);
-    
+
     return {
       labels,
       datasets: [
         {
-          label: 'Students',
+          label: "Students",
           data,
-          backgroundColor: ['#3B82F6', '#EC4899'], // Blue for Male, Pink for Female
-          hoverBackgroundColor: ['#2563EB', '#DB2777'],
+          backgroundColor: ["#3B82F6", "#EC4899"], // Blue for Male, Pink for Female
+          hoverBackgroundColor: ["#2563EB", "#DB2777"],
         },
       ],
     };
@@ -167,18 +250,18 @@ export default function DeanDashboard() {
 
   const prepareLevelChartData = () => {
     if (!dashboardData?.studentsByLevel) return null;
-    
+
     const labels = Object.keys(dashboardData.studentsByLevel);
     const data = Object.values(dashboardData.studentsByLevel);
-    
+
     return {
       labels,
       datasets: [
         {
-          label: 'Students by Program Level',
+          label: "Students by Program Level",
           data,
-          backgroundColor: '#10B981',
-          borderColor: '#059669',
+          backgroundColor: "#10B981",
+          borderColor: "#059669",
           borderWidth: 1,
         },
       ],
@@ -187,10 +270,10 @@ export default function DeanDashboard() {
 
   const prepareModalityChartData = () => {
     if (!dashboardData?.studentsByModality) return null;
-    
+
     const labels = Object.keys(dashboardData.studentsByModality);
     const data = Object.values(dashboardData.studentsByModality);
-    
+
     // Generate colors
     const colors = labels.map((_, index) => {
       const hue = (index * 97.508) % 360;
@@ -201,10 +284,10 @@ export default function DeanDashboard() {
       labels,
       datasets: [
         {
-          label: 'Students by Modality',
+          label: "Students by Modality",
           data,
           backgroundColor: colors,
-          borderColor: colors.map(color => color.replace('60%)', '40%)')),
+          borderColor: colors.map((color) => color.replace("60%)", "40%)")),
           borderWidth: 1,
         },
       ],
@@ -268,9 +351,10 @@ export default function DeanDashboard() {
       label: "Exit Exam Pass Rate",
       value: dashboardData?.exitExamPassRate?.toFixed(1) || "0.0",
       icon: dashboardData?.exitExamPassRate > 50 ? CheckCircle : XCircle,
-      color: dashboardData?.exitExamPassRate > 50 
-        ? "text-green-600 dark:text-green-400" 
-        : "text-red-600 dark:text-red-400",
+      color:
+        dashboardData?.exitExamPassRate > 50
+          ? "text-green-600 dark:text-green-400"
+          : "text-red-600 dark:text-red-400",
       suffix: "%",
     },
   ];
@@ -280,13 +364,15 @@ export default function DeanDashboard() {
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400" />
-          <p className="text-lg text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Loading dashboard data...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !dashboardData) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
@@ -296,10 +382,8 @@ export default function DeanDashboard() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             Unable to load dashboard
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {error}
-          </p>
-          <Button onClick={fetchDashboardData} variant="outline">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+          <Button onClick={() => fetchDashboardData(true)} variant="outline">
             Try Again
           </Button>
         </div>
@@ -317,12 +401,34 @@ export default function DeanDashboard() {
               Dean Dashboard
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Comprehensive overview of college statistics and performance metrics
+              Comprehensive overview of college statistics and performance
+              metrics
             </p>
+            {lastUpdated && (
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                Last updated: {lastUpdated.toLocaleString()}
+              </p>
+            )}
           </div>
           <div className="flex gap-3">
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              disabled={refreshing}
+              className="flex items-center gap-2 border-gray-300 dark:border-gray-600"
+            >
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </Button>
             <Link to="/dean/students">
-              <Button variant="outline" className="flex items-center gap-2 border-gray-300 dark:border-gray-600">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 border-gray-300 dark:border-gray-600"
+              >
                 <Users className="h-4 w-4" />
                 View Students
               </Button>
@@ -370,7 +476,9 @@ export default function DeanDashboard() {
               >
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-full ${metric.color.replace('text', 'bg')} bg-opacity-20`}>
+                    <div
+                      className={`p-3 rounded-full ${metric.color.replace("text", "bg")} bg-opacity-20`}
+                    >
                       <Icon className={`h-6 w-6 ${metric.color}`} />
                     </div>
                     <div>
@@ -422,35 +530,36 @@ export default function DeanDashboard() {
                           legend: { display: false },
                           tooltip: {
                             callbacks: {
-                              label: (context) => `Students: ${context.parsed.y}`
-                            }
-                          }
+                              label: (context) =>
+                                `Students: ${context.parsed.y}`,
+                            },
+                          },
                         },
                         scales: {
                           y: {
                             beginAtZero: true,
                             ticks: {
-                              color: '#6B7280',
+                              color: "#6B7280",
                               font: {
-                                size: 11
-                              }
+                                size: 11,
+                              },
                             },
                             grid: {
-                              color: 'rgba(107, 114, 128, 0.1)'
-                            }
+                              color: "rgba(107, 114, 128, 0.1)",
+                            },
                           },
                           x: {
                             ticks: {
-                              color: '#6B7280',
+                              color: "#6B7280",
                               font: {
-                                size: 11
-                              }
+                                size: 11,
+                              },
                             },
                             grid: {
-                              color: 'rgba(107, 114, 128, 0.1)'
-                            }
-                          }
-                        }
+                              color: "rgba(107, 114, 128, 0.1)",
+                            },
+                          },
+                        },
                       }}
                     />
                   </div>
@@ -480,20 +589,21 @@ export default function DeanDashboard() {
                         maintainAspectRatio: false,
                         plugins: {
                           legend: {
-                            position: 'bottom',
+                            position: "bottom",
                             labels: {
-                              color: '#6B7280',
+                              color: "#6B7280",
                               font: {
-                                size: 12
-                              }
-                            }
+                                size: 12,
+                              },
+                            },
                           },
                           tooltip: {
                             callbacks: {
-                              label: (context) => `${context.label}: ${context.parsed} students`
-                            }
-                          }
-                        }
+                              label: (context) =>
+                                `${context.label}: ${context.parsed} students`,
+                            },
+                          },
+                        },
                       }}
                     />
                   </div>
@@ -525,29 +635,30 @@ export default function DeanDashboard() {
                           legend: { display: false },
                           tooltip: {
                             callbacks: {
-                              label: (context) => `Students: ${context.parsed.y}`
-                            }
-                          }
+                              label: (context) =>
+                                `Students: ${context.parsed.y}`,
+                            },
+                          },
                         },
                         scales: {
                           y: {
                             beginAtZero: true,
                             ticks: {
-                              color: '#6B7280',
+                              color: "#6B7280",
                             },
                             grid: {
-                              color: 'rgba(107, 114, 128, 0.1)'
-                            }
+                              color: "rgba(107, 114, 128, 0.1)",
+                            },
                           },
                           x: {
                             ticks: {
-                              color: '#6B7280',
+                              color: "#6B7280",
                             },
                             grid: {
-                              color: 'rgba(107, 114, 128, 0.1)'
-                            }
-                          }
-                        }
+                              color: "rgba(107, 114, 128, 0.1)",
+                            },
+                          },
+                        },
                       }}
                     />
                   </div>
@@ -577,20 +688,21 @@ export default function DeanDashboard() {
                         maintainAspectRatio: false,
                         plugins: {
                           legend: {
-                            position: 'bottom',
+                            position: "bottom",
                             labels: {
-                              color: '#6B7280',
+                              color: "#6B7280",
                               font: {
-                                size: 11
-                              }
-                            }
+                                size: 11,
+                              },
+                            },
                           },
                           tooltip: {
                             callbacks: {
-                              label: (context) => `${context.label}: ${context.parsed} students`
-                            }
-                          }
-                        }
+                              label: (context) =>
+                                `${context.label}: ${context.parsed} students`,
+                            },
+                          },
+                        },
                       }}
                     />
                   </div>
