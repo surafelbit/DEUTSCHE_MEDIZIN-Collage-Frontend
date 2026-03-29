@@ -48,6 +48,7 @@ type RealGradeReport = {
   birthDateGC: string;
   dateEnrolledGC: string;
   dateIssuedGC?: string;
+  studentBCYS?: string;
   programModality: { id: string; name: string };
   programLevel: { id: string | null; name: string | null };
   department: { id: number; name: string };
@@ -99,14 +100,23 @@ type StudentForSelection = {
 
 type SearchType = "report" | "transcript";
 
+const ACADEMIC_YEAR_NOT_PROVIDED = "Not Provided";
+
 const getAcademicYearString = (academicYear: any): string => {
-  if (!academicYear) return "2024G.C/2016ec";
-  if (typeof academicYear === 'string') return academicYear;
-  if (typeof academicYear === 'object') {
-    // Try different possible property names
-    return academicYear.yearCode || academicYear.yearGC || academicYear.name || academicYear.toString() || "2024G.C/2016ec";
+  if (!academicYear) return ACADEMIC_YEAR_NOT_PROVIDED;
+  if (typeof academicYear === 'string') {
+    const value = academicYear.trim();
+    return value.length > 0 ? value : ACADEMIC_YEAR_NOT_PROVIDED;
   }
-  return "2024G.C/2016ec";
+  if (typeof academicYear === 'object') {
+    const value = academicYear.yearCode || academicYear.yearGC || academicYear.name;
+    if (typeof value === "string") {
+      const normalized = value.trim();
+      return normalized.length > 0 ? normalized : ACADEMIC_YEAR_NOT_PROVIDED;
+    }
+    return ACADEMIC_YEAR_NOT_PROVIDED;
+  }
+  return ACADEMIC_YEAR_NOT_PROVIDED;
 };
 
 export default function Transcript_Generate() {
@@ -229,16 +239,6 @@ const handleGenerateReports = async () => {
                         (response && typeof response === 'object') ? [response] : [];
 
     const transformedReports: RealGradeReport[] = reportsArray.map((item: any) => {
-      // Helper function to safely get academic year string
-      const getAcademicYearString = (academicYear: any): string => {
-        if (!academicYear) return "2023/24G.C/2016ec";
-        if (typeof academicYear === 'string') return academicYear;
-        if (typeof academicYear === 'object') {
-          return academicYear.yearCode || academicYear.yearGC || "2023/24G.C/2016ec";
-        }
-        return "2023/24G.C/2016ec";
-      };
-
       return {
         idNumber: item.idNumber || item.studentId || "N/A",
         fullName: item.fullName || item.studentName || "Unknown",
@@ -246,6 +246,7 @@ const handleGenerateReports = async () => {
         birthDateGC: item.dateOfBirthGC || item.birthDate || "N/A",
         dateEnrolledGC: item.dateEnrolledGC || item.enrollmentDate || "N/A",
         dateIssuedGC: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-'),
+        studentBCYS: item.studentBCYS || item.bcysDisplayName || "N/A",
         programModality: item.programModality || { id: "1", name: "Regular" },
         programLevel: item.programLevel || { id: "1", name: "Degree" },
         department: item.department || { id: 1, name: "Unknown" },
@@ -283,6 +284,7 @@ const handleGenerateReports = async () => {
       birthDateGC: "1995-01-01",
       dateEnrolledGC: "2021-10-11",
       dateIssuedGC: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-'),
+      studentBCYS: allStudents.find((s) => s.studentId === id)?.bcysDisplayName || "N/A",
       programModality: { id: "1", name: "Regular" },
       programLevel: { id: "1", name: "Degree" },
       department: { id: 1, name: "Medical Radiotechnology" },
@@ -290,7 +292,7 @@ const handleGenerateReports = async () => {
         {
           classyear: { id: 1, name: "II" },
           semester: { id: "1", name: "I" },
-          academicYear: "2023/24G.C/2016ec",
+          academicYear: null,
           courses: [
             {
               courseCode: "RAD SM_2174",
@@ -386,7 +388,7 @@ const handleGenerateTranscripts = async () => {
             {
               classyear: { id: 1, name: "I" },
               semester: { id: "1", name: "First Semester" },
-              academicYear: "2024G.C/2016ec",
+              academicYear: null,
               courses: [
                 {
                   courseCode: "ENGL 1011",
@@ -417,7 +419,7 @@ const handleGenerateTranscripts = async () => {
             {
               classyear: { id: 1, name: "I" },
               semester: { id: "2", name: "Second Semester" },
-              academicYear: "2024G.C/2016ec",
+              academicYear: null,
               courses: [
                 {
                   courseCode: "ANAT 1013",
@@ -465,7 +467,7 @@ const handleGenerateTranscripts = async () => {
           {
             classyear: { id: 1, name: "I" },
             semester: { id: "1", name: "First Semester" },
-            academicYear: "2024G.C/2016ec",
+            academicYear: null,
             courses: [
               {
                 courseCode: "ENGL 1011",
@@ -543,7 +545,7 @@ const exportStudentCopyToPDF = () => {
     doc.setFontSize(12); // Increased from 8
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
-    doc.text("MD1_[PC_I]", pageWidth / 2, y - 2, { align: "center" });
+    doc.text(report.studentBCYS || "N/A", pageWidth / 2, y - 2, { align: "center" });
 
     doc.setFontSize(8); // Increased from 5
     doc.setFont("helvetica", "normal");
@@ -587,7 +589,7 @@ const exportStudentCopyToPDF = () => {
       doc.setFontSize(7); // Increased from 5
       doc.setFont("helvetica", "bold");
       doc.text(
-        `Academic Year: ${copy.academicYear || "2023/24G.C/2016ec"}   Class Year: ${copy.classyear?.name || "II"}   Semester: ${copy.semester?.name || "I"}   MRT_121`,
+        `Academic Year: ${getAcademicYearString(copy.academicYear)}   Class Year: ${copy.classyear?.name || "II"}   Semester: ${copy.semester?.name || "I"}`,
         margin,
         y
       );
@@ -804,7 +806,8 @@ const exportStudentCopyToPDF = () => {
           doc.setTextColor(255, 255, 255);
           doc.setFontSize(5);
           doc.setFont("helvetica", "bold");
-          const headerText = `${getAcademicYearString(leftCopy.academicYear) || "2024G.C/2016ec"} • Year ${leftCopy.classyear?.name || "I"} • ${leftCopy.semester?.name || "First Semester"}`;          doc.text(headerText, margin + headerWidth / 2, currentY, { align: "center" });
+          const headerText = `${getAcademicYearString(leftCopy.academicYear)} • Year ${leftCopy.classyear?.name || "I"} • ${leftCopy.semester?.name || "First Semester"}`;
+          doc.text(headerText, margin + headerWidth / 2, currentY, { align: "center" });
           currentY += 3;
           doc.setTextColor(0, 0, 0);
 
@@ -869,7 +872,8 @@ const exportStudentCopyToPDF = () => {
           doc.setTextColor(255, 255, 255);
           doc.setFontSize(5);
           doc.setFont("helvetica", "bold");
-const headerText = `${getAcademicYearString(rightCopy.academicYear) || "2024G.C/2016ec"} • Year ${rightCopy.classyear?.name || "I"} • ${rightCopy.semester?.name || "First Semester"}`;          doc.text(headerText, rightX + headerWidth/2, currentY, { align: "center" });
+          const headerText = `${getAcademicYearString(rightCopy.academicYear)} • Year ${rightCopy.classyear?.name || "I"} • ${rightCopy.semester?.name || "First Semester"}`;
+          doc.text(headerText, rightX + headerWidth / 2, currentY, { align: "center" });
           currentY += 3;
           doc.setTextColor(0, 0, 0);
 
@@ -1017,7 +1021,7 @@ const headerText = `${getAcademicYearString(rightCopy.academicYear) || "2024G.C/
       sheetData.push([]);
 
       // Academic Year
-      sheetData.push([`Academic Year: ${copy.academicYear || "2023/24G.C/2016ec"}   Class Year: ${copy.classyear?.name || "II"}   Semester: ${copy.semester?.name || "I"}   MRT_121`]);
+      sheetData.push([`Academic Year: ${getAcademicYearString(copy.academicYear)}   Class Year: ${copy.classyear?.name || "II"}   Semester: ${copy.semester?.name || "I"}   MRT_121`]);
       sheetData.push([]);
 
       // Courses Table Header
@@ -1112,7 +1116,7 @@ const headerText = `${getAcademicYearString(rightCopy.academicYear) || "2024G.C/
 
       // Semesters
       transcript.studentCopies.forEach((copy) => {
-        sheetData.push([`Academic Year: ${copy.academicYear || "N/A"}   Class Year: ${copy.classyear?.name || "N/A"}`]);
+        sheetData.push([`Academic Year: ${getAcademicYearString(copy.academicYear)}   Class Year: ${copy.classyear?.name || "N/A"}`]);
         sheetData.push([`Semester: ${copy.semester?.name || "N/A"}`]);
         sheetData.push([]);
         sheetData.push(["No", "Code", "Course Title", "Cr.Hr", "Letter Grade", "Gr Point"]);
@@ -1217,7 +1221,7 @@ const headerText = `${getAcademicYearString(rightCopy.academicYear) || "2024G.C/
           </table>
 
           <div style="font-weight: bold; margin: 10px 0; color: black;">
-            Academic Year: ${copy.academicYear || '2023/24G.C/2016ec'}   Class Year: ${copy.classyear?.name || 'II'}   Semester: ${copy.semester?.name || 'I'}   MRT_121
+            Academic Year: ${getAcademicYearString(copy.academicYear)}   Class Year: ${copy.classyear?.name || 'II'}   Semester: ${copy.semester?.name || 'I'}   MRT_121
           </div>
 
           <table>
@@ -1322,7 +1326,7 @@ const headerText = `${getAcademicYearString(rightCopy.academicYear) || "2024G.C/
           ${transcript.studentCopies.map(copy => {
             return `
               <div class="semester-header" style="text-align: center;">
-                ${copy.academicYear || '2024G.C/2016ec'} • Year ${copy.classyear?.name || 'I'} • ${copy.semester?.name || 'First Semester'}
+                ${getAcademicYearString(copy.academicYear)} • Year ${copy.classyear?.name || 'I'} • ${copy.semester?.name || 'First Semester'}
               </div>
               <table>
                 <thead><tr><th>No</th><th>Code</th><th>Course Title</th><th>CH</th><th>Grade</th><th>Point</th></tr></thead>
@@ -1609,12 +1613,20 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
   if (!copy) return null;
 
   const getAcademicYearString = (academicYear: any): string => {
-    if (!academicYear) return "2023/24G.C/2016ec";
-    if (typeof academicYear === 'string') return academicYear;
-    if (typeof academicYear === 'object') {
-      return academicYear.yearCode || academicYear.yearGC || "2023/24G.C/2016ec";
+    if (!academicYear) return ACADEMIC_YEAR_NOT_PROVIDED;
+    if (typeof academicYear === 'string') {
+      const value = academicYear.trim();
+      return value.length > 0 ? value : ACADEMIC_YEAR_NOT_PROVIDED;
     }
-    return "2023/24G.C/2016ec";
+    if (typeof academicYear === 'object') {
+      const value = academicYear.yearCode || academicYear.yearGC || academicYear.name;
+      if (typeof value === "string") {
+        const normalized = value.trim();
+        return normalized.length > 0 ? normalized : ACADEMIC_YEAR_NOT_PROVIDED;
+      }
+      return ACADEMIC_YEAR_NOT_PROVIDED;
+    }
+    return ACADEMIC_YEAR_NOT_PROVIDED;
   };
 
   const totalCr = copy.courses.reduce((sum, c) => sum + (c.totalCrHrs || 0), 0);
@@ -1629,7 +1641,7 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="bg-yellow-400 dark:bg-yellow-500 p-3 relative">
         <div className="text-center">
-          <div className="font-bold text-lg text-gray-900 dark:text-gray-900">MD1_[PC_I]</div>
+          <div className="font-bold text-lg text-gray-900 dark:text-gray-900">{report.studentBCYS || "N/A"}</div>
           <div className="text-xs text-gray-800 dark:text-gray-800">DEUTSCHE HOCHSCHULE FÜR MEDIZIN MEDICAL COLLEGE</div>
           <div className="font-bold text-base mt-1 text-gray-900 dark:text-gray-900">STUDENT ACADEMIC RECORD</div>
         </div>
@@ -1675,7 +1687,7 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
         </table>
 
         <div className="font-bold mt-2 mb-1 text-xs text-gray-900 dark:text-white">
-          Academic Year: {academicYearStr}   Class Year: {copy.classyear?.name || "II"}   Semester: {copy.semester?.name || "I"}   MRT_121
+          Academic Year: {academicYearStr}   Class Year: {copy.classyear?.name || "II"}   Semester: {copy.semester?.name || "I"}
         </div>
 
         {/* Side-by-side tables */}
@@ -1773,13 +1785,20 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
 function TranscriptView({ transcript }: { transcript: RealTranscript }) {
   // Helper function to safely get academic year string
   const getAcademicYearString = (academicYear: any): string => {
-    if (!academicYear) return "2024G.C/2016ec";
-    if (typeof academicYear === 'string') return academicYear;
-    if (typeof academicYear === 'object') {
-      // If it's an object with yearCode or yearGC properties
-      return academicYear.yearCode || academicYear.yearGC || "2024G.C/2016ec";
+    if (!academicYear) return ACADEMIC_YEAR_NOT_PROVIDED;
+    if (typeof academicYear === 'string') {
+      const value = academicYear.trim();
+      return value.length > 0 ? value : ACADEMIC_YEAR_NOT_PROVIDED;
     }
-    return "2024G.C/2016ec";
+    if (typeof academicYear === 'object') {
+      const value = academicYear.yearCode || academicYear.yearGC || academicYear.name;
+      if (typeof value === "string") {
+        const normalized = value.trim();
+        return normalized.length > 0 ? normalized : ACADEMIC_YEAR_NOT_PROVIDED;
+      }
+      return ACADEMIC_YEAR_NOT_PROVIDED;
+    }
+    return ACADEMIC_YEAR_NOT_PROVIDED;
   };
 
   return (
