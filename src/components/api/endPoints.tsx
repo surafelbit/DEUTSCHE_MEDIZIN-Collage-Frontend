@@ -181,6 +181,8 @@ const endPoints = {
     "/registrar/assignments/:teacherCourseAssignmentId/final-approve-all",
   progressionSequences: "/registrar/progression-sequences",
   formTemplates: "/registrar/form-templates",
+  getRegistrar: "/registrar/all",
+  getRegistrarById: "/registrars",
   registrarAcademicProgress: "/registrar/students/:userId/academic-progress",
 
   /* =======================     Vice Deans  ======================== */
