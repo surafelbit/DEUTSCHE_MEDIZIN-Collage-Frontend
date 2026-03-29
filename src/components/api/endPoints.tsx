@@ -182,6 +182,8 @@ const endPoints = {
   progressionSequences: "/registrar/progression-sequences",
   formTemplates: "/registrar/form-templates",
   getRegistrar: "/registrar/all",
+  getRegistrarPhoto: "/registrar/photo/:id",
+  getRegistrarNationalID: "/registrar/nationalID/:id",
   getRegistrarById: "/registrars",
   registrarAcademicProgress: "/registrar/students/:userId/academic-progress",
 
