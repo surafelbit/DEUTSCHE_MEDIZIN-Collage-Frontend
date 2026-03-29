@@ -15,7 +15,7 @@ import notificationService, {
 
 interface NotificationDropdownProps {
   className?: string;
-  userRole?: string; // Add this
+  userRole?: string;
 }
 
 export default function NotificationDropdown({
@@ -29,7 +29,6 @@ export default function NotificationDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // Get icon for sender role
   const getSenderIcon = (senderRole: string) => {
     switch (senderRole.toUpperCase()) {
       case "REGISTRAR":
@@ -49,7 +48,6 @@ export default function NotificationDropdown({
     }
   };
 
-  // Get notification route based on user role
   const getNotificationRoute = () => {
     const role = userRole?.toLowerCase() || "";
     switch (role) {
@@ -68,7 +66,6 @@ export default function NotificationDropdown({
       case "head":
         return "/head/notifications";
       default:
-        // Fallback to URL detection
         const path = window.location.pathname;
         if (path.includes("/teacher/")) return "/teacher/notifications";
         if (path.includes("/registrar/")) return "/registrar/notifications";
@@ -78,7 +75,7 @@ export default function NotificationDropdown({
         return "/student/notifications";
     }
   };
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -95,18 +92,17 @@ export default function NotificationDropdown({
     };
   }, []);
 
-  // Fetch latest notifications
-  const fetchLatestNotifications = async () => {
+  // Fetch notifications using the new V2 endpoint - called on mount and when needed
+  const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const allNotifications = await notificationService.getAllNotifications();
-      const latestNotifications =
-        await notificationService.getLatestNotifications();
+      const { notifications: fetchedNotifications, unreadCount: count } =
+        await notificationService.getNotificationsWithCount();
 
       const sortedNotifications =
-        notificationService.sortNotificationsByPriority(latestNotifications);
-      setNotifications(sortedNotifications.slice(0, 3));
-      setUnreadCount(notificationService.getUnreadCount(allNotifications));
+        notificationService.sortNotificationsByPriority(fetchedNotifications);
+      setNotifications(sortedNotifications.slice(0, 5)); // Show top 5 in dropdown
+      setUnreadCount(count);
     } catch (error) {
       console.error("Error fetching notifications:", error);
       setNotifications([]);
@@ -116,15 +112,15 @@ export default function NotificationDropdown({
     }
   };
 
-  // Initial load
-  // useEffect(() => {
-  //   fetchLatestNotifications();
-  // }, []);
+  // Fetch notifications on component mount (page load)
+  useEffect(() => {
+    fetchNotifications();
+  }, []); // Empty dependency array means this runs once on mount
 
-  // Handle notification click
   const handleNotificationClick = async (notificationId: number) => {
     try {
       await notificationService.markNotificationAsRead(notificationId);
+      // Update local state
       setNotifications((prev) =>
         prev.map((notif) =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif,
@@ -133,6 +129,7 @@ export default function NotificationDropdown({
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       console.error("Error marking notification as read:", error);
+      // Optimistic update even if API fails
       setNotifications((prev) =>
         prev.map((notif) =>
           notif.id === notificationId ? { ...notif, isRead: true } : notif,
@@ -142,18 +139,17 @@ export default function NotificationDropdown({
     }
   };
 
-  // Handle view more click - Fixed to redirect to appropriate layout
   const handleViewMore = () => {
     setShowDropdown(false);
     const route = getNotificationRoute();
     navigate(route);
   };
 
-  // Toggle dropdown
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
     if (!showDropdown) {
-      fetchLatestNotifications();
+      // Refresh notifications when opening dropdown
+      fetchNotifications();
     }
   };
 
@@ -181,6 +177,11 @@ export default function NotificationDropdown({
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
               Notifications
             </h3>
+            {unreadCount > 0 && (
+              <span className="text-xs text-blue-600 dark:text-blue-400 ml-2">
+                {unreadCount} unread
+              </span>
+            )}
           </div>
 
           {/* Content */}
@@ -209,6 +210,7 @@ export default function NotificationDropdown({
                         ? "bg-blue-50 dark:bg-blue-900/20"
                         : ""
                     } ${index !== notifications.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}
+                    onClick={() => handleNotificationClick(notification.id)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
@@ -234,16 +236,9 @@ export default function NotificationDropdown({
                         </div>
                       </div>
                       {!notification.isRead && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleNotificationClick(notification.id);
-                          }}
-                          className="ml-2 p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150"
-                          title="Mark as read"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
+                        <div className="ml-2 p-1">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        </div>
                       )}
                     </div>
                   </div>

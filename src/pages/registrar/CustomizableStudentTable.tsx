@@ -49,6 +49,9 @@ import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
 
 const COLUMNS_STORAGE_KEY = "student-table-visible-columns";
+// Session storage configuration
+const STUDENTS_STORAGE_KEY = "student-table-data";
+const STUDENTS_STORAGE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 // ─── Types ────────────────────────────────────────────────────────────────
 interface NameEntity {
@@ -73,6 +76,7 @@ interface Student {
 }
 
 interface FilterOptions {
+  maritalStatuses?: NameEntity[];
   batches: NameEntity[];
   batchClassYearSemesters: NameEntity[];
   departments: NameEntity[];
@@ -96,6 +100,8 @@ export default function CustomizableStudentTable() {
     null,
   );
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,11 +109,11 @@ export default function CustomizableStudentTable() {
   const [showColumnsPanel, setShowColumnsPanel] = useState(false);
 
   // State for filter group visibility
-  const [showPersonalFilters, setShowPersonalFilters] = useState(true);
-  const [showAcademicFilters, setShowAcademicFilters] = useState(true);
-  const [showPerformanceFilters, setShowPerformanceFilters] = useState(true);
+  const [showPersonalFilters, setShowPersonalFilters] = useState(false);
+  const [showAcademicFilters, setShowAcademicFilters] = useState(false);
+  const [showPerformanceFilters, setShowPerformanceFilters] = useState(false);
   const [showAdministrativeFilters, setShowAdministrativeFilters] =
-    useState(true);
+    useState(false);
 
   // Filters
   const [genderFilter, setGenderFilter] = useState<string>("all");
@@ -118,10 +124,32 @@ export default function CustomizableStudentTable() {
   const [academicYearFilter, setAcademicYearFilter] = useState<string>("all");
   const [batchClassYearSemesterFilter, setBatchClassYearSemesterFilter] =
     useState<string>("all");
-  // Add with other filter states
   const [batchFilter, setBatchFilter] = useState<string>("all");
   const [impairmentFilter, setImpairmentFilter] = useState<string>("all");
   const [programLevelFilter, setProgramLevelFilter] = useState<string>("all");
+  // Marital Status
+  const [maritalStatusFilter, setMaritalStatusFilter] = useState<string>("all");
+
+  // Date Class End Range
+  const [dateClassEndRange, setDateClassEndRange] = useState<{
+    start: string | null;
+    end: string | null;
+  }>({ start: null, end: null });
+
+  // Date Graduated Range
+  const [dateGraduatedRange, setDateGraduatedRange] = useState<{
+    start: string | null;
+    end: string | null;
+  }>({ start: null, end: null });
+
+  // Total Courses Registered Range
+  const [totalCoursesRange, setTotalCoursesRange] = useState<{
+    min: number | null;
+    max: number | null;
+  }>({ min: null, max: null });
+
+  // Original Batch Filter
+  const [originalBatchFilter, setOriginalBatchFilter] = useState<string>("all");
 
   // Add these after your existing filter states
   const [schoolBackgroundFilter, setSchoolBackgroundFilter] =
@@ -237,7 +265,7 @@ export default function CustomizableStudentTable() {
 
         // 2. Get filter options
         const optionsRes = await apiClient.get<FilterOptions>(
-          endPoints.filtersOptions || "/filters/options",
+          endPoints.lookupsDropdown || "/filters/options",
         );
         setFilterOptions(optionsRes.data);
         console.log(optionsRes);
@@ -256,6 +284,28 @@ export default function CustomizableStudentTable() {
       } finally {
         if (mounted) setLoading(false);
       }
+
+      // 3. Get students - with session storage
+      let studentsData;
+      const cachedStudents = loadStudentsFromStorage();
+
+      if (cachedStudents && !isRefreshing) {
+        // Use cached data if available and not refreshing
+        studentsData = cachedStudents;
+        console.log("Loaded students from session storage");
+      } else {
+        // Fetch from API
+        const studentsRes = await apiClient.get<Student[]>(
+          endPoints.allStudents,
+        );
+        studentsData = studentsRes.data ?? [];
+        saveStudentsToStorage(studentsData);
+        console.log("Fetched students from API and saved to storage");
+      }
+
+      if (mounted) {
+        setStudents(studentsData);
+      }
     };
 
     loadData();
@@ -271,6 +321,35 @@ export default function CustomizableStudentTable() {
       localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(visibleColumns));
     }
   }, [visibleColumns]);
+
+  // Save students to session storage with timestamp
+  const saveStudentsToStorage = (studentsData: Student[]) => {
+    const storageData = {
+      data: studentsData,
+      timestamp: Date.now(),
+    };
+    sessionStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(storageData));
+  };
+
+  // Load students from session storage
+  const loadStudentsFromStorage = (): Student[] | null => {
+    const stored = sessionStorage.getItem(STUDENTS_STORAGE_KEY);
+    if (!stored) return null;
+
+    try {
+      const { data, timestamp } = JSON.parse(stored);
+      const isExpired = Date.now() - timestamp > STUDENTS_STORAGE_DURATION;
+
+      if (isExpired) {
+        sessionStorage.removeItem(STUDENTS_STORAGE_KEY);
+        return null;
+      }
+
+      return data;
+    } catch (e) {
+      return null;
+    }
+  };
 
   // Reset all filters
   const resetFilters = () => {
@@ -297,6 +376,12 @@ export default function CustomizableStudentTable() {
     setCreditHoursRange({ min: null, max: null });
     setDateOfBirthRange({ start: null, end: null });
     setDateEnrolledRange({ start: null, end: null });
+
+    setMaritalStatusFilter("all");
+    setOriginalBatchFilter("all");
+    setDateClassEndRange({ start: null, end: null });
+    setDateGraduatedRange({ start: null, end: null });
+    setTotalCoursesRange({ min: null, max: null });
 
     // Also expand all filter groups
     setShowPersonalFilters(true);
@@ -380,20 +465,10 @@ export default function CustomizableStudentTable() {
         return false;
       }
 
-      // Exit Exam filter
+      // Exit Exam filter - using exitExamPassStatuses
       if (exitExamFilter !== "all") {
         const examValue = student.isStudentPassExitExam;
-        let displayValue = "Not Taken Yet"; // default for null
-
-        if (examValue === true) {
-          displayValue = "Passed";
-        } else if (examValue === false) {
-          displayValue = "Not Passed";
-        } else if (examValue == null) {
-          displayValue = "Not Taken Yet";
-        }
-
-        if (displayValue !== exitExamFilter) {
+        if (examValue !== exitExamFilter) {
           return false;
         }
       }
@@ -629,6 +704,71 @@ export default function CustomizableStudentTable() {
         }
         // If student doesn't have enrolled date but we have range filter, they pass through
       }
+
+      // Marital Status
+      if (
+        maritalStatusFilter !== "all" &&
+        student.maritalStatus !== maritalStatusFilter
+      )
+        return false;
+
+      // Original Batch
+      if (
+        originalBatchFilter !== "all" &&
+        getEntityId(student.batch) !== originalBatchFilter
+      )
+        return false;
+
+      // Date Class End Range
+      if (dateClassEndRange.start || dateClassEndRange.end) {
+        const date = student.dateClassEndGC;
+        if (date) {
+          const dateObj = new Date(date);
+          if (
+            dateClassEndRange.start &&
+            dateObj < new Date(dateClassEndRange.start)
+          )
+            return false;
+          if (dateClassEndRange.end) {
+            const endDate = new Date(dateClassEndRange.end);
+            endDate.setHours(23, 59, 59, 999);
+            if (dateObj > endDate) return false;
+          }
+        }
+      }
+
+      // Date Graduated Range
+      if (dateGraduatedRange.start || dateGraduatedRange.end) {
+        const date = student.dateGraduated;
+        if (date) {
+          const dateObj = new Date(date);
+          if (
+            dateGraduatedRange.start &&
+            dateObj < new Date(dateGraduatedRange.start)
+          )
+            return false;
+          if (dateGraduatedRange.end) {
+            const endDate = new Date(dateGraduatedRange.end);
+            endDate.setHours(23, 59, 59, 999);
+            if (dateObj > endDate) return false;
+          }
+        }
+      }
+
+      // Total Courses Registered Range
+      if (
+        totalCoursesRange.min !== null &&
+        student.totalCoursesRegistered !== null &&
+        student.totalCoursesRegistered < totalCoursesRange.min
+      )
+        return false;
+      if (
+        totalCoursesRange.max !== null &&
+        student.totalCoursesRegistered !== null &&
+        student.totalCoursesRegistered > totalCoursesRange.max
+      )
+        return false;
+
       return true;
     });
     console.log("Filtered students count:", result.length);
@@ -659,6 +799,11 @@ export default function CustomizableStudentTable() {
     creditHoursRange,
     dateOfBirthRange,
     dateEnrolledRange,
+    maritalStatusFilter,
+    originalBatchFilter,
+    dateClassEndRange,
+    dateGraduatedRange,
+    totalCoursesRange,
   ]);
 
   //===============================================================================
@@ -709,20 +854,20 @@ export default function CustomizableStudentTable() {
     return Array.from(transfers).sort();
   }, [students]);
 
-  const distinctExitExamStatuses = useMemo(() => {
-    const exams = new Set<string>();
-    students.forEach((student) => {
-      const value = student.isStudentPassExitExam;
-      if (value === true) {
-        exams.add("Passed");
-      } else if (value === false) {
-        exams.add("Not Passed");
-      } else if (value == null) {
-        exams.add("Not Taken Yet");
-      }
-    });
-    return Array.from(exams).sort();
-  }, [students]);
+  // const distinctExitExamStatuses = useMemo(() => {
+  //   const exams = new Set<string>();
+  //   students.forEach((student) => {
+  //     const value = student.isStudentPassExitExam;
+  //     if (value === true) {
+  //       exams.add("Passed");
+  //     } else if (value === false) {
+  //       exams.add("Not Passed");
+  //     } else if (value == null) {
+  //       exams.add("Not Taken Yet");
+  //     }
+  //   });
+  //   return Array.from(exams).sort();
+  // }, [students]);
   //===============================================================================
   const getDisplayValue = (student: Student, field: string): string => {
     const value = student[field];
@@ -933,18 +1078,24 @@ export default function CustomizableStudentTable() {
           </div>
 
           {/* Organized Filter Groups */}
-          <div className="space-y-8">
+          <div className="space-y-4">
             {/* PERSONAL INFO FILTERS */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="border-b border-border/50 pb-3">
+              <div
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/30 rounded-lg px-2 py-2 transition-colors"
+                onClick={() => setShowPersonalFilters(!showPersonalFilters)}
+              >
                 <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                   Personal Information
                 </h3>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowPersonalFilters(!showPersonalFilters)}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPersonalFilters(!showPersonalFilters);
+                  }}
                 >
                   <ChevronDown
                     className={`h-4 w-4 transition-transform duration-200 ${
@@ -957,11 +1108,12 @@ export default function CustomizableStudentTable() {
               <div
                 className={`transition-all duration-300 ease-out overflow-hidden ${
                   showPersonalFilters
-                    ? "max-h-[500px] opacity-100"
+                    ? "max-h-[500px] opacity-100 mt-3"
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 pt-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  {" "}
                   {/* Gender */}
                   <div>
                     <Label className="mb-1.5 text-sm">Gender</Label>
@@ -979,7 +1131,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Age Range Filter */}
                   <div>
                     <Label className="mb-1.5 text-sm">Age Range</Label>
@@ -1008,7 +1159,6 @@ export default function CustomizableStudentTable() {
                       />
                     </div>
                   </div>
-
                   {/* Impairment */}
                   <div>
                     <Label className="mb-1.5 text-sm">Impairment</Label>
@@ -1029,7 +1179,26 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
+                  {/* Marital Status */}
+                  <div>
+                    <Label className="mb-1.5 text-sm">Marital Status</Label>
+                    <Select
+                      value={maritalStatusFilter}
+                      onValueChange={setMaritalStatusFilter}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {filterOptions?.maritalStatuses?.map((status) => (
+                          <SelectItem key={status.id} value={status.id}>
+                            {status.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   {/* Date of Birth Range */}
                   <div>
                     <Label className="mb-1.5 text-sm">
@@ -1073,16 +1242,22 @@ export default function CustomizableStudentTable() {
             </div>
 
             {/* ACADEMIC INFO FILTERS */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="border-b border-border/50 pb-3">
+              <div
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/30 rounded-lg px-2 py-2 transition-colors"
+                onClick={() => setShowAcademicFilters(!showAcademicFilters)}
+              >
                 <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                   Academic Information
                 </h3>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowAcademicFilters(!showAcademicFilters)}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAcademicFilters(!showAcademicFilters);
+                  }}
                 >
                   <ChevronDown
                     className={`h-4 w-4 transition-transform duration-200 ${
@@ -1095,11 +1270,12 @@ export default function CustomizableStudentTable() {
               <div
                 className={`transition-all duration-300 ease-out overflow-hidden ${
                   showAcademicFilters
-                    ? "max-h-[500px] opacity-100"
+                    ? "max-h-[500px] opacity-100 mt-3"
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 pt-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  {" "}
                   {/* Department */}
                   <div>
                     <Label className="mb-1.5 text-sm">Department</Label>
@@ -1120,7 +1296,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Program Modality */}
                   <div>
                     <Label className="mb-1.5 text-sm">Program Modality</Label>
@@ -1141,7 +1316,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Program Level */}
                   <div>
                     <Label className="mb-1.5 text-sm">Program Level</Label>
@@ -1162,7 +1336,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Academic Year */}
                   {/* <div>
                     <Label className="mb-1.5 text-sm">Academic Year</Label>
@@ -1183,7 +1356,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div> */}
-
                   {/* Batch */}
                   <div>
                     <Label className="mb-1.5 text-sm">Recent Batch</Label>
@@ -1201,7 +1373,26 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
+                  {/* Original Batch */}
+                  <div>
+                    <Label className="mb-1.5 text-sm">Original Batch</Label>
+                    <Select
+                      value={originalBatchFilter}
+                      onValueChange={setOriginalBatchFilter}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Batches" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Batches</SelectItem>
+                        {filterOptions?.batches?.map((batch) => (
+                          <SelectItem key={batch.id} value={String(batch.id)}>
+                            {batch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   {/* Batch / Year / Semester */}
                   <div>
                     <Label className="mb-1.5 text-sm">Recent BCYS</Label>
@@ -1222,7 +1413,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* School Background */}
                   <div>
                     <Label className="mb-1.5 text-sm">School Background</Label>
@@ -1243,7 +1433,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Status */}
                   <div>
                     <Label className="mb-1.5 text-sm">Recent Status</Label>
@@ -1269,18 +1458,24 @@ export default function CustomizableStudentTable() {
             </div>
 
             {/* PERFORMANCE FILTERS */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="border-b border-border/50 pb-3">
+              <div
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/30 rounded-lg px-2 py-2 transition-colors"
+                onClick={() =>
+                  setShowPerformanceFilters(!showPerformanceFilters)
+                }
+              >
                 <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                   Performance & Scores
                 </h3>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() =>
-                    setShowPerformanceFilters(!showPerformanceFilters)
-                  }
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowPerformanceFilters(!showPerformanceFilters);
+                  }}
                 >
                   <ChevronDown
                     className={`h-4 w-4 transition-transform duration-200 ${
@@ -1293,11 +1488,12 @@ export default function CustomizableStudentTable() {
               <div
                 className={`transition-all duration-300 ease-out overflow-hidden ${
                   showPerformanceFilters
-                    ? "max-h-[500px] opacity-100"
+                    ? "max-h-[500px] opacity-100 mt-3"
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 pt-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  {" "}
                   {/* CGPA Range */}
                   <div>
                     <Label className="mb-1.5 text-sm">CGPA Range</Label>
@@ -1340,7 +1536,6 @@ export default function CustomizableStudentTable() {
                       />
                     </div>
                   </div>
-
                   {/* Exit Exam Score Range */}
                   <div>
                     <Label className="mb-1.5 text-sm">
@@ -1387,7 +1582,6 @@ export default function CustomizableStudentTable() {
                       />
                     </div>
                   </div>
-
                   {/* Grade 12 Result Range */}
                   <div>
                     <Label className="mb-1.5 text-sm">
@@ -1434,7 +1628,6 @@ export default function CustomizableStudentTable() {
                       />
                     </div>
                   </div>
-
                   {/* Total Credit Hours Range */}
                   <div>
                     <Label className="mb-1.5 text-sm">Credit Hours Range</Label>
@@ -1479,7 +1672,52 @@ export default function CustomizableStudentTable() {
                       />
                     </div>
                   </div>
-
+                  {/* Total Courses Registered Range */}
+                  <div>
+                    <Label className="mb-1.5 text-sm">
+                      Total Courses Registered
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        value={
+                          totalCoursesRange.min === null
+                            ? ""
+                            : totalCoursesRange.min
+                        }
+                        onChange={(e) =>
+                          setTotalCoursesRange((prev) => ({
+                            ...prev,
+                            min:
+                              e.target.value === ""
+                                ? null
+                                : parseInt(e.target.value),
+                          }))
+                        }
+                        className="h-9"
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        value={
+                          totalCoursesRange.max === null
+                            ? ""
+                            : totalCoursesRange.max
+                        }
+                        onChange={(e) =>
+                          setTotalCoursesRange((prev) => ({
+                            ...prev,
+                            max:
+                              e.target.value === ""
+                                ? null
+                                : parseInt(e.target.value),
+                          }))
+                        }
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
                   {/* Exit Exam Status */}
                   <div>
                     <Label className="mb-1.5 text-sm">Exit Exam Status</Label>
@@ -1494,9 +1732,9 @@ export default function CustomizableStudentTable() {
                         <SelectItem value="all">
                           All Exit Exam Status
                         </SelectItem>
-                        {distinctExitExamStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
+                        {filterOptions?.exitExamPassStatuses?.map((status) => (
+                          <SelectItem key={status.id} value={status.id}>
+                            {status.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1507,18 +1745,24 @@ export default function CustomizableStudentTable() {
             </div>
 
             {/* ADMINISTRATIVE FILTERS */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div>
+              <div
+                className="flex items-center justify-between cursor-pointer hover:bg-muted/30 rounded-lg px-2 py-2 transition-colors"
+                onClick={() =>
+                  setShowAdministrativeFilters(!showAdministrativeFilters)
+                }
+              >
                 <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                   Administrative
                 </h3>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() =>
-                    setShowAdministrativeFilters(!showAdministrativeFilters)
-                  }
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAdministrativeFilters(!showAdministrativeFilters);
+                  }}
                 >
                   <ChevronDown
                     className={`h-4 w-4 transition-transform duration-200 ${
@@ -1531,11 +1775,12 @@ export default function CustomizableStudentTable() {
               <div
                 className={`transition-all duration-300 ease-out overflow-hidden ${
                   showAdministrativeFilters
-                    ? "max-h-[500px] opacity-100"
+                    ? "max-h-[500px] opacity-100 mt-3"
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 pt-2">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  {" "}
                   {/* Document Status */}
                   <div>
                     <Label className="mb-1.5 text-sm">Document Status</Label>
@@ -1556,7 +1801,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Transfer Status */}
                   <div>
                     <Label className="mb-1.5 text-sm">Transfer Status</Label>
@@ -1577,7 +1821,6 @@ export default function CustomizableStudentTable() {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Date Enrolled Range Filter */}
                   <div>
                     <Label className="mb-1.5 text-sm">
@@ -1616,16 +1859,128 @@ export default function CustomizableStudentTable() {
                       </div>
                     </div>
                   </div>
+                  {/* Date Class End Range */}
+                  <div>
+                    <Label className="mb-1.5 text-sm">
+                      Class End Date Range
+                    </Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs">From:</Label>
+                        <Input
+                          type="date"
+                          value={dateClassEndRange.start || ""}
+                          onChange={(e) =>
+                            setDateClassEndRange((prev) => ({
+                              ...prev,
+                              start: e.target.value || null,
+                            }))
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs">To:</Label>
+                        <Input
+                          type="date"
+                          value={dateClassEndRange.end || ""}
+                          onChange={(e) =>
+                            setDateClassEndRange((prev) => ({
+                              ...prev,
+                              end: e.target.value || null,
+                            }))
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {/* Date Graduated Range */}
+                  <div>
+                    <Label className="mb-1.5 text-sm">
+                      Graduation Date Range
+                    </Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs">From:</Label>
+                        <Input
+                          type="date"
+                          value={dateGraduatedRange.start || ""}
+                          onChange={(e) =>
+                            setDateGraduatedRange((prev) => ({
+                              ...prev,
+                              start: e.target.value || null,
+                            }))
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs">To:</Label>
+                        <Input
+                          type="date"
+                          value={dateGraduatedRange.end || ""}
+                          onChange={(e) =>
+                            setDateGraduatedRange((prev) => ({
+                              ...prev,
+                              end: e.target.value || null,
+                            }))
+                          }
+                          className="h-9"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Table */}
-          <CardDescription className="mt-1.5">
-            {filteredStudents.length} record
-            {filteredStudents.length !== 1 ? "s" : ""} found
-          </CardDescription>
+          <div className="flex items-center justify-between mt-1.5 mb-4">
+            <CardDescription>
+              {filteredStudents.length} record
+              {filteredStudents.length !== 1 ? "s" : ""} found
+            </CardDescription>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                setIsRefreshing(true);
+                setLoading(true);
+                try {
+                  const studentsRes = await apiClient.get<Student[]>(
+                    endPoints.allStudents,
+                  );
+                  const freshData = studentsRes.data ?? [];
+                  setStudents(freshData);
+                  saveStudentsToStorage(freshData);
+                  toast({
+                    title: "Success",
+                    description: "Student data refreshed from server!",
+                  });
+                } catch (err) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to refresh data",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setLoading(false);
+                  setIsRefreshing(false);
+                }
+              }}
+              disabled={isRefreshing}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              Reload Students
+            </Button>
+          </div>
+
+          {/* Table Container */}
           <div className="overflow-x-auto overflow-y-auto rounded-md border max-h-[100vh] [&_[data-slot=table-container]]:overflow-visible">
             <Table>
               <TableHeader>
