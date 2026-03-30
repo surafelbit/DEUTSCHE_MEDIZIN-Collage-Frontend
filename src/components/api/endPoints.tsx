@@ -183,6 +183,14 @@ const endPoints = {
     "/registrar/assignments/:teacherCourseAssignmentId/final-approve-all",
   progressionSequences: "/registrar/progression-sequences",
   formTemplates: "/registrar/form-templates",
+  getRegistrar: "/registrar/all",
+  getRegistrarPhoto: "/registrar/photo/:id",
+  getRegistrarNationalID: "/registrar/nationalID/:id",
+  getRegistrarById: "/registrars",
+  registrarAcademicProgress: "/registrar/students/:userId/academic-progress",
+  getRegistrarProfile: "/registrar/profile",
+  updateRegistrarProfile: "/registrar/update",
+  getRegistrarPhoto: (id: number) => `/registrar/photo/${id}`,
 
   /* =======================     Vice Deans  ======================== */
   createViceDean: "/auth/register/vice-dean",
