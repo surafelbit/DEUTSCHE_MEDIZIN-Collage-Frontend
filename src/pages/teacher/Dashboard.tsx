@@ -23,11 +23,16 @@ import {
   ClipboardList,
   BarChart3,
   Hash,
+  RefreshCw,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../../components/api/apiClient";
 import endPoints from "../../components/api/endPoints";
+
+// Cache configuration - adjust this value to change how long data stays cached (in hours)
+const CACHE_DURATION_HOURS = 2; // Change this to your desired cache duration
+const CACHE_KEY = "teacher_dashboard_data";
 
 interface DashboardCourse {
   assignmentId: number;
@@ -49,35 +54,110 @@ interface TeacherDashboardResponse {
   recentCourses: DashboardCourse[];
 }
 
+interface CachedData {
+  data: TeacherDashboardResponse;
+  timestamp: number;
+}
+
 export default function TeacherDashboard() {
   const [dashboardData, setDashboardData] =
     useState<TeacherDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await apiClient.get<TeacherDashboardResponse>(
-          endPoints.teacherDashboard,
-        );
-        setDashboardData(response.data);
-      } catch (err: any) {
-        console.error("Error fetching dashboard data:", err);
-        setError(
-          err.response?.data?.error ||
-            err.message ||
-            "Failed to load dashboard data. Please try again later.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
+
+  const isCacheValid = (cachedData: CachedData | null): boolean => {
+    if (!cachedData) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cachedData.timestamp;
+    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
+
+    return cacheAge < cacheDurationMs;
+  };
+
+  const saveToCache = (data: TeacherDashboardResponse) => {
+    try {
+      const cacheData: CachedData = {
+        data,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to save to session storage:", err);
+    }
+  };
+
+  const loadFromCache = (): TeacherDashboardResponse | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const cachedData: CachedData = JSON.parse(cached);
+
+      if (isCacheValid(cachedData)) {
+        setLastUpdated(new Date(cachedData.timestamp));
+        return cachedData.data;
+      }
+
+      // Cache expired, remove it
+      sessionStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (err) {
+      console.error("Failed to load from session storage:", err);
+      return null;
+    }
+  };
+
+  const fetchDashboardData = async (forceRefresh: boolean = false) => {
+    try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          return;
+        }
+      }
+
+      setLoading(true);
+      setError(null);
+      const response = await apiClient.get<TeacherDashboardResponse>(
+        endPoints.teacherDashboard,
+      );
+      setDashboardData(response.data);
+      saveToCache(response.data);
+    } catch (err: any) {
+      console.error("Error fetching dashboard data:", err);
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to load dashboard data. Please try again later.",
+      );
+
+      // If API fails but we have expired cache, use it as fallback
+      const expiredCache = loadFromCache();
+      if (expiredCache) {
+        setDashboardData(expiredCache);
+        setError(null); // Clear error since we have fallback data
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboardData(true);
+  };
 
   const formatDate = () => {
     const now = new Date();
@@ -107,12 +187,12 @@ export default function TeacherDashboard() {
     );
   }
 
-  if (error) {
+  if (error && !dashboardData) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <AlertCircle className="h-12 w-12 text-red-500" />
         <p className="text-lg text-red-600">{error}</p>
-        <Button variant="outline" onClick={() => window.location.reload()}>
+        <Button variant="outline" onClick={() => fetchDashboardData(true)}>
           Try Again
         </Button>
       </div>
@@ -155,13 +235,33 @@ export default function TeacherDashboard() {
             <p className="text-sm text-blue-200 mt-2">
               Today is {formatDate()}
             </p>
+            {lastUpdated && (
+              <p className="text-xs text-blue-200 mt-1">
+                Last updated: {lastUpdated.toLocaleString()}
+              </p>
+            )}
           </div>
-          <Badge
-            variant="secondary"
-            className="text-lg px-4 py-2 bg-white/20 backdrop-blur-sm"
-          >
-            {department} Department
-          </Badge>
+          <div className="flex flex-col items-end gap-3">
+            <Badge
+              variant="secondary"
+              className="text-lg px-4 py-2 bg-white/20 backdrop-blur-sm"
+            >
+              {department} Department
+            </Badge>
+            <Button
+              onClick={handleRefresh}
+              variant="secondary"
+              disabled={refreshing}
+              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white border-0"
+            >
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {refreshing ? "Refreshing..." : "Refresh Data"}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -486,18 +586,6 @@ export default function TeacherDashboard() {
                 </span>
               </Button>
             </Link>
-
-            {/* <Button 
-              variant="outline" 
-              className="h-20 w-full flex-col bg-transparent hover:bg-orange-50 dark:hover:bg-orange-900/20"
-              onClick={() => window.open('/teacher/reports', '_blank')}
-            >
-              <TrendingUp className="h-6 w-6 mb-2 text-orange-600 dark:text-orange-400" />
-              <span className="font-medium">Reports</span>
-              <span className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                Generate reports
-              </span>
-            </Button> */}
           </div>
         </CardContent>
       </Card>

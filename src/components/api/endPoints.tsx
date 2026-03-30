@@ -150,6 +150,7 @@ const endPoints = {
   /* =======================     Notifications  ======================== */
   notifications: "/notifications/me",
   notificationsLatest: "/notifications/me/latest",
+  notificationsV2Latest: "/notifications/me/v2/latest",
   markNotificationRead: "/notifications/:id/read",
   markAllNotificationsRead: "/notifications/me/read-all",
 

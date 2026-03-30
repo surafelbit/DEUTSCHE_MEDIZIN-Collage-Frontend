@@ -60,6 +60,11 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
+// Storage Configuration
+const STUDENTS_STORAGE_KEY = "registration-slips-students";
+const FILTER_DATA_STORAGE_KEY = "registration-slips-filter-data";
+const BCYS_LIST_STORAGE_KEY = "registration-slips-bcys-list";
+const STORAGE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 interface Student {
   studentId: number;
@@ -263,6 +268,74 @@ export default function RegistrationSlips() {
   const [courseSearch, setCourseSearch] = useState("");
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
 
+  // Helper function to save data to sessionStorage with timestamp
+  const saveToStorage = (key: string, data: any) => {
+    try {
+      const storageData = {
+        data: data,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(key, JSON.stringify(storageData));
+    } catch (error) {
+      console.error(`Error saving to storage (${key}):`, error);
+    }
+  };
+
+  // Helper function to get data from sessionStorage if not expired
+  const getFromStorage = (key: string) => {
+    try {
+      const stored = sessionStorage.getItem(key);
+      if (!stored) return null;
+
+      const { data, timestamp } = JSON.parse(stored);
+      const isExpired = Date.now() - timestamp > STORAGE_DURATION;
+
+      if (isExpired) {
+        sessionStorage.removeItem(key);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`Error retrieving from storage (${key}):`, error);
+      return null;
+    }
+  };
+
+  // Helper function to clear storage
+  const clearStorage = () => {
+    sessionStorage.removeItem(STUDENTS_STORAGE_KEY);
+    sessionStorage.removeItem(FILTER_DATA_STORAGE_KEY);
+    sessionStorage.removeItem(BCYS_LIST_STORAGE_KEY);
+  };
+
+  // Mock toast for now - replace with actual toast library if needed
+  const toast = {
+    success: (msg: string) => {
+      if (typeof window !== "undefined") {
+        console.log("Success:", msg);
+        alert(msg);
+      }
+    },
+    error: (msg: string) => {
+      if (typeof window !== "undefined") {
+        console.error("Error:", msg);
+        alert(msg);
+      }
+    },
+  };
+
+  // manually refresh data
+  const handleRefreshData = async () => {
+    // Clear all cached data
+    clearStorage();
+
+    // Refetch all data
+    toast.success("Cleared cache, refreshing data...");
+    await Promise.all([fetchStudents(), fetchFilterData(), fetchBcysList()]);
+    toast.success("Data refreshed successfully!");
+  };
+
   // Function to select only a single student
   const handleSelectSingleStudent = (student: Student) => {
     setSelectedStudents([student]);
@@ -328,15 +401,53 @@ export default function RegistrationSlips() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
+
+      // Try to get data from storage first
+      const cachedData = getFromStorage(STUDENTS_STORAGE_KEY);
+
+      if (cachedData && Array.isArray(cachedData)) {
+        console.log("Loading students from cache...");
+        const transformedStudents = cachedData.map((student: ApiStudent) => ({
+          studentId: student.studentId || 0,
+          username: student.username || "",
+          fullNameAMH: student.fullNameAMH || "",
+          fullNameENG: student.fullNameENG || "",
+          bcysId: student.bcysId || 0,
+          bcysDisplayName: student.bcysDisplayName || "",
+          departmentId: student.departmentId || 0,
+          departmentName: student.departmentName || "",
+          programModalityCode: student.programModalityCode || "",
+          programModalityName: student.programModalityName || "",
+          programLevelCode: student.programLevelCode || "",
+          programLevelName: student.programLevelName || "",
+          age: 22,
+          sex: "Male",
+          batch: (student.bcysDisplayName || "").split("-")[0] || "2024",
+          yearOfStudy: `Year ${
+            (student.bcysDisplayName || "").split("-")[1] || "1"
+          }`,
+          semester:
+            (student.bcysDisplayName || "").split("-")[2] === "1"
+              ? "Semester 1"
+              : "Semester 2",
+          accepted: false,
+        }));
+
+        setStudents(transformedStudents);
+        setFilteredStudents(transformedStudents);
+        setLoading(false);
+        // toast.success("Students loaded from cache");
+        return;
+      }
+
+      // If no cached data or expired, fetch from API
       const response = await apiService.get(endPoints.studentsSlip);
 
       // Check if response is valid
       if (!Array.isArray(response)) {
-        console.error("Invalid students response:", response);
         setStudents([]);
         setFilteredStudents([]);
         setLoading(false);
-        toast.error("Failed to fetch students: Invalid response format");
         return;
       }
 
@@ -369,13 +480,16 @@ export default function RegistrationSlips() {
         }),
       );
 
+      // Save to storage
+      saveToStorage(STUDENTS_STORAGE_KEY, response);
+
       setStudents(transformedStudents);
       setFilteredStudents(transformedStudents);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching students:", error);
+      // console.error("Error fetching students:", error);
       setLoading(false);
-      toast.error("Failed to fetch students");
+      // toast.error("Failed to fetch students");
       setStudents([]);
       setFilteredStudents([]);
     }
@@ -383,9 +497,41 @@ export default function RegistrationSlips() {
 
   const fetchFilterData = async () => {
     try {
+      // Try to get data from storage first
+      const cachedData = getFromStorage(FILTER_DATA_STORAGE_KEY);
+
+      if (cachedData && typeof cachedData === "object") {
+        setFilterData({
+          departments: Array.isArray(cachedData.departments)
+            ? cachedData.departments
+            : [],
+          batches: Array.isArray(cachedData.batches) ? cachedData.batches : [],
+          enrollmentTypes: Array.isArray(cachedData.enrollmentTypes)
+            ? cachedData.enrollmentTypes
+            : [],
+          classYears: Array.isArray(cachedData.classYears)
+            ? cachedData.classYears
+            : [],
+          semesters: Array.isArray(cachedData.semesters)
+            ? cachedData.semesters
+            : [],
+          academicYears: Array.isArray(cachedData.academicYears)
+            ? cachedData.academicYears
+            : [],
+          programLevels: Array.isArray(cachedData.programLevels)
+            ? cachedData.programLevels
+            : [],
+          programModalities: Array.isArray(cachedData.programModalities)
+            ? cachedData.programModalities
+            : [],
+        });
+        return;
+      }
+
+      // If no cached data or expired, fetch from API
       const response = await apiService.get(endPoints.lookupsDropdown);
       if (response && typeof response === "object") {
-        setFilterData({
+        const filterDataResponse = {
           departments: Array.isArray(response.departments)
             ? response.departments
             : [],
@@ -408,7 +554,12 @@ export default function RegistrationSlips() {
           programModalities: Array.isArray(response.programModalities)
             ? response.programModalities
             : [],
-        });
+        };
+
+        // Save to storage
+        saveToStorage(FILTER_DATA_STORAGE_KEY, filterDataResponse);
+
+        setFilterData(filterDataResponse);
       } else {
         console.error("Invalid filter data response:", response);
       }
@@ -419,8 +570,21 @@ export default function RegistrationSlips() {
 
   const fetchBcysList = async () => {
     try {
+      // Try to get data from storage first
+      const cachedData = getFromStorage(BCYS_LIST_STORAGE_KEY);
+
+      if (cachedData && Array.isArray(cachedData)) {
+        console.log("Loading BCYS list from cache...");
+        setBcysList(cachedData);
+        return;
+      }
+
+      // If no cached data or expired, fetch from API
+      console.log("Fetching BCYS list from API...");
       const response = await apiService.get(endPoints.batchClassSemsterYear);
       if (Array.isArray(response)) {
+        // Save to storage
+        saveToStorage(BCYS_LIST_STORAGE_KEY, response);
         setBcysList(response);
       } else {
         console.error("Invalid BCYS response:", response);
@@ -954,7 +1118,7 @@ export default function RegistrationSlips() {
         if (response.errors && response.errors.length > 0) {
           // Show error toast with error details
           let errorMessage = `Failed to generate slips for ${failedCount} student(s).`;
-          
+
           if (response.results) {
             const failedStudents = response.results.filter((r) => !r.success);
             if (failedStudents.length > 0) {
@@ -968,17 +1132,19 @@ export default function RegistrationSlips() {
               }
             }
           }
-          
+
           toast.error(errorMessage);
-          
+
           // If there were some successful registrations, show a separate success toast
           if (successCount > 0) {
-            toast.success(`Successfully generated slips for ${successCount} out of ${total} students.`);
+            toast.success(
+              `Successfully generated slips for ${successCount} out of ${total} students.`,
+            );
           }
         } else {
           // No errors - show success toast
           let successMessage = `Successfully generated slips for ${successCount} out of ${total} students.`;
-          
+
           if (failedCount > 0 && response.results) {
             const failedStudents = response.results.filter((r) => !r.success);
             if (failedStudents.length > 0) {
@@ -993,7 +1159,7 @@ export default function RegistrationSlips() {
               }
             }
           }
-          
+
           toast.success(successMessage);
         }
 
@@ -1647,7 +1813,7 @@ export default function RegistrationSlips() {
           </p>
         </div>
 
-        {/* Help/Instructions Button */}
+        {/* Help/Instructions Button - Only this remains */}
         <button
           onClick={() => setShowInstructions(!showInstructions)}
           className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600"
@@ -1713,10 +1879,10 @@ export default function RegistrationSlips() {
                       batch, or class year for easier access.
                     </span>
                     <span className="block mt-2 text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-800">
-                      🔵 <strong>After selecting students:</strong> Click the 
+                      🔵 <strong>After selecting students:</strong> Click the
                       <span className="font-mono mx-1 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">
                         Load Courses for Selected Students (X)
-                      </span> 
+                      </span>
                       button at the bottom of the student list.
                     </span>
                   </p>
@@ -1930,10 +2096,37 @@ export default function RegistrationSlips() {
         {/* Left Column - Student Search and Filters */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Search & Filter Students
-            </CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Search & Filter Students
+              </CardTitle>
+
+              {/* Refresh Button */}
+              <Button
+                onClick={handleRefreshData}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                title="Refresh data from server (clears cache)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Refresh Data
+              </Button>
+            </div>
             <CardDescription>
               Find and select students to generate registration slips
             </CardDescription>
@@ -2037,563 +2230,564 @@ export default function RegistrationSlips() {
               </div>
             </div>
 
-
-
-  {/* Student List Header */}
-    <div className="flex items-center justify-between pt-2 border-t">
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleToggleSelectAll}
-          className="h-8"
-        >
-          {selectAll ? (
-            <CheckSquare className="h-4 w-4 mr-1" />
-          ) : (
-            <Square className="h-4 w-4 mr-1" />
-          )}
-          {selectAll ? "Deselect All" : "Select All"}
-        </Button>
-        <span className="text-sm text-gray-500">
-          {filteredStudents.length} students found
-        </span>
-      </div>
-      <span className="text-sm font-medium">
-        Selected: {selectedStudents.length}
-      </span>
-    </div>
-
-      {/* Student List */}
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-sm text-gray-500">
-              Loading students...
-            </p>
-          </div>
-        ) : filteredStudents.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <User className="h-12 w-12 mx-auto opacity-50 mb-2" />
-            <p>No students found</p>
-            <p className="text-sm">
-              Try adjusting your filters or search
-            </p>
-          </div>
-        ) : (
-          filteredStudents.map((student) => {
-            const isSelected = isStudentSelected(student.studentId);
-            return (
-              <Card
-                key={student.studentId}
-                className={`cursor-pointer hover:shadow-md transition-all ${
-                  isSelected
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : ""
-                }`}
-                onClick={() => handleSelectStudent(student)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-5 h-5 flex items-center justify-center rounded border ${
-                          isSelected
-                            ? "bg-blue-500 border-blue-500"
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {isSelected && (
-                          <Check className="h-3 w-3 text-white" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium text-sm">
-                          {student.fullNameENG}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          ID: {student.username} |{" "}
-                          {student.departmentName}
-                        </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500">
-                          Batch: {student.batch} | {student.yearOfStudy} |{" "}
-                          {student.programModalityName}
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectSingleStudent(student);
-                      }}
-                    >
-                      Select Only
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
-
-      {/* Load Courses Button - Bottom of Student List */}
-      {filteredStudents.length > 0 && (
-        <div className="pt-4 mt-2 border-t">
-          <Button
-            onClick={() => {
-              if (selectedStudents.length === 0) {
-                toast.error("Please select at least one student first");
-                return;
-              }
-              const studentIds = selectedStudents.map((s) => s.studentId);
-              fetchCourses(studentIds);
-            }}
-            className="w-full"
-            disabled={selectedStudents.length === 0 || coursesLoading}
-            variant={selectedStudents.length > 0 ? "default" : "outline"}
-          >
-            {coursesLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Loading Courses for {selectedStudents.length} Student(s)...
-              </>
-            ) : (
-              <>
-                <BookOpen className="h-4 w-4 mr-2" />
-                Load Courses for Selected Students ({selectedStudents.length})
-              </>
-            )}
-          </Button>
-          
-          {/* Optional: Show message when courses are already loaded */}
-          {courses.length > 0 && !coursesLoading && (
-            <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
-              ✓ {courses.length} courses loaded. You can select courses below.
-            </p>
-          )}
-        </div>
-      )}
-      </CardContent>
-    </Card>
-
-    {/* Right Column - Course Selection */}
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
-          Course Selection
-        </CardTitle>
-        <CardDescription>
-          Select multiple courses and add them at once
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="batch-class-year">Batch Class Year</Label>
-            <Select
-              value={batchClassYear}
-              onValueChange={setBatchClassYear}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Batch Class Year" />
-              </SelectTrigger>
-              <SelectContent>
-                {bcysList.map((bcys) => (
-                  <SelectItem
-                    key={bcys.bcysId}
-                    value={bcys.bcysId.toString()}
-                  >
-                    {bcys.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="payment-receipt">Payment Receipt No.</Label>
-            <Input
-              id="payment-receipt"
-              type="text"
-              placeholder="Enter payment receipt number"
-              value={paymentReceiptNo}
-              onChange={(e) => setPaymentReceiptNo(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="course">Select Courses</Label>
-              {courses.length === 0 && !coursesLoading && (
+            {/* Student List Header */}
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div className="flex items-center gap-2">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={() => {
-                    console.log("Retrying course fetch...");
-                    fetchCourses();
-                  }}
-                  className="h-6 text-xs"
+                  onClick={handleToggleSelectAll}
+                  className="h-8"
                 >
-                  Retry Load (API returned{" "}
-                  {Array.isArray(courses) ? courses.length : "invalid"}{" "}
-                  courses)
+                  {selectAll ? (
+                    <CheckSquare className="h-4 w-4 mr-1" />
+                  ) : (
+                    <Square className="h-4 w-4 mr-1" />
+                  )}
+                  {selectAll ? "Deselect All" : "Select All"}
                 </Button>
-              )}
-            </div>
-            <span className="text-sm text-gray-500">
-              {selectedCourseIds.length} selected
-            </span>
-          </div>
-
-          {/* Custom dropdown for course selection */}
-          <div className="relative" ref={dropdownRef}>
-            <Button
-              variant="outline"
-              className="w-full justify-between"
-              onClick={() => {
-                if (selectedStudents.length === 0) {
-                  toast.error("Please select at least one student first");
-                  return;
-                }
-
-                if (courses.length === 0 && !coursesLoading) {
-                  console.log("No courses loaded, retrying fetch...");
-                  const studentIds = selectedStudents.map(
-                    (s) => s.studentId,
-                  );
-                  fetchCourses(studentIds);
-                } else {
-                  setIsCourseDropdownOpen(!isCourseDropdownOpen);
-                  // Clear search when opening dropdown
-                  if (!isCourseDropdownOpen) {
-                    setCourseSearch("");
-                  }
-                }
-              }}
-            >
-              <span>
-                {selectedCourseIds.length > 0
-                  ? `${selectedCourseIds.length} course${
-                      selectedCourseIds.length > 1 ? "s" : ""
-                    } selected`
-                  : selectedStudents.length > 0
-                    ? "Select Courses"
-                    : "Select Students First"}
+                <span className="text-sm text-gray-500">
+                  {filteredStudents.length} students found
+                </span>
+              </div>
+              <span className="text-sm font-medium">
+                Selected: {selectedStudents.length}
               </span>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  isCourseDropdownOpen ? "rotate-180" : ""
-                }`}
-              />
-            </Button>
+            </div>
 
-            {isCourseDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-96 overflow-y-auto">
-                {coursesLoading ? (
-                  <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-500">
-                      Loading courses...
-                    </p>
-                  </div>
-                ) : courses.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                    <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>
-                      {selectedStudents.length === 0
-                        ? "Please select students first"
-                        : "No courses available for selected students"}
-                    </p>
-                    <p className="text-xs">
-                      {selectedStudents.length === 0
-                        ? "Select students from the left panel"
-                        : "Courses will appear after student selection"}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-1 p-2">
-                    {/* Course Search Bar */}
-                    <div className="relative mb-2">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 dark:text-gray-500" />
-                      <Input
-                        placeholder="Search courses by code or title..."
-                        value={courseSearch}
-                        onChange={handleCourseSearch}
-                        className="pl-10 pr-8 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                        autoFocus
-                      />
-                      {courseSearch && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={clearCourseSearch}
-                          className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                        >
-                          <X className="h-3 w-3 text-gray-400" />
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Select All Visible Courses Button */}
-                    {filteredCourses.length > 0 && (
-                      <div className="flex items-center justify-between mb-2 px-2 py-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleSelectAllVisibleCourses}
-                          className="h-7 text-xs"
-                        >
-                          {filteredCourses.every((course) =>
-                            selectedCourseIds.includes(
-                              course.id.toString(),
-                            ),
-                          ) ? (
-                            <>
-                              <CheckSquare className="h-3 w-3 mr-1" />
-                              Deselect All Visible
-                            </>
-                          ) : (
-                            <>
-                              <Square className="h-3 w-3 mr-1" />
-                              Select All Visible
-                            </>
-                          )}
-                        </Button>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {filteredCourses.length} course
-                          {filteredCourses.length !== 1 ? "s" : ""} found
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Course List */}
-                    <div className="space-y-1 max-h-64 overflow-y-auto">
-                      {filteredCourses.length === 0 ? (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                          <p>No courses found for "{courseSearch}"</p>
-                          <p className="text-xs mt-1">
-                            Try a different search term
-                          </p>
-                        </div>
-                      ) : (
-                        filteredCourses.map((course) => {
-                          // Use the correct property names from the API
-                          const courseId = course?.id || 0;
-                          const courseCode = course?.ccode || "N/A";
-                          const courseTitle =
-                            course?.ctitle || "Unknown Course";
-                          const lectureHours = course?.theoryHrs || 0;
-                          const labHours = course?.labHrs || 0;
-                          const creditHours = lectureHours + labHours;
-
-                          return (
+            {/* Student List */}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Loading students...
+                  </p>
+                </div>
+              ) : filteredStudents.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <User className="h-12 w-12 mx-auto opacity-50 mb-2" />
+                  <p>No students found</p>
+                  <p className="text-sm">
+                    Try adjusting your filters or search
+                  </p>
+                </div>
+              ) : (
+                filteredStudents.map((student) => {
+                  const isSelected = isStudentSelected(student.studentId);
+                  return (
+                    <Card
+                      key={student.studentId}
+                      className={`cursor-pointer hover:shadow-md transition-all ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                          : ""
+                      }`}
+                      onClick={() => handleSelectStudent(student)}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
                             <div
-                              key={courseId}
-                              className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                selectedCourseIds.includes(
-                                  courseId.toString(),
-                                )
-                                  ? "bg-blue-50 dark:bg-blue-900/30"
-                                  : ""
+                              className={`w-5 h-5 flex items-center justify-center rounded border ${
+                                isSelected
+                                  ? "bg-blue-500 border-blue-500"
+                                  : "border-gray-300"
                               }`}
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent dropdown from closing
-                                handleCourseSelectionChange(
-                                  courseId.toString(),
-                                );
-                              }}
                             >
-                              <div
-                                className={`w-5 h-5 flex items-center justify-center rounded border mr-3 ${
-                                  selectedCourseIds.includes(
-                                    courseId.toString(),
-                                  )
-                                    ? "bg-blue-500 border-blue-500 dark:bg-blue-600 dark:border-blue-600"
-                                    : "border-gray-300 dark:border-gray-600"
-                                }`}
-                              >
-                                {selectedCourseIds.includes(
-                                  courseId.toString(),
-                                ) && (
-                                  <Check className="h-3 w-3 text-white" />
-                                )}
+                              {isSelected && (
+                                <Check className="h-3 w-3 text-white" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm">
+                                {student.fullNameENG}
                               </div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                  <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                    {courseCode}
-                                  </span>{" "}
-                                  - {courseTitle}
-                                </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  Lecture: {lectureHours}h | Lab: {labHours}
-                                  h | Total: {creditHours} CH
-                                </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                ID: {student.username} |{" "}
+                                {student.departmentName}
+                              </div>
+                              <div className="text-xs text-gray-400 dark:text-gray-500">
+                                Batch: {student.batch} | {student.yearOfStudy} |{" "}
+                                {student.programModalityName}
                               </div>
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
-
-                    {/* Show search results summary */}
-                    {courseSearch && filteredCourses.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
-                          Showing {filteredCourses.length} of{" "}
-                          {courses.length} courses
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectSingleStudent(student);
+                            }}
+                          >
+                            Select Only
+                          </Button>
                         </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Load Courses Button - Bottom of Student List */}
+            {filteredStudents.length > 0 && (
+              <div className="pt-4 mt-2 border-t">
+                <Button
+                  onClick={() => {
+                    if (selectedStudents.length === 0) {
+                      toast.error("Please select at least one student first");
+                      return;
+                    }
+                    const studentIds = selectedStudents.map((s) => s.studentId);
+                    fetchCourses(studentIds);
+                  }}
+                  className="w-full"
+                  disabled={selectedStudents.length === 0 || coursesLoading}
+                  variant={selectedStudents.length > 0 ? "default" : "outline"}
+                >
+                  {coursesLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Loading Courses for {selectedStudents.length}{" "}
+                      Student(s)...
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Load Courses for Selected Students (
+                      {selectedStudents.length})
+                    </>
+                  )}
+                </Button>
+
+                {/* Optional: Show message when courses are already loaded */}
+                {courses.length > 0 && !coursesLoading && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-2 text-center">
+                    ✓ {courses.length} courses loaded. You can select courses
+                    below.
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Right Column - Course Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Course Selection
+            </CardTitle>
+            <CardDescription>
+              Select multiple courses and add them at once
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="batch-class-year">Batch Class Year</Label>
+                <Select
+                  value={batchClassYear}
+                  onValueChange={setBatchClassYear}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Batch Class Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bcysList.map((bcys) => (
+                      <SelectItem
+                        key={bcys.bcysId}
+                        value={bcys.bcysId.toString()}
+                      >
+                        {bcys.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="payment-receipt">Payment Receipt No.</Label>
+                <Input
+                  id="payment-receipt"
+                  type="text"
+                  placeholder="Enter payment receipt number"
+                  value={paymentReceiptNo}
+                  onChange={(e) => setPaymentReceiptNo(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="course">Select Courses</Label>
+                  {courses.length === 0 && !coursesLoading && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        console.log("Retrying course fetch...");
+                        fetchCourses();
+                      }}
+                      className="h-6 text-xs"
+                    >
+                      Retry Load (API returned{" "}
+                      {Array.isArray(courses) ? courses.length : "invalid"}{" "}
+                      courses)
+                    </Button>
+                  )}
+                </div>
+                <span className="text-sm text-gray-500">
+                  {selectedCourseIds.length} selected
+                </span>
+              </div>
+
+              {/* Custom dropdown for course selection */}
+              <div className="relative" ref={dropdownRef}>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => {
+                    if (selectedStudents.length === 0) {
+                      toast.error("Please select at least one student first");
+                      return;
+                    }
+
+                    if (courses.length === 0 && !coursesLoading) {
+                      console.log("No courses loaded, retrying fetch...");
+                      const studentIds = selectedStudents.map(
+                        (s) => s.studentId,
+                      );
+                      fetchCourses(studentIds);
+                    } else {
+                      setIsCourseDropdownOpen(!isCourseDropdownOpen);
+                      // Clear search when opening dropdown
+                      if (!isCourseDropdownOpen) {
+                        setCourseSearch("");
+                      }
+                    }
+                  }}
+                >
+                  <span>
+                    {selectedCourseIds.length > 0
+                      ? `${selectedCourseIds.length} course${
+                          selectedCourseIds.length > 1 ? "s" : ""
+                        } selected`
+                      : selectedStudents.length > 0
+                        ? "Select Courses"
+                        : "Select Students First"}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isCourseDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </Button>
+
+                {isCourseDropdownOpen && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-96 overflow-y-auto">
+                    {coursesLoading ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className="mt-2 text-sm text-gray-500">
+                          Loading courses...
+                        </p>
+                      </div>
+                    ) : courses.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                        <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>
+                          {selectedStudents.length === 0
+                            ? "Please select students first"
+                            : "No courses available for selected students"}
+                        </p>
+                        <p className="text-xs">
+                          {selectedStudents.length === 0
+                            ? "Select students from the left panel"
+                            : "Courses will appear after student selection"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1 p-2">
+                        {/* Course Search Bar */}
+                        <div className="relative mb-2">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 dark:text-gray-500" />
+                          <Input
+                            placeholder="Search courses by code or title..."
+                            value={courseSearch}
+                            onChange={handleCourseSearch}
+                            className="pl-10 pr-8 bg-white dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                            autoFocus
+                          />
+                          {courseSearch && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={clearCourseSearch}
+                              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                            >
+                              <X className="h-3 w-3 text-gray-400" />
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Select All Visible Courses Button */}
+                        {filteredCourses.length > 0 && (
+                          <div className="flex items-center justify-between mb-2 px-2 py-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleSelectAllVisibleCourses}
+                              className="h-7 text-xs"
+                            >
+                              {filteredCourses.every((course) =>
+                                selectedCourseIds.includes(
+                                  course.id.toString(),
+                                ),
+                              ) ? (
+                                <>
+                                  <CheckSquare className="h-3 w-3 mr-1" />
+                                  Deselect All Visible
+                                </>
+                              ) : (
+                                <>
+                                  <Square className="h-3 w-3 mr-1" />
+                                  Select All Visible
+                                </>
+                              )}
+                            </Button>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {filteredCourses.length} course
+                              {filteredCourses.length !== 1 ? "s" : ""} found
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Course List */}
+                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                          {filteredCourses.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                              <p>No courses found for "{courseSearch}"</p>
+                              <p className="text-xs mt-1">
+                                Try a different search term
+                              </p>
+                            </div>
+                          ) : (
+                            filteredCourses.map((course) => {
+                              // Use the correct property names from the API
+                              const courseId = course?.id || 0;
+                              const courseCode = course?.ccode || "N/A";
+                              const courseTitle =
+                                course?.ctitle || "Unknown Course";
+                              const lectureHours = course?.theoryHrs || 0;
+                              const labHours = course?.labHrs || 0;
+                              const creditHours = lectureHours + labHours;
+
+                              return (
+                                <div
+                                  key={courseId}
+                                  className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                                    selectedCourseIds.includes(
+                                      courseId.toString(),
+                                    )
+                                      ? "bg-blue-50 dark:bg-blue-900/30"
+                                      : ""
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent dropdown from closing
+                                    handleCourseSelectionChange(
+                                      courseId.toString(),
+                                    );
+                                  }}
+                                >
+                                  <div
+                                    className={`w-5 h-5 flex items-center justify-center rounded border mr-3 ${
+                                      selectedCourseIds.includes(
+                                        courseId.toString(),
+                                      )
+                                        ? "bg-blue-500 border-blue-500 dark:bg-blue-600 dark:border-blue-600"
+                                        : "border-gray-300 dark:border-gray-600"
+                                    }`}
+                                  >
+                                    {selectedCourseIds.includes(
+                                      courseId.toString(),
+                                    ) && (
+                                      <Check className="h-3 w-3 text-white" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                        {courseCode}
+                                      </span>{" "}
+                                      - {courseTitle}
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                      Lecture: {lectureHours}h | Lab: {labHours}
+                                      h | Total: {creditHours} CH
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+
+                        {/* Show search results summary */}
+                        {courseSearch && filteredCourses.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
+                              Showing {filteredCourses.length} of{" "}
+                              {courses.length} courses
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          <div className="flex gap-2">
-            <Button
-              onClick={handleAddMultipleCourses}
-              className="flex-1"
-              disabled={selectedCourseIds.length === 0 || coursesLoading}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Selected ({selectedCourseIds.length})
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleClearSelectedCourses}
-              disabled={registrationCourses.length === 0}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Label>Selected Courses ({registrationCourses.length})</Label>
-            <span className="text-sm text-gray-500">
-              Total: {calculateTotals().total} credit hours
-            </span>
-          </div>
-          <div className="max-h-60 overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Code</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead className="w-16">Lecture</TableHead>
-                  <TableHead className="w-16">Lab</TableHead>
-                  <TableHead className="w-16">Total</TableHead>
-                  <TableHead className="w-20">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {registrationCourses.map((course) => (
-                  <TableRow key={course.id}>
-                    <TableCell className="font-medium text-xs">
-                      {course.courseCode}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {course.courseTitle}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {course.lectureHours}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {course.labHours}
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {course.totalHours}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveCourse(course.id)}
-                        className="h-7 w-7 p-0"
-                      >
-                        <Trash2 className="h-3 w-3 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {registrationCourses.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center py-4 text-gray-500"
-                    >
-                      No courses selected yet
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        {/* Selected Students Summary */}
-        {selectedStudents.length > 0 && (
-          <div className="pt-4 border-t">
-            <Label className="mb-2">
-              Selected Students ({selectedStudents.length})
-            </Label>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {selectedStudents.slice(0, 5).map((student) => (
-                <div
-                  key={student.studentId}
-                  className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded"
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleAddMultipleCourses}
+                  className="flex-1"
+                  disabled={selectedCourseIds.length === 0 || coursesLoading}
                 >
-                  <span>{student.fullNameENG}</span>
-                  <span className="text-xs text-gray-500">
-                    {student.studentId}
-                  </span>
-                </div>
-              ))}
-              {selectedStudents.length > 5 && (
-                <div className="text-center text-sm text-gray-500 p-2">
-                  ... and {selectedStudents.length - 5} more
-                </div>
-              )}
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Selected ({selectedCourseIds.length})
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleClearSelectedCourses}
+                  disabled={registrationCourses.length === 0}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Slip Preview Button */}
-        <div className="pt-4">
-          <Button
-            onClick={handleSlipPreview}
-            className="w-full"
-            disabled={
-              selectedStudents.length === 0 ||
-              registrationCourses.length === 0 ||
-              !batchClassYear ||
-              previewLoading
-            }
-          >
-            {previewLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Generating Preview...
-              </>
-            ) : (
-              "Slip Preview"
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label>Selected Courses ({registrationCourses.length})</Label>
+                <span className="text-sm text-gray-500">
+                  Total: {calculateTotals().total} credit hours
+                </span>
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Code</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead className="w-16">Lecture</TableHead>
+                      <TableHead className="w-16">Lab</TableHead>
+                      <TableHead className="w-16">Total</TableHead>
+                      <TableHead className="w-20">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {registrationCourses.map((course) => (
+                      <TableRow key={course.id}>
+                        <TableCell className="font-medium text-xs">
+                          {course.courseCode}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {course.courseTitle}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {course.lectureHours}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {course.labHours}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {course.totalHours}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveCourse(course.id)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Trash2 className="h-3 w-3 text-red-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {registrationCourses.length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="text-center py-4 text-gray-500"
+                        >
+                          No courses selected yet
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            {/* Selected Students Summary */}
+            {selectedStudents.length > 0 && (
+              <div className="pt-4 border-t">
+                <Label className="mb-2">
+                  Selected Students ({selectedStudents.length})
+                </Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {selectedStudents.slice(0, 5).map((student) => (
+                    <div
+                      key={student.studentId}
+                      className="flex items-center justify-between text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                    >
+                      <span>{student.fullNameENG}</span>
+                      <span className="text-xs text-gray-500">
+                        {student.studentId}
+                      </span>
+                    </div>
+                  ))}
+                  {selectedStudents.length > 5 && (
+                    <div className="text-center text-sm text-gray-500 p-2">
+                      ... and {selectedStudents.length - 5} more
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+
+            {/* Slip Preview Button */}
+            <div className="pt-4">
+              <Button
+                onClick={handleSlipPreview}
+                className="w-full"
+                disabled={
+                  selectedStudents.length === 0 ||
+                  registrationCourses.length === 0 ||
+                  !batchClassYear ||
+                  previewLoading
+                }
+              >
+                {previewLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Generating Preview...
+                  </>
+                ) : (
+                  "Slip Preview"
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Preview Section - Only shown after clicking Slip Preview */}
@@ -2796,49 +2990,81 @@ export default function RegistrationSlips() {
                 <div className="text-sm text-gray-600 dark:text-gray-300">
                   Deutsche Hochschule für Medizin College
                 </div>
-                <div className="font-bold mt-2 text-gray-800 dark:text-gray-200">OFFICE OF REGISTRAR</div>
-                <div className="font-bold text-gray-800 dark:text-gray-200">COURSE REGISTRATION SLIP</div>
+                <div className="font-bold mt-2 text-gray-800 dark:text-gray-200">
+                  OFFICE OF REGISTRAR
+                </div>
+                <div className="font-bold text-gray-800 dark:text-gray-200">
+                  COURSE REGISTRATION SLIP
+                </div>
               </div>
 
               {/* Student Info */}
               <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
                 <div>
-                  <strong className="text-gray-900 dark:text-white">Full Name of Student:</strong>{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    Full Name of Student:
+                  </strong>{" "}
                   {selectedPreviewStudent.fullNameEng}
                 </div>
                 <div>
-                  <strong className="text-gray-900 dark:text-white">Date of Registration:</strong> {dateOfRegistration}
+                  <strong className="text-gray-900 dark:text-white">
+                    Date of Registration:
+                  </strong>{" "}
+                  {dateOfRegistration}
                 </div>
                 <div>
-                  <strong className="text-gray-900 dark:text-white">Department:</strong>{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    Department:
+                  </strong>{" "}
                   {selectedPreviewStudent.departmentName},
-                  <strong className="text-gray-900 dark:text-white"> Year Of Study:</strong>{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    {" "}
+                    Year Of Study:
+                  </strong>{" "}
                   {selectedPreviewStudent.classYearName},
-                  <strong className="text-gray-900 dark:text-white"> Semester:</strong>{" "}
+                  <strong className="text-gray-900 dark:text-white">
+                    {" "}
+                    Semester:
+                  </strong>{" "}
                   {selectedPreviewStudent.semesterName}
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <strong className="text-gray-900 dark:text-white">ID No.:</strong> {selectedPreviewStudent.username}
+                    <strong className="text-gray-900 dark:text-white">
+                      ID No.:
+                    </strong>{" "}
+                    {selectedPreviewStudent.username}
                   </div>
                   <div>
-                    <strong className="text-gray-900 dark:text-white">Age:</strong> {selectedPreviewStudent.age}
+                    <strong className="text-gray-900 dark:text-white">
+                      Age:
+                    </strong>{" "}
+                    {selectedPreviewStudent.age}
                   </div>
                   <div>
-                    <strong className="text-gray-900 dark:text-white">Sex:</strong> {selectedPreviewStudent.gender}
+                    <strong className="text-gray-900 dark:text-white">
+                      Sex:
+                    </strong>{" "}
+                    {selectedPreviewStudent.gender}
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <strong className="text-gray-900 dark:text-white">Payment Receipt No.:</strong>{" "}
+                    <strong className="text-gray-900 dark:text-white">
+                      Payment Receipt No.:
+                    </strong>{" "}
                     {paymentReceiptNo || "________________"}
                   </div>
                   <div>
-                    <strong className="text-gray-900 dark:text-white">Batch Class Year:</strong>{" "}
+                    <strong className="text-gray-900 dark:text-white">
+                      Batch Class Year:
+                    </strong>{" "}
                     {selectedPreviewStudent.batchDisplayName}
                   </div>
                   <div>
-                    <strong className="text-gray-900 dark:text-white">Enrollment Type:</strong>{" "}
+                    <strong className="text-gray-900 dark:text-white">
+                      Enrollment Type:
+                    </strong>{" "}
                     {selectedPreviewStudent.enrollmentTypeName}
                   </div>
                 </div>
@@ -2865,18 +3091,35 @@ export default function RegistrationSlips() {
                       {(selectedPreviewStudent.courses || []).map(
                         (course, index) => (
                           <TableRow key={course.courseId}>
-                            <TableCell className="text-gray-700 dark:text-gray-300">{index + 1}</TableCell>
-                            <TableCell className="text-gray-700 dark:text-gray-300">{course.code}</TableCell>
-                            <TableCell className="text-gray-700 dark:text-gray-300">{course.title}</TableCell>
-                            <TableCell className="text-gray-700 dark:text-gray-300">{course.lectureHours}</TableCell>
-                            <TableCell className="text-gray-700 dark:text-gray-300">{course.labHours}</TableCell>
-                            <TableCell className="text-gray-700 dark:text-gray-300">{course.totalHours}</TableCell>
+                            <TableCell className="text-gray-700 dark:text-gray-300">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="text-gray-700 dark:text-gray-300">
+                              {course.code}
+                            </TableCell>
+                            <TableCell className="text-gray-700 dark:text-gray-300">
+                              {course.title}
+                            </TableCell>
+                            <TableCell className="text-gray-700 dark:text-gray-300">
+                              {course.lectureHours}
+                            </TableCell>
+                            <TableCell className="text-gray-700 dark:text-gray-300">
+                              {course.labHours}
+                            </TableCell>
+                            <TableCell className="text-gray-700 dark:text-gray-300">
+                              {course.totalHours}
+                            </TableCell>
                           </TableRow>
                         ),
                       )}
                       {(selectedPreviewStudent.courses || []).length > 0 && (
                         <TableRow className="font-bold bg-gray-100 dark:bg-gray-700">
-                          <TableCell colSpan={3} className="text-gray-900 dark:text-white">Total</TableCell>
+                          <TableCell
+                            colSpan={3}
+                            className="text-gray-900 dark:text-white"
+                          >
+                            Total
+                          </TableCell>
                           <TableCell className="text-gray-900 dark:text-white">
                             {
                               calculateStudentTotals(selectedPreviewStudent)
@@ -2925,7 +3168,9 @@ export default function RegistrationSlips() {
 
               {/* Notes */}
               <div className="text-xs space-y-2 mt-8 p-4 bg-gray-50 dark:bg-gray-700 rounded">
-                <div className="font-bold text-gray-900 dark:text-white">NB.</div>
+                <div className="font-bold text-gray-900 dark:text-white">
+                  NB.
+                </div>
                 <ol className="list-decimal pl-5 space-y-1 text-gray-700 dark:text-gray-300">
                   <li>
                     A student is not allowed to be registered for a course (s)

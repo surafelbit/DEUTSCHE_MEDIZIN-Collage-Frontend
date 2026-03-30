@@ -53,21 +53,82 @@ ChartJS.register(
   ArcElement,
 );
 
+// Cache configuration
+const CACHE_KEY = "registrar_dashboard_data";
+const CACHE_EXPIRY_HOURS = 7 * 24; // Cache expires after 7 days
+
+// Helper function to save data to localStorage
+const saveToCache = (data: any) => {
+  const cacheData = {
+    data: data,
+    timestamp: Date.now(),
+    expiryHours: CACHE_EXPIRY_HOURS,
+  };
+  localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+};
+
+// Helper function to get data from localStorage
+const getFromCache = () => {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (!cached) return null;
+
+  try {
+    const cacheData = JSON.parse(cached);
+    const now = Date.now();
+    const expiryTime =
+      cacheData.timestamp + CACHE_EXPIRY_HOURS * 60 * 60 * 1000;
+
+    // Check if cache is still valid
+    if (now < expiryTime) {
+      return cacheData.data;
+    }
+
+    // Cache expired, remove it
+    localStorage.removeItem(CACHE_KEY);
+    return null;
+  } catch (error) {
+    console.error("Error reading cache:", error);
+    return null;
+  }
+};
+
 export default function RegistrarDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false); // Track refresh state
 
   useEffect(() => {
-    fetchDashboardData();
+    loadDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const loadDashboardData = async (forceRefresh = false) => {
     try {
-      setLoading(true);
+      if (forceRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
+
+      // Check cache first (unless force refresh)
+      if (!forceRefresh) {
+        const cachedData = getFromCache();
+        if (cachedData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          // Still fetch in background to update cache silently?
+          // For now, we'll just use cache and not fetch
+          return;
+        }
+      }
+
+      // Fetch from API
       const response = await apiClient.get(endPoints.getRegistrarDashboard);
       setDashboardData(response.data);
+
+      // Save to cache
+      saveToCache(response.data);
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(
@@ -78,7 +139,14 @@ export default function RegistrarDashboard() {
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  // Refresh handler that forces a new fetch
+  const handleRefresh = async () => {
+    await loadDashboardData(true);
+    toast.success("Dashboard data refreshed!");
   };
 
   // Prepare chart data from API response - NOW USING ACTIVE STUDENTS GENDER DISTRIBUTION
@@ -301,11 +369,19 @@ export default function RegistrarDashboard() {
             </p>
           </div>
           <Button
-            onClick={fetchDashboardData}
+            onClick={handleRefresh}
             variant="outline"
             className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-gray-700"
+            disabled={isRefreshing}
           >
-            Refresh Data
+            {isRefreshing ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-600 mr-2"></div>
+                Refreshing...
+              </>
+            ) : (
+              "Refresh Data"
+            )}
           </Button>
         </motion.div>
 

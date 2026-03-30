@@ -9,21 +9,31 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { X, Loader2, AlertCircle } from "lucide-react";
+import { X, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import apiService from "../../components/api/apiService";
 import endPoints from "../../components/api/endPoints";
 import { AcademicProgression } from "@/components/Extra/AcademicProgression"; // Adjust path as needed
 
+// Cache configuration - adjust this value to change how long data stays cached (in hours)
+const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
+const CACHE_KEY = "vice_dean_students_data";
+
 type Student = {
   studentId: number;
-  studentUserId: number; // Make sure this exists
+  studentUserId: number;
   idNumber: string;
   fullName: string;
   department: string;
   batchClassYearSemester: string;
+  batchName: string; // Added batchName field
   studentStatus: string;
   cgpa: number;
 };
+
+interface CachedStudentsData {
+  students: Student[];
+  timestamp: number;
+}
 
 // Interface for academic progress data
 interface AcademicProgressData {
@@ -44,10 +54,14 @@ interface AcademicProgressData {
 export default function ViceDeanStudents() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("All");
   const [dept, setDept] = useState("All");
+  const [batchYearSemester, setBatchYearSemester] = useState("All");
+  const [originalBatch, setOriginalBatch] = useState("All");
   const [selected, setSelected] = useState<Student | undefined>(undefined);
 
   // Academic progress states
@@ -60,18 +74,86 @@ export default function ViceDeanStudents() {
     fetchStudents();
   }, []);
 
-  const fetchStudents = async () => {
+  const isCacheValid = (cachedData: CachedStudentsData | null): boolean => {
+    if (!cachedData) return false;
+
+    const now = Date.now();
+    const cacheAge = now - cachedData.timestamp;
+    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
+
+    return cacheAge < cacheDurationMs;
+  };
+
+  const saveToCache = (studentsData: Student[]) => {
     try {
+      const cacheData: CachedStudentsData = {
+        students: studentsData,
+        timestamp: Date.now(),
+      };
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error("Failed to save to session storage:", err);
+    }
+  };
+
+  const loadFromCache = (): Student[] | null => {
+    try {
+      const cached = sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return null;
+
+      const cachedData: CachedStudentsData = JSON.parse(cached);
+
+      if (isCacheValid(cachedData)) {
+        setLastUpdated(new Date(cachedData.timestamp));
+        return cachedData.students;
+      }
+
+      // Cache expired, remove it
+      sessionStorage.removeItem(CACHE_KEY);
+      return null;
+    } catch (err) {
+      console.error("Failed to load from session storage:", err);
+      return null;
+    }
+  };
+
+  const fetchStudents = async (forceRefresh: boolean = false) => {
+    try {
+      if (!forceRefresh) {
+        // Try to load from cache first
+        const cachedData = loadFromCache();
+        if (cachedData) {
+          setStudents(cachedData);
+          setLoading(false);
+          return;
+        }
+      }
+
       setLoading(true);
       setError(null);
       const data = await apiService.get(endPoints.getAllStudentsCGPA_VD);
       setStudents(data);
-    } catch (err) {
+      saveToCache(data);
+    } catch (err: any) {
       console.error("Error fetching students:", err);
       setError(err.response?.data?.error || "Failed to load students data");
+
+      // If API fails but we have expired cache, use it as fallback
+      const expiredCache = loadFromCache();
+      if (expiredCache) {
+        setStudents(expiredCache);
+        setError(null); // Clear error since we have fallback data
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchStudents(true);
   };
 
   // Fetch academic progress when student is selected
@@ -79,14 +161,13 @@ export default function ViceDeanStudents() {
     try {
       setLoadingProgress(true);
       setProgressError(null);
-      // Replace :userId with the actual studentUserId
       const endpoint = endPoints.studentsAcademicProgress.replace(
         ":userId",
         studentUserId.toString(),
       );
-      console.log("Fetching from endpoint:", endpoint); // Debug log
+      console.log("Fetching from endpoint:", endpoint);
       const data = await apiService.get(endpoint);
-      console.log("Academic Progress Response:", data); // Debug log - data is already the response data
+      console.log("Academic Progress Response:", data);
       setAcademicProgress(data);
     } catch (err: any) {
       console.error("Failed to load academic progress:", err);
@@ -108,16 +189,25 @@ export default function ViceDeanStudents() {
     fetchAcademicProgress(student.studentUserId);
   };
 
-  // Extract unique departments for filter
+  // Extract unique values for filters
   const departments = useMemo(() => {
     const depts = students.map((s) => s.department);
     return Array.from(new Set(depts)).sort();
   }, [students]);
 
-  // Extract unique statuses for filter
   const statuses = useMemo(() => {
     const stats = students.map((s) => s.studentStatus);
     return Array.from(new Set(stats)).sort();
+  }, [students]);
+
+  const batchYearSemesters = useMemo(() => {
+    const bcys = students.map((s) => s.batchClassYearSemester);
+    return Array.from(new Set(bcys)).sort();
+  }, [students]);
+
+  const originalBatches = useMemo(() => {
+    const batches = students.map((s) => s.batchName).filter(Boolean);
+    return Array.from(new Set(batches)).sort();
   }, [students]);
 
   const filtered = useMemo(() => {
@@ -127,24 +217,37 @@ export default function ViceDeanStudents() {
         s.idNumber.toLowerCase().includes(query.toLowerCase());
       const matchesStatus = status === "All" || s.studentStatus === status;
       const matchesDept = dept === "All" || s.department === dept;
-      return matchesQuery && matchesStatus && matchesDept;
+      const matchesBatchYearSemester =
+        batchYearSemester === "All" ||
+        s.batchClassYearSemester === batchYearSemester;
+      const matchesOriginalBatch =
+        originalBatch === "All" || s.batchName === originalBatch;
+      return (
+        matchesQuery &&
+        matchesStatus &&
+        matchesDept &&
+        matchesBatchYearSemester &&
+        matchesOriginalBatch
+      );
     });
-  }, [query, status, dept, students]);
+  }, [query, status, dept, batchYearSemester, originalBatch, students]);
 
   const handleReset = () => {
     setQuery("");
     setStatus("All");
     setDept("All");
+    setBatchYearSemester("All");
+    setOriginalBatch("All");
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        <div className="p-4 space-y-4 max-w-full mx-auto">
           <Skeleton className="h-10 w-64" />
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-32 rounded-lg" />
+              <Skeleton key={i} className="h-28 rounded-lg" />
             ))}
           </div>
           <Skeleton className="h-96 rounded-lg" />
@@ -153,7 +256,7 @@ export default function ViceDeanStudents() {
     );
   }
 
-  if (error) {
+  if (error && !students.length) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
         <Card className="max-w-md">
@@ -162,7 +265,7 @@ export default function ViceDeanStudents() {
               Error Loading Students
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-            <Button onClick={fetchStudents}>Retry</Button>
+            <Button onClick={() => fetchStudents(true)}>Retry</Button>
           </CardContent>
         </Card>
       </div>
@@ -171,40 +274,53 @@ export default function ViceDeanStudents() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-            Student Overview
-          </h1>
+      <div className="p-4 space-y-4 max-w-full mx-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              Student Overview
+            </h1>
+            {lastUpdated && (
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                Last updated: {lastUpdated.toLocaleString()}
+              </p>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
-              className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-              onClick={fetchStudents}
+              className="flex items-center gap-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+              onClick={handleRefresh}
+              disabled={refreshing}
             >
-              Refresh Data
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {refreshing ? "Refreshing..." : "Refresh Data"}
             </Button>
           </div>
         </div>
 
-        {/* Summary Cards - Moved to Top */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Total Students
               </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {students.length}
               </p>
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Avg CGPA (All)
               </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {students.length > 0
                   ? (
                       students.reduce((a, c) => a + c.cgpa, 0) / students.length
@@ -214,21 +330,21 @@ export default function ViceDeanStudents() {
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Active Students
               </p>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {students.filter((s) => s.studentStatus === "Active").length}
               </p>
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Graduated
               </p>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {students.filter((s) => s.studentStatus === "Graduated").length}
               </p>
             </CardContent>
@@ -236,15 +352,15 @@ export default function ViceDeanStudents() {
         </div>
 
         {/* Additional Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Students with CGPA ≥ 3.5
               </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-xl font-bold text-green-600 dark:text-green-400">
                 {students.filter((s) => s.cgpa >= 3.5).length}
-                <span className="text-sm font-normal ml-2 text-gray-500">
+                <span className="text-xs font-normal ml-2 text-gray-500">
                   (
                   {students.length > 0
                     ? (
@@ -259,13 +375,13 @@ export default function ViceDeanStudents() {
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Students with CGPA &lt; 2.0
               </p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+              <p className="text-xl font-bold text-red-600 dark:text-red-400">
                 {students.filter((s) => s.cgpa < 2.0).length}
-                <span className="text-sm font-normal ml-2 text-gray-500">
+                <span className="text-xs font-normal ml-2 text-gray-500">
                   (
                   {students.length > 0
                     ? (
@@ -280,13 +396,13 @@ export default function ViceDeanStudents() {
             </CardContent>
           </Card>
           <Card className="bg-white dark:bg-gray-800 shadow-lg">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <CardContent className="p-3">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Currently Filtered
               </p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
                 {filtered.length}
-                <span className="text-sm font-normal ml-2 text-gray-500">
+                <span className="text-xs font-normal ml-2 text-gray-500">
                   of {students.length}
                 </span>
               </p>
@@ -296,17 +412,17 @@ export default function ViceDeanStudents() {
 
         {/* Search and Filters */}
         <Card className="bg-white dark:bg-gray-800 shadow-lg">
-          <CardContent className="p-4 grid grid-cols-1 lg:grid-cols-5 gap-3">
+          <CardContent className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2">
             <input
               placeholder="Search by name or ID"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="All">All Statuses</option>
               {statuses.map((stat) => (
@@ -318,7 +434,7 @@ export default function ViceDeanStudents() {
             <select
               value={dept}
               onChange={(e) => setDept(e.target.value)}
-              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="All">All Departments</option>
               {departments.map((dept) => (
@@ -327,15 +443,42 @@ export default function ViceDeanStudents() {
                 </option>
               ))}
             </select>
-            <div className="flex gap-2 lg:col-span-2">
+            <select
+              value={batchYearSemester}
+              onChange={(e) => setBatchYearSemester(e.target.value)}
+              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="All">All Batch/Year/Semester</option>
+              {batchYearSemesters.map((bcys) => (
+                <option key={bcys} value={bcys}>
+                  {bcys}
+                </option>
+              ))}
+            </select>
+            <select
+              value={originalBatch}
+              onChange={(e) => setOriginalBatch(e.target.value)}
+              className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="All">All Original Batches</option>
+              {originalBatches.map((batch) => (
+                <option key={batch} value={batch}>
+                  {batch}
+                </option>
+              ))}
+            </select>
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 flex-1"
                 onClick={handleReset}
               >
-                Reset Filters
+                Reset
               </Button>
-              <Button className="bg-blue-600 text-white hover:bg-blue-700 flex-1">
+              <Button
+                className="bg-blue-600 text-white hover:bg-blue-700 flex-1"
+                onClick={() => {}}
+              >
                 Search
               </Button>
             </div>
@@ -344,14 +487,15 @@ export default function ViceDeanStudents() {
 
         {/* Students Table */}
         <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-          <CardContent className="p-4 overflow-x-auto">
-            <table className="w-full text-left">
+          <CardContent className="p-3 overflow-x-auto">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                   <th className="p-2">ID Number</th>
                   <th className="p-2">Full Name</th>
                   <th className="p-2">Department</th>
                   <th className="p-2">Batch/Year/Semester</th>
+                  <th className="p-2">Original Batch</th>
                   <th className="p-2">Status</th>
                   <th className="p-2">CGPA</th>
                   <th className="p-2">Actions</th>
@@ -360,7 +504,7 @@ export default function ViceDeanStudents() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-4 text-center text-gray-500">
+                    <td colSpan={8} className="p-4 text-center text-gray-500">
                       No students found matching your criteria
                     </td>
                   </tr>
@@ -369,11 +513,15 @@ export default function ViceDeanStudents() {
                     <tr
                       key={s.studentId}
                       className="border-t border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                      onClick={() => handleViewProfile(s)}
                     >
-                      <td className="p-2">{s.idNumber}</td>
+                      <td className="p-2 font-mono text-xs">{s.idNumber}</td>
                       <td className="p-2 font-medium">{s.fullName}</td>
                       <td className="p-2">{s.department}</td>
-                      <td className="p-2">{s.batchClassYearSemester}</td>
+                      <td className="p-2 text-xs">
+                        {s.batchClassYearSemester}
+                      </td>
+                      <td className="p-2 text-xs">{s.batchName || "N/A"}</td>
                       <td className="p-2">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
@@ -405,7 +553,10 @@ export default function ViceDeanStudents() {
                           size="sm"
                           variant="outline"
                           className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                          onClick={() => handleViewProfile(s)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewProfile(s);
+                          }}
                         >
                           View Progress
                         </Button>
