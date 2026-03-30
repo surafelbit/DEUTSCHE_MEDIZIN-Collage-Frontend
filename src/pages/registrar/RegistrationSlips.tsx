@@ -64,7 +64,7 @@ import { toast } from "sonner";
 const STUDENTS_STORAGE_KEY = "registration-slips-students";
 const FILTER_DATA_STORAGE_KEY = "registration-slips-filter-data";
 const BCYS_LIST_STORAGE_KEY = "registration-slips-bcys-list";
-const STORAGE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const STORAGE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 interface Student {
   studentId: number;
