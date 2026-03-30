@@ -115,6 +115,10 @@ export default function CustomizableStudentTable() {
   const [showAdministrativeFilters, setShowAdministrativeFilters] =
     useState(false);
 
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
   // Filters
   const [genderFilter, setGenderFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -408,14 +412,6 @@ export default function CustomizableStudentTable() {
   };
   // Filtered students (memoized)
   const filteredStudents = useMemo(() => {
-    console.log("Total students:", students.length);
-    console.log("Sample student:", students[0]);
-    console.log("Program Modality filter value:", programModalityFilter);
-    console.log("Student programModality:", students[0]?.programModality);
-    console.log(
-      "getEntityId result:",
-      getEntityId(students[0]?.programModality),
-    );
     const result = students.filter((student) => {
       // Text search
       if (searchTerm.trim()) {
@@ -805,6 +801,41 @@ export default function CustomizableStudentTable() {
     dateGraduatedRange,
     totalCoursesRange,
   ]);
+
+  // Sorted students based on filter results
+  const sortedStudents = useMemo(() => {
+    if (!sortColumn) return filteredStudents;
+
+    return [...filteredStudents].sort((a, b) => {
+      let aValue = a[sortColumn];
+      let bValue = b[sortColumn];
+
+      // Handle nested objects (like {name: "something"})
+      if (aValue && typeof aValue === "object" && "name" in aValue)
+        aValue = aValue.name;
+      if (bValue && typeof bValue === "object" && "name" in bValue)
+        bValue = bValue.name;
+
+      // Handle null/undefined values
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      // Handle different data types
+      const isNumber = typeof aValue === "number" && typeof bValue === "number";
+      const isDate = !isNaN(Date.parse(aValue)) && !isNaN(Date.parse(bValue));
+
+      let comparison = 0;
+      if (isNumber) {
+        comparison = aValue - bValue;
+      } else if (isDate) {
+        comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [filteredStudents, sortColumn, sortDirection]);
 
   //===============================================================================
   // Range handlers (create similar ones for all ranges)
@@ -1939,8 +1970,8 @@ export default function CustomizableStudentTable() {
           {/* Table */}
           <div className="flex items-center justify-between mt-1.5 mb-4">
             <CardDescription>
-              {filteredStudents.length} record
-              {filteredStudents.length !== 1 ? "s" : ""} found
+              {sortedStudents.length} record
+              {sortedStudents.length !== 1 ? "s" : ""} found
             </CardDescription>
 
             <Button
@@ -1988,7 +2019,7 @@ export default function CustomizableStudentTable() {
                   {visibleColumns.map((col) => (
                     <TableHead
                       key={col}
-                      className="whitespace-nowrap capitalize backdrop-blur-md supports-[backdrop-filter]:bg-muted/40 border-b"
+                      className="whitespace-nowrap capitalize backdrop-blur-md supports-[backdrop-filter]:bg-muted/40 border-b cursor-pointer hover:bg-muted/80 transition-colors group"
                       style={{
                         position: "sticky",
                         top: 0,
@@ -1996,14 +2027,37 @@ export default function CustomizableStudentTable() {
                         WebkitBackdropFilter: "blur(12px)",
                         backgroundColor: "rgba(var(--muted), 0.6)",
                       }}
+                      onClick={() => {
+                        if (sortColumn === col) {
+                          setSortDirection(
+                            sortDirection === "asc" ? "desc" : "asc",
+                          );
+                        } else {
+                          setSortColumn(col);
+                          setSortDirection("asc");
+                        }
+                      }}
+                      title={`Click to sort by ${col.replace(/([A-Z])/g, " $1")}`}
                     >
-                      {col.replace(/([A-Z])/g, " $1")}
+                      <div className="flex items-center gap-1">
+                        {col.replace(/([A-Z])/g, " $1")}
+                        {sortColumn === col && (
+                          <span className="text-xs">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                        {sortColumn !== col && (
+                          <span className="text-xs opacity-0 group-hover:opacity-50">
+                            ↕
+                          </span>
+                        )}
+                      </div>
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.length === 0 ? (
+                {sortedStudents.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={visibleColumns.length}
@@ -2013,7 +2067,7 @@ export default function CustomizableStudentTable() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredStudents.map((student) => (
+                  sortedStudents.map((student) => (
                     <TableRow key={student.id ?? Math.random()}>
                       {visibleColumns.map((col) => (
                         <TableCell key={col} className="py-3">
