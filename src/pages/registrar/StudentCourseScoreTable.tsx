@@ -1,14 +1,74 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { message, Input, Modal, InputNumber, Select } from "antd";
 import apiClient from "../../components/api/apiClient";
 import endPoints from "../../components/api/endPoints";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Eye, EyeOff } from "lucide-react";
-import { useMemo } from "react";
+import { Pencil, Eye, EyeOff, Trash2 } from "lucide-react";
+
+// Storage Configuration
+const STORAGE_KEYS = {
+  FILTER_OPTIONS: "student_score_filter_options",
+  CURRENT_FILTERS: "student_score_current_filters",
+  PAGINATION: "student_score_pagination",
+  TABLE_DATA: "student_score_table_data",
+  USER_PREFERENCES: "student_score_preferences",
+};
+
+const STORAGE_DURATION = {
+  FILTER_OPTIONS: 24 * 60 * 60 * 1000, // 24 hours
+  TABLE_DATA: 30 * 60 * 1000, // 30 minutes
+  FILTERS: 30 * 60 * 1000, // 30 minutes
+  PAGINATION: 30 * 60 * 1000, // 30 minutes
+};
+
+// Storage Helper Functions - MOVED BEFORE COMPONENT
+const saveToSessionStorage = (key, data, duration) => {
+  try {
+    const item = {
+      data: data,
+      timestamp: Date.now(),
+      expiry: duration,
+    };
+    sessionStorage.setItem(key, JSON.stringify(item));
+  } catch (error) {
+    console.error("Error saving to sessionStorage:", error);
+  }
+};
+
+const loadFromSessionStorage = (key) => {
+  try {
+    const item = sessionStorage.getItem(key);
+    if (!item) return null;
+
+    const parsed = JSON.parse(item);
+    const now = Date.now();
+
+    // Check if data has expired
+    if (now - parsed.timestamp > parsed.expiry) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+
+    return parsed.data;
+  } catch (error) {
+    console.error("Error loading from sessionStorage:", error);
+    return null;
+  }
+};
+
+const clearSessionStorage = () => {
+  Object.values(STORAGE_KEYS).forEach((key) => {
+    sessionStorage.removeItem(key);
+  });
+};
+
 const initialData = [];
 
 export default function StudentCourseScoreTable() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState(() => {
+    const saved = loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
+    return saved || initialData;
+  });
   const { toast } = useToast(); // ← Add this
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,6 +80,9 @@ export default function StudentCourseScoreTable() {
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
   const [showBatchConfirmation, setShowBatchConfirmation] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // Store action to execute after confirmation
+
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null); // Store the record to delete
 
   const [batchValues, setBatchValues] = useState({
     score: "",
@@ -40,32 +103,42 @@ export default function StudentCourseScoreTable() {
   const [editedRows, setEditedRows] = useState({}); // Store all edited values
   const [editModeLoading, setEditModeLoading] = useState(false); // For save/cancel operations
 
-  const [filters, setFilters] = useState({
-    courseId: "", // ← new
-    bcysId: "", // renamed from batchClassYearSemester
-    studentId: null, // better name than "search"
-    isReleased: null, // null = all, true, false
-    departmentId: "" as string | "", // ← new
-    studentStatusId: "" as string | "", // ← Add this
+  // Load saved preferences
+  const [filters, setFilters] = useState(() => {
+    const saved = loadFromSessionStorage(STORAGE_KEYS.CURRENT_FILTERS);
+    return (
+      saved || {
+        courseId: "",
+        bcysId: "",
+        studentId: null,
+        isReleased: null,
+        departmentId: "",
+        studentStatusId: "",
+      }
+    );
   });
 
-  const [filterOptions, setFilterOptions] = useState({
-    // departments: [],
-    // studentStatuses: [],
-    // batches: [],
-    // semesters: [],
-    // academicYears: [],
-    courseSources: [],
-    //courses: [], // ← new or rename if you already have course list
-    batchClassYearSemesters: [],
-    departments: [] as Array<{ id: number; name: string }>, // ← new
-    studentStatuses: [] as Array<{ id: number; name: string }>,
+  const [filterOptions, setFilterOptions] = useState(() => {
+    const saved = loadFromSessionStorage(STORAGE_KEYS.FILTER_OPTIONS);
+    return (
+      saved || {
+        courseSources: [],
+        batchClassYearSemesters: [],
+        departments: [],
+        studentStatuses: [],
+      }
+    );
   });
 
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
+  const [pagination, setPagination] = useState(() => {
+    const saved = loadFromSessionStorage(STORAGE_KEYS.PAGINATION);
+    return (
+      saved || {
+        current: 1,
+        pageSize: 10,
+        total: 0,
+      }
+    );
   });
 
   useEffect(() => {
@@ -85,18 +158,57 @@ export default function StudentCourseScoreTable() {
     filters.studentStatusId, // ← Add this
   ]);
 
+  // Save current state to storage
+  const saveCurrentState = () => {
+    saveToSessionStorage(
+      STORAGE_KEYS.CURRENT_FILTERS,
+      filters,
+      STORAGE_DURATION.FILTERS,
+    );
+    saveToSessionStorage(
+      STORAGE_KEYS.PAGINATION,
+      pagination,
+      STORAGE_DURATION.PAGINATION,
+    );
+    saveToSessionStorage(
+      STORAGE_KEYS.TABLE_DATA,
+      data,
+      STORAGE_DURATION.TABLE_DATA,
+    );
+  };
+
+  // Save filter options separately
+  const saveFilterOptions = (options) => {
+    saveToSessionStorage(
+      STORAGE_KEYS.FILTER_OPTIONS,
+      options,
+      STORAGE_DURATION.FILTER_OPTIONS,
+    );
+    setFilterOptions(options);
+  };
+
   const fetchFilterOptions = async () => {
+    // Check if we have cached filter options
+    const cached = loadFromSessionStorage(STORAGE_KEYS.FILTER_OPTIONS);
+    if (cached && Object.keys(cached).length > 0) {
+      setFilterOptions(cached);
+      return;
+    }
+
+    // If no cache, fetch from API
     try {
       const response = await apiClient.get(endPoints.lookupsDropdown);
       console.log("lookupsDropdown response:", response.data);
 
       if (response.data) {
-        setFilterOptions({
+        const options = {
           departments: response.data.departments || [],
           batchClassYearSemesters: response.data.batchClassYearSemesters || [],
           courseSources: response.data.courseSources || [],
-          studentStatuses: response.data.studentStatuses || [], // ← Add this
-        });
+          studentStatuses: response.data.studentStatuses || [],
+        };
+
+        saveFilterOptions(options);
       }
     } catch (error) {
       message.error("Failed to load filter options");
@@ -130,9 +242,29 @@ export default function StudentCourseScoreTable() {
   useEffect(() => {
     fetchCourseList();
   }, []);
+
   useEffect(() => {
     fetchStudnet();
   }, []);
+
+  // Save filters to storage whenever they change
+  useEffect(() => {
+    saveToSessionStorage(
+      STORAGE_KEYS.CURRENT_FILTERS,
+      filters,
+      STORAGE_DURATION.FILTERS,
+    );
+  }, [filters]);
+
+  // Save pagination to storage whenever it changes
+  useEffect(() => {
+    saveToSessionStorage(
+      STORAGE_KEYS.PAGINATION,
+      pagination,
+      STORAGE_DURATION.PAGINATION,
+    );
+  }, [pagination]);
+
   const displayedData = useMemo(() => {
     if (!filters.departmentId) {
       return data; // show everything when no department filter
@@ -142,9 +274,9 @@ export default function StudentCourseScoreTable() {
 
     return data.filter((row) => row.department?.id === selectedDeptId);
   }, [data, filters.departmentId]);
-  console.log("Raw data:", data);
-  console.log("Filtered data:", displayedData);
-  console.log("Selected department ID:", filters.departmentId);
+  // console.log("Raw data:", data);
+  // console.log("Filtered data:", displayedData);
+  // console.log("Selected department ID:", filters.departmentId);
   // useEffect(() => {
   //   // When department changes → immediately update the displayed table
   //   setData(displayedData);
@@ -166,7 +298,6 @@ export default function StudentCourseScoreTable() {
           departmentId: Number(filters.departmentId),
         }),
         ...(filters.studentStatusId && {
-          // ← Add this
           studentStatusId: Number(filters.studentStatusId),
         }),
       };
@@ -176,11 +307,11 @@ export default function StudentCourseScoreTable() {
 
       if (response.data?.content) {
         const formattedData = response.data.content.map((item) => ({
-          key: item.id.toString(), // in the map inside fetchStudentCourseScores
+          key: item.id.toString(),
           id: item.id,
           studentId: {
             id: item.studentId?.toString(),
-            student: { name: item.studentName }, // ← most likely NOT returned
+            student: { name: item.studentName },
           },
           course: item.course || { id: null, displayName: "N/A" },
           department: item.department || { id: null, displayName: "N/A" },
@@ -194,34 +325,34 @@ export default function StudentCourseScoreTable() {
         }));
 
         setData(formattedData);
-        // You can remove setAllData() — no longer needed (backend filters)
 
-        // setPagination((prev) => ({
-        //   ...prev,
-        //   total: response.data.totalElements,
-        //   current: response.data.page + 1,
-        //   pageSize: response.data.size || prev.pageSize,
-        // }));
+        // Save data to storage
+        saveToSessionStorage(
+          STORAGE_KEYS.TABLE_DATA,
+          formattedData,
+          STORAGE_DURATION.TABLE_DATA,
+        );
+
         setPagination((prev) => {
           const newTotal = response.data.totalElements ?? prev.total;
           const newCurrent =
             response.data.page != null ? response.data.page + 1 : prev.current;
           const newSize = response.data.size ?? prev.pageSize;
 
-          if (
-            newTotal === prev.total &&
-            newCurrent === prev.current &&
-            newSize === prev.pageSize
-          ) {
-            return prev; // ← prevents re-render loop
-          }
-
-          return {
-            ...prev,
+          const newPagination = {
             total: newTotal,
             current: newCurrent,
             pageSize: newSize,
           };
+
+          // Save pagination to storage
+          saveToSessionStorage(
+            STORAGE_KEYS.PAGINATION,
+            newPagination,
+            STORAGE_DURATION.PAGINATION,
+          );
+
+          return newPagination;
         });
       }
     } catch (error) {
@@ -409,6 +540,94 @@ export default function StudentCourseScoreTable() {
         hasChanges: true,
       },
     }));
+  };
+
+  // Handle single record deletion
+  const handleDeleteRecord = async (record) => {
+    try {
+      setDeleteLoading(true);
+
+      const response = await apiClient.delete(endPoints.bulkDeleteScores, {
+        data: [record.id], // Send array with single ID
+      });
+
+      toast({
+        title: "✅ Record Deleted",
+        description: `Successfully deleted score record for ${record.studentId.student?.name || record.studentId.id} - ${record.course.displayName}`,
+        variant: "default",
+      });
+
+      // Refresh the table
+      fetchStudentCourseScores();
+
+      // Clear any selected rows that might include this record
+      setSelectedRowKeys((prev) => prev.filter((key) => key !== record.key));
+    } catch (err) {
+      console.error("Delete failed:", err);
+      const errorMessage =
+        err.response?.data?.error || "Failed to delete record";
+
+      toast({
+        title: "❌ Delete Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
+      setDeleteConfirmation(null);
+    }
+  };
+
+  // Handle bulk deletion (optional - for selected rows)
+  const handleBulkDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      toast({
+        title: "ℹ️ No Selection",
+        description: "Please select records to delete",
+        variant: "default",
+      });
+      return;
+    }
+
+    // Get the IDs of selected records
+    const selectedIds = selectedRowKeys
+      .map((key) => {
+        const record = data.find((item) => item.key === key);
+        return record?.id;
+      })
+      .filter((id) => id);
+
+    if (selectedIds.length === 0) return;
+
+    try {
+      setDeleteLoading(true);
+
+      const response = await apiClient.delete(endPoints.bulkDeleteScores, {
+        data: selectedIds,
+      });
+
+      toast({
+        title: "✅ Bulk Delete Successful",
+        description: `Successfully deleted ${selectedIds.length} record(s)`,
+        variant: "default",
+      });
+
+      // Clear selection and refresh
+      setSelectedRowKeys([]);
+      fetchStudentCourseScores();
+    } catch (err) {
+      console.error("Bulk delete failed:", err);
+      const errorMessage =
+        err.response?.data?.error || "Failed to delete records";
+
+      toast({
+        title: "❌ Bulk Delete Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   // Validate a single row's score
@@ -1579,6 +1798,65 @@ export default function StudentCourseScoreTable() {
             >
               Cancel
             </button>
+
+            {/* Bulk Delete Button */}
+            {selectedRowKeys.length > 0 && (
+              <button
+                onClick={() => {
+                  // Show confirmation for bulk delete
+                  const confirmMessage = `Are you sure you want to delete ${selectedRowKeys.length} record(s)? This action cannot be undone.`;
+                  if (window.confirm(confirmMessage)) {
+                    handleBulkDelete();
+                  }
+                }}
+                disabled={deleteLoading}
+                className={`px-5 py-2 rounded flex items-center gap-2 ${
+                  deleteLoading
+                    ? "bg-red-400 cursor-not-allowed"
+                    : "bg-red-600 hover:bg-red-700"
+                } text-white`}
+              >
+                {deleteLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    <span>Delete Selected ({selectedRowKeys.length})</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -1902,21 +2180,19 @@ export default function StudentCourseScoreTable() {
                         onClick={() => handleToggleRelease(item)}
                         disabled={togglingRowId === item.id}
                         className={`
-    relative overflow-hidden transition-transform active:scale-95
-    ${
-      item.isReleased
-        ? "text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200"
-        : "text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
-    }
-    ${togglingRowId === item.id ? "opacity-50 cursor-wait" : ""}
-  `}
+        relative overflow-hidden transition-transform active:scale-95
+        ${
+          item.isReleased
+            ? "text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200"
+            : "text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+        }
+        ${togglingRowId === item.id ? "opacity-50 cursor-wait" : ""}
+      `}
                         title={item.isReleased ? "Unrelease" : "Release"}
                       >
                         {togglingRowId === item.id ? (
                           <svg
                             className="animate-spin h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
                             viewBox="0 0 24 24"
                           >
                             <circle
@@ -1926,18 +2202,28 @@ export default function StudentCourseScoreTable() {
                               r="10"
                               stroke="currentColor"
                               strokeWidth="4"
-                            ></circle>
+                              fill="none"
+                            />
                             <path
                               className="opacity-75"
                               fill="currentColor"
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
+                            />
                           </svg>
                         ) : item.isReleased ? (
                           <EyeOff size={16} />
                         ) : (
                           <Eye size={16} />
                         )}
+                      </button>
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => setDeleteConfirmation(item)}
+                        disabled={deleteLoading}
+                        className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors active:scale-95"
+                        title="Delete Record"
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
@@ -2202,6 +2488,80 @@ export default function StudentCourseScoreTable() {
               <p className="text-sm text-red-600 dark:text-red-400 mt-3">
                 This will affect transcripts and student records. This action
                 cannot be undone.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        title="Confirm Deletion"
+        open={deleteConfirmation !== null}
+        onOk={() => {
+          if (deleteConfirmation) {
+            handleDeleteRecord(deleteConfirmation);
+          }
+        }}
+        onCancel={() => {
+          setDeleteConfirmation(null);
+        }}
+        okText="Yes, Delete"
+        cancelText="Cancel"
+        okButtonProps={{ danger: true, loading: deleteLoading }}
+        cancelButtonProps={{ disabled: deleteLoading }}
+        className="dark:[&_.ant-modal-content]:bg-gray-800 dark:[&_.ant-modal-header]:bg-gray-800 dark:[&_.ant-modal-title]:text-gray-100"
+      >
+        <div className="space-y-3 text-gray-900 dark:text-gray-100">
+          <div className="flex items-start gap-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-red-500 flex-shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            <div>
+              <p className="font-medium">
+                Warning: This action cannot be undone
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                You are about to delete the score record for:
+              </p>
+              {deleteConfirmation && (
+                <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
+                  <p className="text-sm font-medium">
+                    <strong>Student:</strong>{" "}
+                    {deleteConfirmation.studentId.student?.name ||
+                      deleteConfirmation.studentId.id}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Course:</strong>{" "}
+                    {deleteConfirmation.course.displayName}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Score:</strong>{" "}
+                    {deleteConfirmation.score?.toFixed(2) || "N/A"}
+                  </p>
+                  <p className="text-sm">
+                    <strong>Status:</strong>{" "}
+                    {deleteConfirmation.isReleased ? "Released" : "Unreleased"}
+                  </p>
+                </div>
+              )}
+              <p className="text-sm font-medium text-red-600 dark:text-red-400 mt-3">
+                This will permanently remove this record from the system and
+                cannot be recovered.
+              </p>
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-3">
+                Note that you can create this record on registration slips
               </p>
             </div>
           </div>
