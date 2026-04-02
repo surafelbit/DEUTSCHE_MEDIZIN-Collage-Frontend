@@ -145,8 +145,31 @@ export default function StudentCourseScoreTable() {
     fetchFilterOptions();
   }, []);
 
+  // Initial load - only fetch if no cached data
   useEffect(() => {
-    fetchStudentCourseScores();
+    const cachedData = loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
+    if (!cachedData || cachedData.length === 0) {
+      console.log("No cached data, fetching from API");
+      fetchStudentCourseScores(true);
+    } else {
+      console.log("Cached data found, loading from storage");
+      setData(cachedData);
+      const cachedPagination = loadFromSessionStorage(STORAGE_KEYS.PAGINATION);
+      if (cachedPagination) {
+        setPagination(cachedPagination);
+      }
+    }
+  }, []); // Empty dependency array - only runs once on mount
+
+  // Handle filter/pagination changes - always fetch fresh data
+  useEffect(() => {
+    // Skip the initial mount because we already handled it above
+    // This will run when filters or pagination change
+    const isInitialMount = !loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
+    if (!isInitialMount) {
+      console.log("Filters or pagination changed, fetching fresh data");
+      fetchStudentCourseScores(true);
+    }
   }, [
     pagination.current,
     pagination.pageSize,
@@ -155,7 +178,7 @@ export default function StudentCourseScoreTable() {
     filters.studentId,
     filters.isReleased,
     filters.departmentId,
-    filters.studentStatusId, // ← Add this
+    filters.studentStatusId,
   ]);
 
   // Save current state to storage
@@ -190,7 +213,12 @@ export default function StudentCourseScoreTable() {
   const fetchFilterOptions = async () => {
     // Check if we have cached filter options
     const cached = loadFromSessionStorage(STORAGE_KEYS.FILTER_OPTIONS);
-    if (cached && Object.keys(cached).length > 0) {
+    if (
+      cached &&
+      Object.keys(cached).length > 0 &&
+      cached.departments?.length > 0
+    ) {
+      console.log("Using cached filter options");
       setFilterOptions(cached);
       return;
     }
@@ -274,14 +302,44 @@ export default function StudentCourseScoreTable() {
 
     return data.filter((row) => row.department?.id === selectedDeptId);
   }, [data, filters.departmentId]);
-  // console.log("Raw data:", data);
-  // console.log("Filtered data:", displayedData);
-  // console.log("Selected department ID:", filters.departmentId);
-  // useEffect(() => {
-  //   // When department changes → immediately update the displayed table
-  //   setData(displayedData);
-  // }, [displayedData]); // ← reacts only when displayedData changes
-  const fetchStudentCourseScores = async () => {
+
+  // Check if cached data exists and is still valid
+  const hasValidCache = (key) => {
+    try {
+      const item = sessionStorage.getItem(key);
+      if (!item) return false;
+
+      const parsed = JSON.parse(item);
+      const now = Date.now();
+
+      // Check if data hasn't expired
+      return now - parsed.timestamp <= parsed.expiry;
+    } catch (error) {
+      console.error("Error checking cache validity:", error);
+      return false;
+    }
+  };
+
+  const fetchStudentCourseScores = async (skipCache = false) => {
+    // Check if we have cached data and skipCache is false
+    if (!skipCache) {
+      const cachedData = loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
+      if (cachedData && cachedData.length > 0) {
+        console.log("Using cached table data, skipping API call");
+        setData(cachedData);
+
+        // Also load cached pagination if available
+        const cachedPagination = loadFromSessionStorage(
+          STORAGE_KEYS.PAGINATION,
+        );
+        if (cachedPagination) {
+          setPagination(cachedPagination);
+        }
+        return;
+      }
+    }
+
+    // If no cache or skipCache is true, fetch from API
     setLoading(true);
     try {
       const params = {
@@ -303,7 +361,6 @@ export default function StudentCourseScoreTable() {
       };
 
       const response = await apiClient.get(endPoints.getAllScores, { params });
-      console.log(response, "no no no");
 
       if (response.data?.content) {
         const formattedData = response.data.content.map((item) => ({
@@ -326,7 +383,7 @@ export default function StudentCourseScoreTable() {
 
         setData(formattedData);
 
-        // Save data to storage
+        // Save to storage
         saveToSessionStorage(
           STORAGE_KEYS.TABLE_DATA,
           formattedData,
@@ -345,7 +402,6 @@ export default function StudentCourseScoreTable() {
             pageSize: newSize,
           };
 
-          // Save pagination to storage
           saveToSessionStorage(
             STORAGE_KEYS.PAGINATION,
             newPagination,
@@ -375,60 +431,6 @@ export default function StudentCourseScoreTable() {
     } else {
       setSelectedRowKeys(data.map((item) => item.key));
     }
-  };
-
-  const applyBatchUpdate = async () => {
-    if (selectedRowKeys.length === 0) return;
-
-    // Reset any previous errors
-    setScoreInputError(false);
-
-    // Validate score if provided
-    if (batchValues.score !== "" && batchValues.score !== null) {
-      if (isNaN(Number(batchValues.score))) {
-        toast({
-          title: "❌ Invalid Score",
-          description: "Please enter a valid number for score",
-          variant: "destructive",
-        });
-        setScoreInputError(true);
-        return;
-      }
-
-      const scoreValue = parseFloat(batchValues.score);
-      if (scoreValue < 0 || scoreValue > 100) {
-        toast({
-          title: "❌ Invalid Score",
-          description: "Score must be between 0 and 100",
-          variant: "destructive",
-        });
-        setScoreInputError(true);
-        return;
-      }
-    }
-
-    // Check if any fields are selected for update
-    const hasUpdates =
-      batchValues.score !== "" ||
-      batchValues.courseId ||
-      batchValues.courseSource ||
-      batchValues.bcysId ||
-      batchValues.isReleased !== null;
-
-    if (!hasUpdates) {
-      toast({
-        title: "ℹ️ No Changes",
-        description: "No fields were selected to update.",
-        variant: "default",
-      });
-      return;
-    }
-
-    // Show confirmation
-    setPendingAction(() => async () => {
-      await executeBatchUpdate();
-    });
-    setShowBatchConfirmation(true);
   };
 
   // Extract batch update logic
@@ -499,7 +501,7 @@ export default function StudentCourseScoreTable() {
         bcysId: "",
         courseId: "",
       });
-      fetchStudentCourseScores();
+      fetchStudentCourseScores(true);
     } catch (err) {
       const errorMessage = err.response?.data?.error || "Bulk update failed";
       toast({
@@ -510,6 +512,60 @@ export default function StudentCourseScoreTable() {
     } finally {
       setBatchUpdateLoading(false);
     }
+  };
+
+  const applyBatchUpdate = async () => {
+    if (selectedRowKeys.length === 0) return;
+
+    // Reset any previous errors
+    setScoreInputError(false);
+
+    // Validate score if provided
+    if (batchValues.score !== "" && batchValues.score !== null) {
+      if (isNaN(Number(batchValues.score))) {
+        toast({
+          title: "❌ Invalid Score",
+          description: "Please enter a valid number for score",
+          variant: "destructive",
+        });
+        setScoreInputError(true);
+        return;
+      }
+
+      const scoreValue = parseFloat(batchValues.score);
+      if (scoreValue < 0 || scoreValue > 100) {
+        toast({
+          title: "❌ Invalid Score",
+          description: "Score must be between 0 and 100",
+          variant: "destructive",
+        });
+        setScoreInputError(true);
+        return;
+      }
+    }
+
+    // Check if any fields are selected for update
+    const hasUpdates =
+      batchValues.score !== "" ||
+      batchValues.courseId ||
+      batchValues.courseSource ||
+      batchValues.bcysId ||
+      batchValues.isReleased !== null;
+
+    if (!hasUpdates) {
+      toast({
+        title: "ℹ️ No Changes",
+        description: "No fields were selected to update.",
+        variant: "default",
+      });
+      return;
+    }
+
+    // Show confirmation
+    setPendingAction(() => async () => {
+      await executeBatchUpdate();
+    });
+    setShowBatchConfirmation(true);
   };
 
   //----------------------------------------New FUNCTIONS------------------------------------------------------------------
@@ -558,7 +614,7 @@ export default function StudentCourseScoreTable() {
       });
 
       // Refresh the table
-      fetchStudentCourseScores();
+      fetchStudentCourseScores(true);
 
       // Clear any selected rows that might include this record
       setSelectedRowKeys((prev) => prev.filter((key) => key !== record.key));
@@ -778,7 +834,7 @@ export default function StudentCourseScoreTable() {
 
       setIsEditMode(false);
       setEditedRows({});
-      fetchStudentCourseScores();
+      fetchStudentCourseScores(true);
     } catch (err) {
       const errorMessage = err.response?.data?.error || "Bulk update failed";
       toast({
@@ -863,7 +919,7 @@ export default function StudentCourseScoreTable() {
       setEditScoreModalVisible(false);
       setEditingRecord(null);
       setEditScoreError(false);
-      fetchStudentCourseScores();
+      fetchStudentCourseScores(true);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Failed to update score";
@@ -898,7 +954,7 @@ export default function StudentCourseScoreTable() {
         variant: "default",
       });
 
-      fetchStudentCourseScores();
+      fetchStudentCourseScores(true);
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Failed to update release status";
