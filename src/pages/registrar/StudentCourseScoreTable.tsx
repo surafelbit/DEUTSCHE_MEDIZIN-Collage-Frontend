@@ -5,70 +5,10 @@ import endPoints from "../../components/api/endPoints";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Eye, EyeOff, Trash2 } from "lucide-react";
 
-// Storage Configuration
-const STORAGE_KEYS = {
-  FILTER_OPTIONS: "student_score_filter_options",
-  CURRENT_FILTERS: "student_score_current_filters",
-  PAGINATION: "student_score_pagination",
-  TABLE_DATA: "student_score_table_data",
-  USER_PREFERENCES: "student_score_preferences",
-};
-
-const STORAGE_DURATION = {
-  FILTER_OPTIONS: 24 * 60 * 60 * 1000, // 24 hours
-  TABLE_DATA: 30 * 60 * 1000, // 30 minutes
-  FILTERS: 30 * 60 * 1000, // 30 minutes
-  PAGINATION: 30 * 60 * 1000, // 30 minutes
-};
-
-// Storage Helper Functions - MOVED BEFORE COMPONENT
-const saveToSessionStorage = (key, data, duration) => {
-  try {
-    const item = {
-      data: data,
-      timestamp: Date.now(),
-      expiry: duration,
-    };
-    sessionStorage.setItem(key, JSON.stringify(item));
-  } catch (error) {
-    console.error("Error saving to sessionStorage:", error);
-  }
-};
-
-const loadFromSessionStorage = (key) => {
-  try {
-    const item = sessionStorage.getItem(key);
-    if (!item) return null;
-
-    const parsed = JSON.parse(item);
-    const now = Date.now();
-
-    // Check if data has expired
-    if (now - parsed.timestamp > parsed.expiry) {
-      sessionStorage.removeItem(key);
-      return null;
-    }
-
-    return parsed.data;
-  } catch (error) {
-    console.error("Error loading from sessionStorage:", error);
-    return null;
-  }
-};
-
-const clearSessionStorage = () => {
-  Object.values(STORAGE_KEYS).forEach((key) => {
-    sessionStorage.removeItem(key);
-  });
-};
-
 const initialData = [];
 
 export default function StudentCourseScoreTable() {
-  const [data, setData] = useState(() => {
-    const saved = loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
-    return saved || initialData;
-  });
+  const [data, setData] = useState(initialData);
   const { toast } = useToast(); // ← Add this
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -104,41 +44,26 @@ export default function StudentCourseScoreTable() {
   const [editModeLoading, setEditModeLoading] = useState(false); // For save/cancel operations
 
   // Load saved preferences
-  const [filters, setFilters] = useState(() => {
-    const saved = loadFromSessionStorage(STORAGE_KEYS.CURRENT_FILTERS);
-    return (
-      saved || {
-        courseId: "",
-        bcysId: "",
-        studentId: null,
-        isReleased: null,
-        departmentId: "",
-        studentStatusId: "",
-      }
-    );
+  const [filters, setFilters] = useState({
+    courseId: "",
+    bcysId: "",
+    studentId: null,
+    isReleased: null,
+    departmentId: "",
+    studentStatusId: "",
   });
 
-  const [filterOptions, setFilterOptions] = useState(() => {
-    const saved = loadFromSessionStorage(STORAGE_KEYS.FILTER_OPTIONS);
-    return (
-      saved || {
-        courseSources: [],
-        batchClassYearSemesters: [],
-        departments: [],
-        studentStatuses: [],
-      }
-    );
+  const [filterOptions, setFilterOptions] = useState({
+    courseSources: [],
+    batchClassYearSemesters: [],
+    departments: [],
+    studentStatuses: [],
   });
 
-  const [pagination, setPagination] = useState(() => {
-    const saved = loadFromSessionStorage(STORAGE_KEYS.PAGINATION);
-    return (
-      saved || {
-        current: 1,
-        pageSize: 10,
-        total: 0,
-      }
-    );
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
   });
 
   useEffect(() => {
@@ -147,29 +72,7 @@ export default function StudentCourseScoreTable() {
 
   // Initial load - only fetch if no cached data
   useEffect(() => {
-    const cachedData = loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
-    if (!cachedData || cachedData.length === 0) {
-      console.log("No cached data, fetching from API");
-      fetchStudentCourseScores(true);
-    } else {
-      console.log("Cached data found, loading from storage");
-      setData(cachedData);
-      const cachedPagination = loadFromSessionStorage(STORAGE_KEYS.PAGINATION);
-      if (cachedPagination) {
-        setPagination(cachedPagination);
-      }
-    }
-  }, []); // Empty dependency array - only runs once on mount
-
-  // Handle filter/pagination changes - always fetch fresh data
-  useEffect(() => {
-    // Skip the initial mount because we already handled it above
-    // This will run when filters or pagination change
-    const isInitialMount = !loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
-    if (!isInitialMount) {
-      console.log("Filters or pagination changed, fetching fresh data");
-      fetchStudentCourseScores(true);
-    }
+    fetchStudentCourseScores();
   }, [
     pagination.current,
     pagination.pageSize,
@@ -181,49 +84,12 @@ export default function StudentCourseScoreTable() {
     filters.studentStatusId,
   ]);
 
-  // Save current state to storage
-  const saveCurrentState = () => {
-    saveToSessionStorage(
-      STORAGE_KEYS.CURRENT_FILTERS,
-      filters,
-      STORAGE_DURATION.FILTERS,
-    );
-    saveToSessionStorage(
-      STORAGE_KEYS.PAGINATION,
-      pagination,
-      STORAGE_DURATION.PAGINATION,
-    );
-    saveToSessionStorage(
-      STORAGE_KEYS.TABLE_DATA,
-      data,
-      STORAGE_DURATION.TABLE_DATA,
-    );
-  };
-
   // Save filter options separately
   const saveFilterOptions = (options) => {
-    saveToSessionStorage(
-      STORAGE_KEYS.FILTER_OPTIONS,
-      options,
-      STORAGE_DURATION.FILTER_OPTIONS,
-    );
     setFilterOptions(options);
   };
 
   const fetchFilterOptions = async () => {
-    // Check if we have cached filter options
-    const cached = loadFromSessionStorage(STORAGE_KEYS.FILTER_OPTIONS);
-    if (
-      cached &&
-      Object.keys(cached).length > 0 &&
-      cached.departments?.length > 0
-    ) {
-      console.log("Using cached filter options");
-      setFilterOptions(cached);
-      return;
-    }
-
-    // If no cache, fetch from API
     try {
       const response = await apiClient.get(endPoints.lookupsDropdown);
       console.log("lookupsDropdown response:", response.data);
@@ -275,24 +141,6 @@ export default function StudentCourseScoreTable() {
     fetchStudnet();
   }, []);
 
-  // Save filters to storage whenever they change
-  useEffect(() => {
-    saveToSessionStorage(
-      STORAGE_KEYS.CURRENT_FILTERS,
-      filters,
-      STORAGE_DURATION.FILTERS,
-    );
-  }, [filters]);
-
-  // Save pagination to storage whenever it changes
-  useEffect(() => {
-    saveToSessionStorage(
-      STORAGE_KEYS.PAGINATION,
-      pagination,
-      STORAGE_DURATION.PAGINATION,
-    );
-  }, [pagination]);
-
   const displayedData = useMemo(() => {
     if (!filters.departmentId) {
       return data; // show everything when no department filter
@@ -303,43 +151,7 @@ export default function StudentCourseScoreTable() {
     return data.filter((row) => row.department?.id === selectedDeptId);
   }, [data, filters.departmentId]);
 
-  // Check if cached data exists and is still valid
-  const hasValidCache = (key) => {
-    try {
-      const item = sessionStorage.getItem(key);
-      if (!item) return false;
-
-      const parsed = JSON.parse(item);
-      const now = Date.now();
-
-      // Check if data hasn't expired
-      return now - parsed.timestamp <= parsed.expiry;
-    } catch (error) {
-      console.error("Error checking cache validity:", error);
-      return false;
-    }
-  };
-
-  const fetchStudentCourseScores = async (skipCache = false) => {
-    // Check if we have cached data and skipCache is false
-    if (!skipCache) {
-      const cachedData = loadFromSessionStorage(STORAGE_KEYS.TABLE_DATA);
-      if (cachedData && cachedData.length > 0) {
-        console.log("Using cached table data, skipping API call");
-        setData(cachedData);
-
-        // Also load cached pagination if available
-        const cachedPagination = loadFromSessionStorage(
-          STORAGE_KEYS.PAGINATION,
-        );
-        if (cachedPagination) {
-          setPagination(cachedPagination);
-        }
-        return;
-      }
-    }
-
-    // If no cache or skipCache is true, fetch from API
+  const fetchStudentCourseScores = async () => {
     setLoading(true);
     try {
       const params = {
@@ -383,32 +195,17 @@ export default function StudentCourseScoreTable() {
 
         setData(formattedData);
 
-        // Save to storage
-        saveToSessionStorage(
-          STORAGE_KEYS.TABLE_DATA,
-          formattedData,
-          STORAGE_DURATION.TABLE_DATA,
-        );
-
         setPagination((prev) => {
           const newTotal = response.data.totalElements ?? prev.total;
           const newCurrent =
             response.data.page != null ? response.data.page + 1 : prev.current;
           const newSize = response.data.size ?? prev.pageSize;
 
-          const newPagination = {
+          return {
             total: newTotal,
             current: newCurrent,
             pageSize: newSize,
           };
-
-          saveToSessionStorage(
-            STORAGE_KEYS.PAGINATION,
-            newPagination,
-            STORAGE_DURATION.PAGINATION,
-          );
-
-          return newPagination;
         });
       }
     } catch (error) {
@@ -501,7 +298,7 @@ export default function StudentCourseScoreTable() {
         bcysId: "",
         courseId: "",
       });
-      fetchStudentCourseScores(true);
+      fetchStudentCourseScores();
     } catch (err) {
       const errorMessage = err.response?.data?.error || "Bulk update failed";
       toast({
@@ -614,7 +411,7 @@ export default function StudentCourseScoreTable() {
       });
 
       // Refresh the table
-      fetchStudentCourseScores(true);
+      fetchStudentCourseScores();
 
       // Clear any selected rows that might include this record
       setSelectedRowKeys((prev) => prev.filter((key) => key !== record.key));
@@ -834,7 +631,7 @@ export default function StudentCourseScoreTable() {
 
       setIsEditMode(false);
       setEditedRows({});
-      fetchStudentCourseScores(true);
+      fetchStudentCourseScores();
     } catch (err) {
       const errorMessage = err.response?.data?.error || "Bulk update failed";
       toast({
@@ -919,7 +716,7 @@ export default function StudentCourseScoreTable() {
       setEditScoreModalVisible(false);
       setEditingRecord(null);
       setEditScoreError(false);
-      fetchStudentCourseScores(true);
+      fetchStudentCourseScores();
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Failed to update score";
@@ -954,7 +751,7 @@ export default function StudentCourseScoreTable() {
         variant: "default",
       });
 
-      fetchStudentCourseScores(true);
+      fetchStudentCourseScores();
     } catch (err) {
       const errorMessage =
         err.response?.data?.error || "Failed to update release status";
@@ -976,10 +773,9 @@ export default function StudentCourseScoreTable() {
       bcysId: "",
       studentId: null,
       isReleased: null,
-      studentStatusId: "", // ← Add this
+      studentStatusId: "",
       departmentId: "",
     });
-    setSearchText("");
     setPagination((prev) => ({ ...prev, current: 1 }));
     fetchStudentCourseScores();
   };
