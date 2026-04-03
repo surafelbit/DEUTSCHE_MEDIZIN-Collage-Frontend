@@ -106,6 +106,7 @@ const endPoints = {
   addCourse: "/student-course-scores/add",
   updateScore:
     "/student-course-scores/score/:studentId/:courseId/:batchClassYearSemesterId",
+  bulkDeleteScores: "/student-course-scores/bulk-delete",
   updateReleaseStatus:
     "/student-course-scores/release/:studentId/:courseId/:batchClassYearSemesterId",
   getGrade: "/student-course-scores/:scoreId/grade",
