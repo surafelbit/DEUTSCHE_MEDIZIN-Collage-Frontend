@@ -7,6 +7,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 // Add these imports with your other Registrar settings imports
 import ProgressionOfClassYears from "./pages/registrar/settings/ProgressionOfClassYears";
 import TemplatesAndForms from "./pages/registrar/settings/TemplatesAndForms";
+import StudentStatuses from "./pages/registrar/settings/StudentStatuses";
 
 // NORMAL IMPORTS (NOT LAZY) - ADD THESE LINES:
 import LandingPage from "./pages/public/LandingPage";
@@ -15,18 +16,16 @@ import MultiStepRegistrationForm from "./registeration/MultiStepRegistrationForm
 import NotFound from "./pages/NotFound/NotFound";
 import SigningUp from "./registeration/SigningUp";
 
-
-
 // Student Pages
 const StudentLayout = React.lazy(() => import("./layouts/StudentLayout"));
 const StudentDashboard = React.lazy(() => import("./pages/student/Dashboard"));
 const StudentProfile = React.lazy(() => import("./pages/student/Profile"));
 const StudentGrades = React.lazy(() => import("./pages/student/Grades"));
 const StudentNotifications = React.lazy(
-  () => import("./pages/student/Notifications")
+  () => import("./pages/student/Notifications"),
 );
 const StudentFormsCenter = React.lazy(
-  () => import("./pages/student/FormsCenter")
+  () => import("./pages/student/FormsCenter"),
 );
 
 // Teacher Pages
@@ -34,16 +33,16 @@ const TeacherLayout = React.lazy(() => import("./layouts/TeacherLayout"));
 const TeacherDashboard = React.lazy(() => import("./pages/teacher/Dashboard"));
 const TeacherCourses = React.lazy(() => import("./pages/teacher/Courses"));
 const TeacherNotifications = React.lazy(
-  () => import("./pages/teacher/Notifications")
+  () => import("./pages/teacher/Notifications"),
 );
 const TeacherStudents = React.lazy(
-  () => import("./pages/teacher/TeacherStudents")
+  () => import("./pages/teacher/TeacherStudents"),
 );
 const AssessmentPage = React.lazy(
-  () => import("./pages/teacher/AssessmentPage")
+  () => import("./pages/teacher/AssessmentPage"),
 );
 const TeacherProfile = React.lazy(
-  () => import("./pages/teacher/TeacherProfile")
+  () => import("./pages/teacher/TeacherProfile"),
 );
 
 // Department Head Pages
@@ -51,105 +50,107 @@ const HeadLayout = React.lazy(() => import("./layouts/HeadLayout"));
 const HeadDashboard = React.lazy(() => import("./pages/head/Dashboard"));
 const HeadStudents = React.lazy(() => import("./pages/head/Students"));
 const HeadStudentDetail = React.lazy(
-  () => import("./pages/head/StudentDetail")
+  () => import("./pages/head/StudentDetail"),
 );
 const HeadNotifications = React.lazy(
-  () => import("./pages/head/Notifications")
+  () => import("./pages/head/Notifications"),
 );
 const HeadTeachers = React.lazy(() => import("./pages/head/Teachers"));
 const HeadCourses = React.lazy(() => import("./pages/head/Courses"));
 const DepartmentHeadProfile = React.lazy(
-  () => import("./pages/head/DepartmentHeadProfile")
+  () => import("./pages/head/DepartmentHeadProfile"),
 );
 const CreateTeacher = React.lazy(() => import("./pages/head/CreateTeacher"));
 const HeadAssessments = React.lazy(() => import("./pages/head/Assessments"));
 const HeadAssessmentDetail = React.lazy(
-  () => import("./pages/head/AssessmentDetail")
+  () => import("./pages/head/AssessmentDetail"),
 );
 const TeacherProfileDetail = React.lazy(
-  () => import("./pages/head/TeacherProfileDetail")
+  () => import("./pages/head/TeacherProfileDetail"),
 );
 
 // Registrar Pages
 const StudentCourseScoreTab = React.lazy(
-  () => import("./pages/registrar/Courses")
+  () => import("./pages/registrar/Courses"),
 );
-const RegistrarProfile = React.lazy(() => import("./pages/registrar/RegistrarProfile"));
+const RegistrarProfile = React.lazy(
+  () => import("./pages/registrar/RegistrarProfile"),
+);
 const RegistrarNotifications = React.lazy(
-  () => import("./pages/registrar/Notifications")
+  () => import("./pages/registrar/Notifications"),
 );
 const RegistrarLayout = React.lazy(() => import("./layouts/RegistrarLayout"));
 const SchoolBackgroundsEditor = React.lazy(
-  () => import("./pages/registrar/settings/SchoolBackgroundsEditor")
+  () => import("./pages/registrar/settings/SchoolBackgroundsEditor"),
 );
 const SingleBatchClassYearSemester = React.lazy(
-  () => import("./pages/registrar/settings/SingleBatchClassYearSemester")
+  () => import("./pages/registrar/settings/SingleBatchClassYearSemester"),
 );
 const RegistrarDashboard = React.lazy(
-  () => import("./pages/registrar/Dashboard")
+  () => import("./pages/registrar/Dashboard"),
 );
 const RegistrarApplications = React.lazy(
-  () => import("./pages/registrar/Applications")
+  () => import("./pages/registrar/Applications"),
 );
 const RegistrarDepartments = React.lazy(
-  () => import("./pages/registrar/Departments")
+  () => import("./pages/registrar/Departments"),
 );
 const RegistrarStudents = React.lazy(
-  () => import("./pages/registrar/Students")
+  () => import("./pages/registrar/Students"),
 );
 const AddStudent = React.lazy(() => import("./pages/registrar/AddStudent"));
 const StudentCourseScoreTable = React.lazy(
-  () => import("./pages/registrar/StudentCourseScoreTable")
+  () => import("./pages/registrar/StudentCourseScoreTable"),
 );
 const RegistrarCourses = React.lazy(() => import("./pages/registrar/Courses"));
 //trouble
 const RegistrarAssessments = React.lazy(
-  () => import("./pages/registrar/Assessments")
+  () => import("./pages/registrar/Assessments"),
 );
 const BatchClassYearSemesterEditor = React.lazy(
-  () => import("./pages/registrar/settings/BatchClassYearSemesterEditor")
+  () => import("./pages/registrar/settings/BatchClassYearSemesterEditor"),
 );
 const SingleBatchPage = React.lazy(
-  () => import("./pages/registrar/settings/SingleBatchPage ")
+  () => import("./pages/registrar/settings/SingleBatchPage "),
 );
 const GradingSystemEditor = React.lazy(
-  () => import("./pages/registrar/settings/GradingSystemEditor")
+  () => import("./pages/registrar/settings/GradingSystemEditor"),
 );
 const DepartmentDetail = React.lazy(
-  () => import("./pages/registrar/DepartmentDetail")
+  () => import("./pages/registrar/DepartmentDetail"),
 );
 const EnrollmentTypesEditor = React.lazy(
-  () => import("./pages/registrar/settings/EnrollmentTypesEditor")
+  () => import("./pages/registrar/settings/EnrollmentTypesEditor"),
 );
 const StudentDetail = React.lazy(
-  () => import("./pages/registrar/StudentDetail")
+  () => import("./pages/registrar/StudentDetail"),
 );
 const RegistrarAssessment = React.lazy(
-  () => import("./pages/registrar/registrarAssessment")
+  () => import("./pages/registrar/registrarAssessment"),
 );
 const RegistrarAssessmentDetail = React.lazy(
-  () => import("./pages/registrar/registrarAssessmentDetail")
+  () => import("./pages/registrar/registrarAssessmentDetail"),
 );
 const ApplicantDetail = React.lazy(
-  () => import("./pages/registrar/ApplicantDetail")
+  () => import("./pages/registrar/ApplicantDetail"),
 );
 const CustomStudentTable = React.lazy(
-  () => import("./pages/registrar/CustomizableStudentTable")
+  () => import("./pages/registrar/CustomizableStudentTable"),
 );
 const RejectedApplications = React.lazy(
-  () => import("./pages/registrar/RejectedApplications")
+  () => import("./pages/registrar/RejectedApplications"),
 );
 const LocationEditor = React.lazy(
-  () => import("./pages/registrar/settings/LocationEditor")
+  () => import("./pages/registrar/settings/LocationEditor"),
 );
 const AcademicYearEditor = React.lazy(
-  () => import("./pages/registrar/settings/AcademicYearEditor")
+  () => import("./pages/registrar/settings/AcademicYearEditor"),
 );
 const ImpairmentEditor = React.lazy(
-  () => import("./pages/registrar/settings/ImpairmentEditor")
+  () => import("./pages/registrar/settings/ImpairmentEditor"),
 );
 const CourseCategoriesEditor = React.lazy(
-  () => import("./pages/registrar/settings/CourseCategoriesEditor")
+  () => import("./pages/registrar/settings/CourseCategoriesEditor"),
 );
 
 // Finance Pages
@@ -164,58 +165,58 @@ const DeanLayout = React.lazy(() => import("./layouts/DeanLayout"));
 const DeanDashboard = React.lazy(() => import("./pages/dean/Dashboard"));
 const DeanStudents = React.lazy(() => import("./pages/dean/Students"));
 const DeanNotifications = React.lazy(
-  () => import("./pages/dean/Notifications")
+  () => import("./pages/dean/Notifications"),
 );
 const DeanAssessment = React.lazy(() => import("./pages/dean/DeanAssessment"));
 const DeanAssessmentDetail = React.lazy(
-  () => import("./pages/dean/DeanAssessmentDetail")
+  () => import("./pages/dean/DeanAssessmentDetail"),
 );
 const DepartmentHeadsList = React.lazy(
-  () => import("./pages/dean/DepartmentHeadsList")
+  () => import("./pages/dean/DepartmentHeadsList"),
 );
 const DepartmentHeadDetail = React.lazy(
-  () => import("./pages/dean/DepartmentHeadDetail")
+  () => import("./pages/dean/DepartmentHeadDetail"),
 );
 const CreateDepartmentHead = React.lazy(
-  () => import("./pages/dean/CreateDepartmentHead")
+  () => import("./pages/dean/CreateDepartmentHead"),
 );
 const DeanDepartmentDetail = React.lazy(
-  () => import("./pages/dean/DeanDepartmentsDetail")
+  () => import("./pages/dean/DeanDepartmentsDetail"),
 );
 const ProgramLevelsManagement = React.lazy(
-  () => import("./pages/dean/ProgramLevelsManagement")
+  () => import("./pages/dean/ProgramLevelsManagement"),
 );
 const ProgramModalitiesManagement = React.lazy(
-  () => import("./pages/dean/ProgramModalitiesManagement")
+  () => import("./pages/dean/ProgramModalitiesManagement"),
 );
 const Dean_Profile = React.lazy(() => import("./pages/dean/Dean_Profile"));
 const ViceDeansList = React.lazy(() => import("./pages/dean/ViceDeansList"));
 const ViceDeanDetail = React.lazy(() => import("./pages/dean/ViceDeanDetail"));
 const CreateViceDean = React.lazy(() => import("./pages/dean/CreateViceDean"));
 const DeanDepartments = React.lazy(
-  () => import("./pages/dean/DeanDepartments")
+  () => import("./pages/dean/DeanDepartments"),
 );
 
 // Vice-Dean Pages
 const ViceDeanLayout = React.lazy(() => import("./layouts/ViceDeanLayout"));
 const ViceDeanDashboard = React.lazy(
-  () => import("./pages/vice-dean/Dashboard")
+  () => import("./pages/vice-dean/Dashboard"),
 );
 const ViceDeanNotifications = React.lazy(
-  () => import("./pages/vice-dean/Notifications")
+  () => import("./pages/vice-dean/Notifications"),
 );
 const ViceDeanStudents = React.lazy(() => import("./pages/vice-dean/Students"));
 const ViceDean_Profile = React.lazy(
-  () => import("./pages/vice-dean/ViceDean_Profile")
+  () => import("./pages/vice-dean/ViceDean_Profile"),
 );
 const ViceCreateDepartmentHead = React.lazy(
-  () => import("./pages/vice-dean/CreateDepartmentHead")
+  () => import("./pages/vice-dean/CreateDepartmentHead"),
 );
 const ViceDeanDepartments = React.lazy(
-  () => import("./pages/vice-dean/ViceDepartments")
+  () => import("./pages/vice-dean/ViceDepartments"),
 );
 const ViceDepartmentDetail = React.lazy(
-  () => import("./pages/vice-dean/ViceDepartmentDetail")
+  () => import("./pages/vice-dean/ViceDepartmentDetail"),
 );
 
 // Manager Pages
@@ -223,58 +224,58 @@ const ManagerLayout = React.lazy(() => import("./layouts/ManagerLayout"));
 const ManagerReports = React.lazy(() => import("./pages/manager/Reports"));
 
 const GeneralManagerProfile = React.lazy(
-  () => import("./pages/manager/GeneralManagerProfile")
+  () => import("./pages/manager/GeneralManagerProfile"),
 );
 const StudentsCGPAPage = React.lazy(
-  () => import("./pages/manager/StudentsCGPAPage")
+  () => import("./pages/manager/StudentsCGPAPage"),
 );
 const DepartmentHeadsPage = React.lazy(
-  () => import("./pages/manager/DepartmentHeadsPage")
+  () => import("./pages/manager/DepartmentHeadsPage"),
 );
 const GeneralManagerDashboard = React.lazy(
-  () => import("./pages/manager/GeneralManagerDashboard")
+  () => import("./pages/manager/GeneralManagerDashboard"),
 );
 const TeachersPage = React.lazy(() => import("./pages/manager/TeachersPage"));
 const TenColumnEditableTablePage = React.lazy(
-  () => import("./TenColumnEditableTablePage")
+  () => import("./TenColumnEditableTablePage"),
 );
 const BatchesEditor = React.lazy(
-  () => import("./pages/registrar/settings/BatchesEditor")
+  () => import("./pages/registrar/settings/BatchesEditor"),
 );
 
 const CourseSourcesEditor = React.lazy(
-  () => import("./pages/registrar/settings/CourseSourcesEditor")
+  () => import("./pages/registrar/settings/CourseSourcesEditor"),
 );
 const ProgramModalitiesEditor = React.lazy(
-  () => import("./pages/registrar/settings/ProgramModalitiesEditor")
+  () => import("./pages/registrar/settings/ProgramModalitiesEditor"),
 );
 const ProgramLevelsEditor = React.lazy(
-  () => import("./pages/registrar/settings/ProgramLevelsEditor ")
+  () => import("./pages/registrar/settings/ProgramLevelsEditor "),
 );
 const AttritionCausesEditor = React.lazy(
-  () => import("./pages/registrar/settings/AttritionCausesEditor")
+  () => import("./pages/registrar/settings/AttritionCausesEditor"),
 );
 const Transcript_Generate = React.lazy(
-  () => import("./pages/registrar/Transcript_Generate")
+  () => import("./pages/registrar/Transcript_Generate"),
 );
 const SemestersEditor = React.lazy(
-  () => import("./pages/registrar/settings/SemestersEditor")
+  () => import("./pages/registrar/settings/SemestersEditor"),
 );
 const ClassYearsEditor = React.lazy(
-  () => import("./pages/registrar/settings/ClassYearsEditor")
+  () => import("./pages/registrar/settings/ClassYearsEditor"),
 );
 const ManagerStudents = React.lazy(
-  () => import("./pages/manager/ManagerStudents")
+  () => import("./pages/manager/ManagerStudents"),
 );
 const ManagerTeachers = React.lazy(
-  () => import("./pages/manager/ManagerTeachers")
+  () => import("./pages/manager/ManagerTeachers"),
 );
 const DeanProfile = React.lazy(() => import("./pages/manager/DeanProfile"));
 const ViceDeanProfile = React.lazy(
-  () => import("./pages/manager/ViceDeanProfile")
+  () => import("./pages/manager/ViceDeanProfile"),
 );
 const RegistrationSlip = React.lazy(
-  () => import("./pages/registrar/RegistrationSlips")
+  () => import("./pages/registrar/RegistrationSlips"),
 );
 
 function App() {
@@ -399,6 +400,10 @@ function App() {
                 <Route
                   path="settings/semesters"
                   element={<SemestersEditor />}
+                />
+                <Route
+                  path="settings/student-statuses"
+                  element={<StudentStatuses />}
                 />
                 <Route
                   path="settings/school-background"
