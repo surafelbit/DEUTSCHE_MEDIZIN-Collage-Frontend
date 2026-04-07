@@ -478,77 +478,6 @@ export default function RegistrarLayout() {
                     Impairments
                   </Link>
 
-                  {/* Program section remains the same */}
-                  <div className="space-y-1">
-                    <button
-                      className={`flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        programOpen ||
-                        location.pathname.includes(
-                          "/registrar/settings/program",
-                        )
-                          ? "bg-gray-100 dark:text-gray-300 dark:bg-gray-700"
-                          : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                      }`}
-                      onClick={() => {
-                        setProgramOpen(!programOpen);
-                      }}
-                    >
-                      <div className="flex justify-between w-full">
-                        <span>Program</span>
-                        <svg
-                          className={`mr-3 ml-2 h-5 w-5 transition-transform duration-200 ${
-                            programOpen ? "rotate-90" : ""
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </div>
-                    </button>
-                    {programOpen && (
-                      <div className="pl-6 space-y-1">
-                        <Link
-                          to="/registrar/settings/program-level"
-                          className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                            location.pathname.includes(
-                              "/registrar/settings/program-level",
-                            )
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
-                              : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
-                          }`}
-                          onClick={() =>
-                            window.innerWidth <= 1024 && setSidebarOpen(false)
-                          }
-                        >
-                          Program Level
-                        </Link>
-                        <Link
-                          to="/registrar/settings/program-modality"
-                          className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                            location.pathname.includes(
-                              "/registrar/settings/program-modality",
-                            )
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
-                              : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
-                          }`}
-                          onClick={() =>
-                            window.innerWidth <= 1024 && setSidebarOpen(false)
-                          }
-                        >
-                          Program Modality
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Courses section remains the same */}
                   <div className="space-y-1">
                     <button
@@ -678,7 +607,7 @@ export default function RegistrarLayout() {
                     School Background
                   </Link>
 
-                  {/* NEW: Classyears and their Progression Section */}
+                  {/* Classyears and their Progression Section */}
                   <div className="space-y-1">
                     <button
                       className={`flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -694,11 +623,14 @@ export default function RegistrarLayout() {
                           !classYearsProgressionOpen,
                         );
                       }}
+                      title="Classyears and their Progression"
                     >
-                      <div className="flex justify-between w-full">
-                        <span>Classyears and their Progression</span>
+                      <div className="flex justify-between w-full items-center gap-2">
+                        <span className="truncate">
+                          Classyears and their Progression
+                        </span>
                         <svg
-                          className={`mr-3 ml-2 h-5 w-5 transition-transform duration-200 ${
+                          className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 ${
                             classYearsProgressionOpen ? "rotate-90" : ""
                           }`}
                           fill="none"
@@ -718,7 +650,6 @@ export default function RegistrarLayout() {
 
                     {classYearsProgressionOpen && (
                       <div className="pl-6 space-y-1">
-                        {/* Existing Class Years link */}
                         <Link
                           to="/registrar/settings/class-years"
                           className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
@@ -735,7 +666,6 @@ export default function RegistrarLayout() {
                           ClassYears
                         </Link>
 
-                        {/* NEW: Progression of ClassYears link */}
                         <Link
                           to="/registrar/settings/progression-class-years"
                           className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
@@ -771,6 +701,23 @@ export default function RegistrarLayout() {
                     }
                   >
                     Semesters
+                  </Link>
+
+                  {/* Add this link alongside other settings links */}
+                  <Link
+                    to="/registrar/settings/student-statuses"
+                    className={`flex items-center px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      location.pathname.includes(
+                        "/registrar/settings/student-statuses",
+                      )
+                        ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+                        : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-900"
+                    }`}
+                    onClick={() =>
+                      window.innerWidth <= 1024 && setSidebarOpen(false)
+                    }
+                  >
+                    Student Statuses
                   </Link>
 
                   <Link
