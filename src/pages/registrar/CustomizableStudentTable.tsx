@@ -47,11 +47,17 @@ import {
 // ─── API ────────────────────────────────────────────────────────────────
 import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
+import {
+  loadFilterOptionsFromStorage,
+  saveFilterOptionsToStorage,
+} from "@/utils/storage";
 
 const COLUMNS_STORAGE_KEY = "student-table-visible-columns";
 // Session storage configuration
 const STUDENTS_STORAGE_KEY = "student-table-data";
 const STUDENTS_STORAGE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+const FIELDS_STORAGE_KEY = "student-table-fields";
+const FIELDS_STORAGE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 // ─── Types ────────────────────────────────────────────────────────────────
 interface NameEntity {
@@ -225,8 +231,19 @@ export default function CustomizableStudentTable() {
 
       try {
         // 1. Get available fields
-        const fieldsRes = await apiClient.get<string[]>(endPoints.fields);
-        const allFields = fieldsRes.data ?? [];
+        // 1. Get available fields - with session storage
+        let allFields;
+        const cachedFields = loadFieldsFromStorage();
+
+        if (cachedFields && !isRefreshing) {
+          allFields = cachedFields;
+          console.log("Loaded fields from session storage");
+        } else {
+          const fieldsRes = await apiClient.get<string[]>(endPoints.fields);
+          allFields = fieldsRes.data ?? [];
+          saveFieldsToStorage(allFields);
+          console.log("Fetched fields from API and saved to storage");
+        }
         setFields(allFields);
 
         // Default visible columns
@@ -244,7 +261,6 @@ export default function CustomizableStudentTable() {
         if (savedColumns) {
           try {
             const parsed = JSON.parse(savedColumns);
-            // Only use saved columns if they're valid (exist in allFields)
             const validSaved = parsed.filter((col: string) =>
               allFields.includes(col),
             );
@@ -256,7 +272,6 @@ export default function CustomizableStudentTable() {
               );
             }
           } catch (e) {
-            // If parsing fails, use defaults
             setVisibleColumns(
               defaults.length > 0 ? defaults : allFields.slice(0, 10),
             );
@@ -267,18 +282,40 @@ export default function CustomizableStudentTable() {
           );
         }
 
-        // 2. Get filter options
-        const optionsRes = await apiClient.get<FilterOptions>(
-          endPoints.lookupsDropdown || "/filters/options",
-        );
-        setFilterOptions(optionsRes.data);
-        console.log(optionsRes);
-        // 3. Get students
-        const studentsRes = await apiClient.get<Student[]>(
-          endPoints.allStudents,
-        );
+        // 2. Get filter options - with session storage
+        let filterOptionsData;
+        const cachedFilterOptions = loadFilterOptionsFromStorage();
+
+        if (cachedFilterOptions && !isRefreshing) {
+          filterOptionsData = cachedFilterOptions;
+        } else {
+          const optionsRes = await apiClient.get<FilterOptions>(
+            endPoints.lookupsDropdown || "/filters/options",
+          );
+          filterOptionsData = optionsRes.data;
+          saveFilterOptionsToStorage(filterOptionsData);
+          console.log("Fetched filter options from API and saved to storage");
+        }
+        setFilterOptions(filterOptionsData);
+
+        // 3. Get students - with session storage (ONLY ONE FETCH!)
+        let studentsData;
+        const cachedStudents = loadStudentsFromStorage();
+
+        if (cachedStudents && !isRefreshing) {
+          studentsData = cachedStudents;
+          console.log("Loaded students from session storage");
+        } else {
+          const studentsRes = await apiClient.get<Student[]>(
+            endPoints.allStudents,
+          );
+          studentsData = studentsRes.data ?? [];
+          saveStudentsToStorage(studentsData);
+          console.log("Fetched students from API and saved to storage");
+        }
+
         if (mounted) {
-          setStudents(studentsRes.data ?? []);
+          setStudents(studentsData);
         }
       } catch (err: any) {
         const msg =
@@ -288,28 +325,6 @@ export default function CustomizableStudentTable() {
       } finally {
         if (mounted) setLoading(false);
       }
-
-      // 3. Get students - with session storage
-      let studentsData;
-      const cachedStudents = loadStudentsFromStorage();
-
-      if (cachedStudents && !isRefreshing) {
-        // Use cached data if available and not refreshing
-        studentsData = cachedStudents;
-        console.log("Loaded students from session storage");
-      } else {
-        // Fetch from API
-        const studentsRes = await apiClient.get<Student[]>(
-          endPoints.allStudents,
-        );
-        studentsData = studentsRes.data ?? [];
-        saveStudentsToStorage(studentsData);
-        console.log("Fetched students from API and saved to storage");
-      }
-
-      if (mounted) {
-        setStudents(studentsData);
-      }
     };
 
     loadData();
@@ -317,7 +332,7 @@ export default function CustomizableStudentTable() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isRefreshing]);
 
   // Save visible columns to localStorage whenever they change
   useEffect(() => {
@@ -346,6 +361,35 @@ export default function CustomizableStudentTable() {
 
       if (isExpired) {
         sessionStorage.removeItem(STUDENTS_STORAGE_KEY);
+        return null;
+      }
+
+      return data;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Save fields to session storage
+  const saveFieldsToStorage = (fieldsData: string[]) => {
+    const storageData = {
+      data: fieldsData,
+      timestamp: Date.now(),
+    };
+    sessionStorage.setItem(FIELDS_STORAGE_KEY, JSON.stringify(storageData));
+  };
+
+  // Load fields from session storage
+  const loadFieldsFromStorage = (): string[] | null => {
+    const stored = sessionStorage.getItem(FIELDS_STORAGE_KEY);
+    if (!stored) return null;
+
+    try {
+      const { data, timestamp } = JSON.parse(stored);
+      const isExpired = Date.now() - timestamp > FIELDS_STORAGE_DURATION;
+
+      if (isExpired) {
+        sessionStorage.removeItem(FIELDS_STORAGE_KEY);
         return null;
       }
 
@@ -1977,19 +2021,38 @@ export default function CustomizableStudentTable() {
             <Button
               variant="outline"
               size="sm"
+              // In your refresh button, remove setLoading(true) since it's handled by isRefreshing
               onClick={async () => {
                 setIsRefreshing(true);
-                setLoading(true);
                 try {
+                  // Refresh students
                   const studentsRes = await apiClient.get<Student[]>(
                     endPoints.allStudents,
                   );
                   const freshData = studentsRes.data ?? [];
                   setStudents(freshData);
                   saveStudentsToStorage(freshData);
+
+                  // Refresh filter options
+                  const optionsRes = await apiClient.get<FilterOptions>(
+                    endPoints.lookupsDropdown || "/filters/options",
+                  );
+                  const freshOptions = optionsRes.data;
+                  setFilterOptions(freshOptions);
+                  saveFilterOptionsToStorage(freshOptions);
+
+                  // Refresh fields
+                  const fieldsRes = await apiClient.get<string[]>(
+                    endPoints.fields,
+                  );
+                  const freshFields = fieldsRes.data ?? [];
+                  setFields(freshFields);
+                  saveFieldsToStorage(freshFields);
+
                   toast({
                     title: "Success",
-                    description: "Student data refreshed from server!",
+                    description:
+                      "Student data and filter options refreshed from server!",
                   });
                 } catch (err) {
                   toast({
@@ -1998,7 +2061,6 @@ export default function CustomizableStudentTable() {
                     variant: "destructive",
                   });
                 } finally {
-                  setLoading(false);
                   setIsRefreshing(false);
                 }
               }}
@@ -2007,7 +2069,7 @@ export default function CustomizableStudentTable() {
               <RefreshCw
                 className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
               />
-              Reload Students
+              Refresh
             </Button>
           </div>
 

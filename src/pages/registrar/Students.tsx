@@ -6,6 +6,10 @@ import { ImageModal } from "@/hooks/ImageModal";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
 import { Checkbox } from "antd";
+import {
+  loadFilterOptionsFromStorage,
+  saveFilterOptionsToStorage,
+} from "@/utils/storage";
 
 interface FilterOption {
   id: string | number;
@@ -61,13 +65,31 @@ export default function RegistrarStudents() {
   useEffect(() => {
     async function loadFilters() {
       try {
+        // Check sessionStorage first for filter options
+        const cachedFilters = loadFilterOptionsFromStorage();
+
+        if (cachedFilters) {
+          setOptions({
+            departments: cachedFilters.departments || [],
+            batchClassYearSemesters:
+              cachedFilters.batchClassYearSemesters || [],
+            studentStatuses: cachedFilters.studentStatuses || [],
+            batches: cachedFilters.batches || [],
+          });
+          return;
+        }
+
+        // Otherwise fetch from API
         const res = await apiService.get(endPoints.lookupsDropdown);
-        setOptions({
+        const filterData = {
           departments: res.departments || [],
           batchClassYearSemesters: res.batchClassYearSemesters || [],
           studentStatuses: res.studentStatuses || [],
           batches: res.batches || [],
-        });
+        };
+
+        setOptions(filterData);
+        saveFilterOptionsToStorage(filterData);
       } catch (e) {
         console.error("Failed to load filters", e);
       }
@@ -91,7 +113,7 @@ export default function RegistrarStudents() {
         if (
           cachedData &&
           cachedTime &&
-          Date.now() - parseInt(cachedTime) < 10 * 60 * 1000
+          Date.now() - parseInt(cachedTime) < 7 * 24 * 60 * 60 * 1000
         ) {
           const parsed = JSON.parse(cachedData);
           if (!cancelled) {
