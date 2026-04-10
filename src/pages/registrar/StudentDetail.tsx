@@ -1013,7 +1013,9 @@ export default function StudentProfile() {
                   placeholder="Enter email"
                 />
               ) : (
-                <div className="font-medium">{studentData.email || "N/A"}</div>
+                <div className="font-medium">
+                  {studentData.email || "Not Provided"}
+                </div>
               )}
             </div>
             <div>
@@ -1028,7 +1030,7 @@ export default function StudentProfile() {
                 />
               ) : (
                 <div className="font-medium">
-                  {studentData.phoneNumber || "N/A"}
+                  {studentData.phoneNumber || "Not Provided"}
                 </div>
               )}
             </div>
@@ -1066,7 +1068,7 @@ export default function StudentProfile() {
               )}
             </div>
             <div>
-              <Label>Batch</Label>
+              <Label>Original Batch</Label>
               {editMode ? (
                 // Replace the batch Select options with:
                 <Select
@@ -1181,9 +1183,9 @@ export default function StudentProfile() {
                     </div>
                   ) : (
                     <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                      <div>{studentData[field.eng] || "N/A"}</div>
+                      <div>{studentData[field.eng] || "Not Provided"}</div>
                       <div className="text-right text-gray-600" dir="rtl">
-                        {studentData[field.amh] || "N/A"}
+                        {studentData[field.amh] || "Not Provided"}
                       </div>
                     </div>
                   )}
@@ -1265,7 +1267,9 @@ export default function StudentProfile() {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div>{formatDate(studentData.dateOfBirthGC) || "N/A"}</div>
+                  <div>
+                    {formatDate(studentData.dateOfBirthGC) || "Not Provided"}
+                  </div>
                 )}
               </div>
 
@@ -1279,7 +1283,9 @@ export default function StudentProfile() {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div>{formatDate(studentData.dateOfBirthEC) || "N/A"}</div>
+                  <div>
+                    {formatDate(studentData.dateOfBirthEC) || "Not Provided"}
+                  </div>
                 )}
               </div>
 
@@ -1294,7 +1300,7 @@ export default function StudentProfile() {
                     placeholder="Enter age"
                   />
                 ) : (
-                  <div>{studentData.age || "N/A"}</div>
+                  <div>{studentData.age || "Not Provided"}</div>
                 )}
               </div>
 
@@ -1399,7 +1405,7 @@ export default function StudentProfile() {
                       studentData.placeOfBirthRegionCode,
                       "regionCode",
                       "region",
-                    ) || "N/A"}
+                    ) || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1445,7 +1451,7 @@ export default function StudentProfile() {
                       studentData.placeOfBirthZoneCode,
                       "zoneCode",
                       "zone",
-                    ) || "N/A"}
+                    ) || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1496,7 +1502,7 @@ export default function StudentProfile() {
                       studentData.placeOfBirthWoredaCode,
                       "woredaCode",
                       "woreda",
-                    ) || "N/A"}
+                    ) || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1556,7 +1562,7 @@ export default function StudentProfile() {
                       studentData.currentAddressRegionCode,
                       "regionCode",
                       "region",
-                    ) || "N/A"}
+                    ) || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1604,7 +1610,7 @@ export default function StudentProfile() {
                       studentData.currentAddressZoneCode,
                       "zoneCode",
                       "zone",
-                    ) || "N/A"}
+                    ) || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1655,7 +1661,7 @@ export default function StudentProfile() {
                       studentData.currentAddressWoredaCode,
                       "woredaCode",
                       "woreda",
-                    ) || "N/A"}
+                    ) || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1683,7 +1689,7 @@ export default function StudentProfile() {
                   />
                 ) : (
                   <div className="font-medium">
-                    {studentData.grade12Result || "N/A"}
+                    {studentData.grade12Result || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1699,7 +1705,7 @@ export default function StudentProfile() {
                     placeholder="e.g., 2015"
                   />
                 ) : (
-                  <div>{studentData.yearOfExamG12 || "N/A"}</div>
+                  <div>{studentData.yearOfExamG12 || "Not Provided"}</div>
                 )}
               </div>
 
@@ -1714,7 +1720,7 @@ export default function StudentProfile() {
                     placeholder="Enter national exam ID"
                   />
                 ) : (
-                  <div>{studentData.nationalExamIdG12 || "N/A"}</div>
+                  <div>{studentData.nationalExamIdG12 || "Not Provided"}</div>
                 )}
               </div>
 
@@ -1728,7 +1734,9 @@ export default function StudentProfile() {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div>{formatDate(studentData.dateClassEndGC) || "N/A"}</div>
+                  <div>
+                    {formatDate(studentData.dateClassEndGC) || "Not Provided"}
+                  </div>
                 )}
               </div>
 
@@ -1742,7 +1750,9 @@ export default function StudentProfile() {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div>{formatDate(studentData.dateGraduated) || "N/A"}</div>
+                  <div>
+                    {formatDate(studentData.dateGraduated) || "Not Provided"}
+                  </div>
                 )}
               </div>
 
@@ -1757,7 +1767,7 @@ export default function StudentProfile() {
                     placeholder="e.g., 2016"
                   />
                 ) : (
-                  <div>{studentData.entryYearGC || "N/A"}</div>
+                  <div>{studentData.entryYearGC || "Not Provided"}</div>
                 )}
               </div>
 
@@ -1772,7 +1782,7 @@ export default function StudentProfile() {
                     placeholder="e.g., 2008"
                   />
                 ) : (
-                  <div>{studentData.entryYearEC || "N/A"}</div>
+                  <div>{studentData.entryYearEC || "Not Provided"}</div>
                 )}
               </div>
 
@@ -1811,13 +1821,8 @@ export default function StudentProfile() {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div>
-                    {getDisplayName(
-                      departments,
-                      studentData.departmentEnrolledId,
-                      "dptID",
-                      "deptName",
-                    ) || "N/A"}
+                  <div className="font-medium">
+                    {studentData.departmentEnrolledName || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1861,13 +1866,8 @@ export default function StudentProfile() {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div>
-                    {getDisplayName(
-                      schoolBackgrounds,
-                      studentData.schoolBackgroundId,
-                      "id",
-                      "background",
-                    ) || "N/A"}
+                  <div className="font-medium">
+                    {studentData.schoolBackgroundName || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -1938,7 +1938,9 @@ export default function StudentProfile() {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div>{formatDate(studentData.dateEnrolledGC) || "N/A"}</div>
+                  <div>
+                    {formatDate(studentData.dateEnrolledGC) || "Not Provided"}
+                  </div>
                 )}
               </div>
 
@@ -1952,7 +1954,9 @@ export default function StudentProfile() {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div>{formatDate(studentData.dateEnrolledEC) || "N/A"}</div>
+                  <div>
+                    {formatDate(studentData.dateEnrolledEC) || "Not Provided"}
+                  </div>
                 )}
               </div>
 
@@ -1992,7 +1996,7 @@ export default function StudentProfile() {
                   />
                 ) : (
                   <div className="font-medium">
-                    {studentData.exitExamUserID || "N/A"}
+                    {studentData.exitExamUserID || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -2015,7 +2019,7 @@ export default function StudentProfile() {
                     {studentData.exitExamScore !== null &&
                     studentData.exitExamScore !== undefined
                       ? studentData.exitExamScore
-                      : "N/A"}
+                      : "Not Provided"}
                   </div>
                 )}
               </div>
@@ -2059,7 +2063,7 @@ export default function StudentProfile() {
                   </Select>
                 ) : (
                   <div className="font-medium">
-                    {studentData.isStudentPassExitExam || "N/A"}
+                    {studentData.isStudentPassExitExam || "Not Provided"}
                   </div>
                 )}
               </div>
@@ -2106,9 +2110,9 @@ export default function StudentProfile() {
                     </div>
                   ) : (
                     <div>
-                      <div>{studentData[f.eng] || "N/A"}</div>
+                      <div>{studentData[f.eng] || "Not Provided"}</div>
                       <div className="text-right text-gray-600">
-                        {studentData[f.amh] || "N/A"}
+                        {studentData[f.amh] || "Not Provided"}
                       </div>
                     </div>
                   )}
@@ -2124,7 +2128,9 @@ export default function StudentProfile() {
                     placeholder="Enter phone number"
                   />
                 ) : (
-                  <div>{studentData.contactPersonPhoneNumber || "N/A"}</div>
+                  <div>
+                    {studentData.contactPersonPhoneNumber || "Not Provided"}
+                  </div>
                 )}
               </div>
               <div>
@@ -2137,7 +2143,9 @@ export default function StudentProfile() {
                     placeholder="Enter relation"
                   />
                 ) : (
-                  <div>{studentData.contactPersonRelation || "N/A"}</div>
+                  <div>
+                    {studentData.contactPersonRelation || "Not Provided"}
+                  </div>
                 )}
               </div>
             </CardContent>

@@ -1,6 +1,6 @@
 // utils/storage.ts
 export const FILTER_OPTIONS_STORAGE_KEY = "filter-options-data";
-export const FILTER_OPTIONS_STORAGE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+export const FILTER_OPTIONS_STORAGE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export const saveFilterOptionsToStorage = (data: any) => {
   const storageData = {
