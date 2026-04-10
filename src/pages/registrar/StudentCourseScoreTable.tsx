@@ -4,6 +4,37 @@ import apiClient from "../../components/api/apiClient";
 import endPoints from "../../components/api/endPoints";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Eye, EyeOff, Trash2 } from "lucide-react";
+import {
+  loadFilterOptionsFromStorage,
+  saveFilterOptionsToStorage,
+} from "@/utils/storage";
+
+// ============ CACHING CONFIGURATION ============
+// LocalStorage keys for pagination persistence
+export const PAGINATION_STORAGE_KEY = "student-scores-pagination";
+
+// SessionStorage keys for API response caching
+export const CACHE_KEYS = {
+  LOOKUPS: "cache:lookups",
+  STUDENT_LIST: "cache:student-list",
+  COURSE_LIST: "cache:course-list",
+  SCORES: "cache:scores", // Optional: cache paginated scores by filter hash
+};
+
+// Cache expiration: 7 days in milliseconds
+export const CACHE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Helper: Generate a cache key for scores based on filters + pagination
+const getScoresCacheKey = (filters: any, pagination: any) => {
+  const hash = btoa(
+    JSON.stringify({
+      filters,
+      page: pagination.current,
+      size: pagination.pageSize,
+    }),
+  ).replace(/[^a-zA-Z0-9]/g, "_");
+  return `${CACHE_KEYS.SCORES}:${hash}`;
+};
 
 const initialData = [];
 
@@ -60,11 +91,64 @@ export default function StudentCourseScoreTable() {
     studentStatuses: [],
   });
 
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
+  // ============ LOCAL STORAGE: PAGINATION ============
+  const loadPaginationFromStorage = () => {
+    try {
+      const stored = localStorage.getItem(PAGINATION_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return {
+          current: parsed.current ?? 1,
+          pageSize: parsed.pageSize ?? 10,
+          total: parsed.total ?? 0,
+        };
+      }
+    } catch (e) {
+      console.warn("Failed to load pagination from localStorage:", e);
+    }
+    return { current: 1, pageSize: 10, total: 0 };
+  };
+
+  const [pagination, setPagination] = useState(() =>
+    loadPaginationFromStorage(),
+  );
+
+  const savePaginationToStorage = (pagination: any) => {
+    try {
+      localStorage.setItem(PAGINATION_STORAGE_KEY, JSON.stringify(pagination));
+    } catch (e) {
+      console.warn("Failed to save pagination to localStorage:", e);
+    }
+  };
+
+  // ============ SESSION STORAGE: GENERIC CACHE ============
+  const setSessionCache = (key: string, data: any) => {
+    try {
+      const payload = { data, timestamp: Date.now() };
+      sessionStorage.setItem(key, JSON.stringify(payload));
+    } catch (e) {
+      console.warn(`Failed to cache ${key}:`, e);
+    }
+  };
+
+  const getSessionCache = <T,>(key: string): T | null => {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (!raw) return null;
+
+      const { data, timestamp } = JSON.parse(raw);
+      const isExpired = Date.now() - timestamp > CACHE_EXPIRATION_MS;
+
+      if (isExpired) {
+        sessionStorage.removeItem(key);
+        return null;
+      }
+      return data as T;
+    } catch (e) {
+      console.warn(`Failed to read cache ${key}:`, e);
+      return null;
+    }
+  };
 
   useEffect(() => {
     fetchFilterOptions();
@@ -91,6 +175,15 @@ export default function StudentCourseScoreTable() {
 
   const fetchFilterOptions = async () => {
     try {
+      // ✅ Check storage.ts utilities FIRST (as requested)
+      const cached = loadFilterOptionsFromStorage();
+      if (cached) {
+        console.log("✅ Filter options loaded from storage.ts cache");
+        saveFilterOptions(cached);
+        return;
+      }
+
+      // ❌ Cache miss → fetch from API
       const response = await apiClient.get(endPoints.lookupsDropdown);
       console.log("lookupsDropdown response:", response.data);
 
@@ -102,10 +195,13 @@ export default function StudentCourseScoreTable() {
           studentStatuses: response.data.studentStatuses || [],
         };
 
+        // ✅ Save to storage.ts AND local state
+        saveFilterOptionsToStorage(options); // ← uses your existing utility
         saveFilterOptions(options);
       }
     } catch (error) {
       message.error("Failed to load filter options");
+      console.error(error);
     }
   };
 
@@ -113,7 +209,19 @@ export default function StudentCourseScoreTable() {
     try {
       setStudentListLoading(true);
 
+      // ✅ Check session cache first
+      const cached = getSessionCache<any[]>(CACHE_KEYS.STUDENT_LIST);
+      if (cached) {
+        console.log("✅ Student list loaded from session cache");
+        setStudentList(cached);
+        return;
+      }
+
+      // ❌ Cache miss → fetch API
       const data = await apiClient.get(endPoints.studentUserNames);
+
+      // ✅ Cache the response with 7-day expiration
+      setSessionCache(CACHE_KEYS.STUDENT_LIST, data.data);
       setStudentList(data.data);
     } catch (err) {
       console.log(err);
@@ -121,10 +229,24 @@ export default function StudentCourseScoreTable() {
       setStudentListLoading(false);
     }
   };
+
   const fetchCourseList = async () => {
     try {
       setCoursesLoading(true);
+
+      // ✅ Check session cache first
+      const cached = getSessionCache<any[]>(CACHE_KEYS.COURSE_LIST);
+      if (cached) {
+        console.log("✅ Course list loaded from session cache");
+        setCourseList(cached);
+        return;
+      }
+
+      // ❌ Cache miss → fetch API
       const data = await apiClient.get("/courses/list");
+
+      // ✅ Cache the response
+      setSessionCache(CACHE_KEYS.COURSE_LIST, data.data);
       setCourseList(data.data);
     } catch (err) {
       console.log(err);
@@ -174,6 +296,7 @@ export default function StudentCourseScoreTable() {
 
       const response = await apiClient.get(endPoints.getAllScores, { params });
 
+      // Inside fetchStudentCourseScores, after successful response handling:
       if (response.data?.content) {
         const formattedData = response.data.content.map((item) => ({
           key: item.id.toString(),
@@ -195,18 +318,29 @@ export default function StudentCourseScoreTable() {
 
         setData(formattedData);
 
-        setPagination((prev) => {
-          const newTotal = response.data.totalElements ?? prev.total;
-          const newCurrent =
-            response.data.page != null ? response.data.page + 1 : prev.current;
-          const newSize = response.data.size ?? prev.pageSize;
+        // ✅ Save pagination to localStorage
+        const newPagination = {
+          total: response.data.totalElements ?? pagination.total,
+          current:
+            response.data.page != null
+              ? response.data.page + 1
+              : pagination.current,
+          pageSize: response.data.size ?? pagination.pageSize,
+        };
+        setPagination(newPagination);
+        savePaginationToStorage(newPagination); // ← NEW: persist pagination
 
-          return {
-            total: newTotal,
-            current: newCurrent,
-            pageSize: newSize,
-          };
-        });
+        // ✅ OPTIONAL: Cache scores data (commented out by default - scores change frequently)
+        // If you want to cache scores, uncomment below:
+        /*
+  const cacheKey = getScoresCacheKey(filters, pagination);
+  setSessionCache(cacheKey, {
+    content: formattedData,
+    totalElements: response.data.totalElements,
+    page: response.data.page,
+    size: response.data.size,
+  });
+  */
       }
     } catch (error) {
       message.error("Failed to load student course scores");
@@ -779,6 +913,21 @@ export default function StudentCourseScoreTable() {
     setPagination((prev) => ({ ...prev, current: 1 }));
     fetchStudentCourseScores();
   };
+
+  const clearAllCaches = () => {
+    // Clear session caches
+    Object.values(CACHE_KEYS).forEach((key) => sessionStorage.removeItem(key));
+    // Clear localStorage pagination if needed
+    // localStorage.removeItem(PAGINATION_STORAGE_KEY);
+    console.log("🗑️ All caches cleared");
+  };
+
+  // Usage: Call this in clearFilters if you want to force fresh data:
+  // const clearFilters = () => {
+  //   clearAllCaches(); // ← optional
+  //   setFilters({...});
+  //   ...
+  // };
 
   const clearBatchUpdate = () => {
     setSelectedRowKeys([]);
