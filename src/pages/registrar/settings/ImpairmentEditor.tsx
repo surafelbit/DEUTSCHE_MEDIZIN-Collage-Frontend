@@ -10,6 +10,7 @@ import {
 import endPoints from "@/components/api/endPoints";
 import apiClient from "@/components/api/apiClient";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type Impairment = {
   code: string;
@@ -194,6 +195,7 @@ const CrudSection = ({
         setData((prev) => [...prev, newImpairment]);
       }
 
+      await clearCacheForUrl(endPoints.impairments);
       handleCloseModal();
     } catch (err) {
       console.log(err);
@@ -210,6 +212,7 @@ const CrudSection = ({
       );
       //
       console.log(response);
+      await clearCacheForUrl(endPoints.impairments);
     } catch (err) {
       console.log(err);
     }

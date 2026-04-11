@@ -10,6 +10,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 const ClassYearsEditor = () => {
   const [classYears, setClassYears] = useState([]);
@@ -245,6 +246,7 @@ const CrudSection = ({ title, data, setData }) => {
         };
         setData([...data, transformed]);
       }
+      await clearCacheForUrl(endPoints.classYears);
     } catch (err) {
       // Handle exact error responses: 400, 409
       console.error("Failed to save class year:", err);
@@ -279,6 +281,7 @@ Are you absolutely sure you want to delete "${className}"?`;
   try {
     await apiService.delete(`${endPoints.classYears}/${id}`);
     setData(data.filter((d) => d.id !== id));
+    await clearCacheForUrl(endPoints.classYears);
   } catch (err) {
     const errorMessage = err?.response?.data?.error || "Failed to delete class year.";
     

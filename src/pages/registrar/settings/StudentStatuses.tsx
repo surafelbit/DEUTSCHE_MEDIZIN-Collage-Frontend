@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus, FaSpinner, FaSearch } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 interface StudentStatus {
   id: number;
@@ -55,6 +56,7 @@ const StudentStatuses = () => {
       
       // Return the newly created status (find it by name)
       const newStatus = updatedStatuses.find((s: StudentStatus) => s.statusName === trimmed);
+      await clearCacheForUrl(endPoints.studentStatus);
       return newStatus || { id: Date.now(), statusName: trimmed };
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data?.error || "Failed to create status";
@@ -80,6 +82,7 @@ const StudentStatuses = () => {
       
       // Update local state
       setStatuses((prev) => prev.map((s) => (s.id === id ? { ...s, statusName: trimmed } : s)));
+      await clearCacheForUrl(endPoints.studentStatus);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data?.error || "Failed to update status";
       setError(msg);
@@ -96,6 +99,7 @@ const StudentStatuses = () => {
     try {
       await apiService.delete(`${endPoints.studentStatus}/${id}`);
       setStatuses((prev) => prev.filter((s) => s.id !== id));
+      await clearCacheForUrl(endPoints.studentStatus);
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data?.error || "Failed to delete student status";
       setError(msg);

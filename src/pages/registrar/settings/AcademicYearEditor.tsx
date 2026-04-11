@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type AcademicYear = {
   "Academic Year Code": string;
@@ -142,6 +143,7 @@ const AcademicYearEditor = () => {
         body
       );
       setAcademicYears((prev) => [...prev, response]);
+      await clearCacheForUrl(endPoints.academicYears);
       handleCloseModal();
     } catch (e: any) {
       console.error("Add failed:", e);
@@ -175,6 +177,7 @@ const AcademicYearEditor = () => {
             : year
         )
       );
+      await clearCacheForUrl(endPoints.academicYears);
       handleCloseModal();
     } catch (e: any) {
       console.error("Update failed:", e);
@@ -194,6 +197,7 @@ const AcademicYearEditor = () => {
       setAcademicYears((prev) =>
         prev.filter((year) => year["Academic Year Code"] !== yearCode)
       );
+      await clearCacheForUrl(endPoints.academicYears);
     } catch (e: any) {
       console.error("Delete failed:", e);
       setError("Failed to delete academic year.");

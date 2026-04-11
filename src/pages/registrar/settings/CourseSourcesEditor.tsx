@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus, FaSpinner, FaSearch } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 // ─── Assume these are already defined in your project ──────────────────────────
 // import apiClient from "@/lib/apiClient";           // your axios/fetch wrapper
 // Example shape (adjust to your actual implementation):
@@ -61,6 +62,7 @@ const CourseSourcesEditor = () => {
       const newSource = response;
 
       setSources((prev) => [newSource, ...prev]);
+      await clearCacheForUrl(endPoints.courseSources);
       return newSource;
     } catch (err: any) {
       const msg = err.response?.data?.error || "Failed to create source";
@@ -91,6 +93,7 @@ const CourseSourcesEditor = () => {
       const updated = response;
 
       setSources((prev) => prev.map((s) => (s.sourceID === id ? updated : s)));
+      await clearCacheForUrl(endPoints.courseSources);
     } catch (err: any) {
       const msg = err.response?.data?.error || "Failed to update source";
       setError(msg);
@@ -106,6 +109,7 @@ const CourseSourcesEditor = () => {
     try {
       await apiService.delete(`${endPoints.courseSources}/${id}`);
       setSources((prev) => prev.filter((s) => s.sourceID !== id));
+      await clearCacheForUrl(endPoints.courseSources);
     } catch (err: any) {
       const msg = err.response?.data?.error || "Failed to delete course source";
       setError(msg);

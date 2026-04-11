@@ -11,8 +11,7 @@ const endPoints = {
   resetStudentPassword:
     "/auth/registrar/students/:studentUserId/reset-password",
   applicantAccept: "/applicants/:id/accept",
-  applicantsRegister:
-    "https://deutschemedizin-collage-backend-production.up.railway.app/api/applicants/register",
+  applicantsRegister: "/applicants/register",
   registerDepartmentHead: "/auth/register/department-head",
   getCurrentUser: "/auth/me",
   changePassword: "/auth/me/change-password",
@@ -122,6 +121,7 @@ const endPoints = {
 
   /* =======================     Programs & Courses  ======================== */
   courses: "/courses/single",
+  courseLists: "courses/list",
   allCourses: "/courses",
   slipCourses: "/student-slips/available-courses",
   courseById: "/courses/:id",
@@ -136,7 +136,6 @@ const endPoints = {
   batches: "/batches",
   singleBatch: "/batches/:id",
   classYears: "/class-years",
-  BatchClassYearSemesters: "/bcsy",
   batchClassSemsterYear: "/bcsy",
   courseSources: "/course-sources",
 

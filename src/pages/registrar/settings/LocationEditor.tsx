@@ -3,6 +3,7 @@ import { FaEdit, FaTrash, FaPlus, FaList, FaTh } from "react-icons/fa";
 import { Loader2 } from "lucide-react";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 const RegistrarAdminPage = () => {
   const [regions, setRegions] = useState<any[]>([]);
@@ -320,6 +321,10 @@ const CrudSection = ({
         await apiService.post(endpoint.bulkAdd, payload);
       }
 
+      if (title === "Regions") await clearCacheForUrl(endPoints.allRegion);
+      else if (title === "Zones") await clearCacheForUrl(endPoints.allZones);
+      else if (title === "Woredas") await clearCacheForUrl(endPoints.allWoreda);
+
       await onRefresh();
       setShowModal(false);
     } catch (err: any) {
@@ -344,6 +349,11 @@ const CrudSection = ({
     setOperationLoading(true);
     try {
       await apiService.delete(endpoint.deleteAll);
+
+      if (title === "Regions") await clearCacheForUrl(endPoints.allRegion);
+      else if (title === "Zones") await clearCacheForUrl(endPoints.allZones);
+      else if (title === "Woredas") await clearCacheForUrl(endPoints.allWoreda);
+
       await onRefresh();
     } catch (err: any) {
       setModalError("Failed to delete all items.");

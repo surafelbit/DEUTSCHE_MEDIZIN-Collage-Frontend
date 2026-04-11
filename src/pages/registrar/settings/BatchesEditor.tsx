@@ -10,6 +10,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 const BatchesEditor = () => {
   const [batches, setBatches] = useState([]);
@@ -273,6 +274,7 @@ const CrudSection = ({ title, data, setData }) => {
         };
         setData([...data, transformed]);
       }
+      await clearCacheForUrl(endPoints.batches);
     } catch (err) {
       // Handle exact error responses from your API
       console.error("Failed to save batch:", err);
@@ -311,6 +313,7 @@ Are you absolutely sure you want to delete "${batchName}"?`;
     try {
       await apiService.delete(`${endPoints.batches}/${id}`);
       setData(data.filter((d) => d.id !== id));
+      await clearCacheForUrl(endPoints.batches);
     } catch (err) {
       const errorMessage =
         err?.response?.data?.error || "Failed to delete batch.";

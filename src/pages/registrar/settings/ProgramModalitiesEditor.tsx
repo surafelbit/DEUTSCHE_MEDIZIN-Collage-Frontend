@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type ProgramModality = {
   modalityCode: string;
@@ -224,6 +225,8 @@ const CrudSection = ({
       }
 
       // ✅ FIXED: Refresh with endPoints
+      await clearCacheForUrl(endPoints.programModalities);
+      await clearCacheForUrl(endPoints.programModality);
       const response = await apiService.get(endPoints.programModality);
       setData(response);
       handleCloseModal();
@@ -251,6 +254,8 @@ const CrudSection = ({
 
     try {
       await apiService.delete(`${endPoints.programModality}/${modalityCode}`);
+      await clearCacheForUrl(endPoints.programModalities);
+      await clearCacheForUrl(endPoints.programModality);
       const response = await apiService.get(endPoints.programModality);
       setData(response);
     } catch (err: any) {

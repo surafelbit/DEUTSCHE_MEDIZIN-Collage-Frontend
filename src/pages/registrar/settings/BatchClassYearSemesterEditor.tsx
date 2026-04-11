@@ -13,6 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
 import apiClient from "@/components/api/apiClient";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 // ────────────────────────────────────────────────
 //  Types
@@ -63,7 +64,7 @@ const BatchClassYearSemesterEditor = () => {
       try {
         setLoading(true);
         const res = await apiService.get<any[]>(
-          endPoints.BatchClassYearSemesters,
+          endPoints.batchClassSemsterYear,
         );
 
         const transformed = res.map((it: any) => ({
@@ -498,7 +499,7 @@ const CrudSection = ({ title, data, setData }: CrudProps) => {
 
     try {
       const res = await apiService.delete(
-        `${endPoints.BatchClassYearSemesters}/${id}`,
+        `${endPoints.batchClassSemsterYear}/${id}`,
       );
 
       // Show success toast
@@ -509,6 +510,7 @@ const CrudSection = ({ title, data, setData }: CrudProps) => {
 
       // Remove from local state
       setData(data.filter((d) => d.id !== id));
+      await clearCacheForUrl(endPoints.batchClassSemsterYear);
 
       return true; // Return success
     } catch (err: any) {
@@ -564,7 +566,7 @@ const CrudSection = ({ title, data, setData }: CrudProps) => {
 
       let res;
       if (modalState.mode === "create") {
-        res = await apiService.post(endPoints.BatchClassYearSemesters, payload);
+        res = await apiService.post(endPoints.batchClassSemsterYear, payload);
 
         // Add new BCYS to list
         const newBCYS: BCSY = {
@@ -583,7 +585,7 @@ const CrudSection = ({ title, data, setData }: CrudProps) => {
         });
       } else if (modalState.data) {
         res = await apiService.put(
-          `${endPoints.BatchClassYearSemesters}/${modalState.data.id}`,
+          `${endPoints.batchClassSemsterYear}/${modalState.data.id}`,
           payload,
         );
 
@@ -608,6 +610,7 @@ const CrudSection = ({ title, data, setData }: CrudProps) => {
         });
       }
 
+      await clearCacheForUrl(endPoints.batchClassSemsterYear);
       closeModal();
     } catch (err: any) {
       toast({
@@ -1754,7 +1757,7 @@ const SingleBCSYPage = () => {
     const fetchOne = async () => {
       try {
         const res = await apiService.get<any>(
-          `${endPoints.BatchClassYearSemesters}/${id}`,
+          `${endPoints.batchClassSemsterYear}/${id}`,
         );
         const data: BCSY = {
           id: res.bcysId ?? res.id,
@@ -1813,7 +1816,7 @@ const SingleBCSYPage = () => {
         payload.gradingSystemId = Number(form.gradingSystemId);
 
       const res = await apiService.put(
-        `${endPoints.BatchClassYearSemesters}/${item.id}`,
+        `${endPoints.batchClassSemsterYear}/${item.id}`,
         payload,
       );
 
@@ -1847,7 +1850,7 @@ const SingleBCSYPage = () => {
 
     try {
       const res = await apiService.delete(
-        `${endPoints.BatchClassYearSemesters}/${id}`,
+        `${endPoints.batchClassSemsterYear}/${id}`,
       );
 
       // Show success toast with the response message

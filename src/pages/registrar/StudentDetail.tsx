@@ -46,6 +46,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AcademicProgression } from "../../components/Extra/AcademicProgression"; // Adjust path as needed
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 export default function StudentProfile() {
   const location = useLocation();
@@ -404,6 +405,9 @@ export default function StudentProfile() {
         variant: "default",
       });
 
+      await clearCacheForUrl(endPoints.studentUserNames);
+      await clearCacheForUrl(endPoints.studentsSlip);
+
       // Update student data with new photo from response
       if (response.student?.studentPhoto) {
         setStudentData((prev: any) => ({
@@ -603,6 +607,9 @@ export default function StudentProfile() {
         description: `${response.student?.firstNameENG || "Student"}'s information has been updated.`,
         variant: "default",
       });
+
+      await clearCacheForUrl(endPoints.studentUserNames);
+      await clearCacheForUrl(endPoints.studentsSlip);
 
       setEditMode(false);
       setSelectedPhotoFile(null);

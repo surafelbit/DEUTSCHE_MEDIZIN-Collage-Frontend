@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 interface Semester {
   id: string;
@@ -241,6 +242,7 @@ const CrudSection = ({
         };
         setData([...data, newItem]);
       }
+      await clearCacheForUrl(endPoints.semesters);
       handleCloseModal();
     } catch (err: any) {
       console.error("Save failed:", err);
@@ -280,6 +282,7 @@ Are you absolutely sure you want to delete "${semesterName}"?`;
   try {
     await apiService.delete(`${endPoints.semesters}/${id}`);
     setData(data.filter((d) => d.id !== id));
+    await clearCacheForUrl(endPoints.semesters);
   } catch (err: any) {
     const errorMessage = err?.response?.data?.error || "Failed to delete semester.";
     
