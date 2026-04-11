@@ -15,6 +15,7 @@ import apiService from "@/components/api/apiService";
 import { toast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 // Validation utility to check if a field is empty
 const isFieldEmpty = (value) => {
@@ -1093,12 +1094,12 @@ const EducationalInformationStep = ({
           )}
         </div>
 
-        {/* Grade 12 Result - Optional */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
-            Grade 12 Result (Optional)
-          </label>
-          <div className="w-[25%]">
+        {/* Grade 12 Result & Exam Year - Optional */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 w-[50%]">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+              Grade 12 Result (Optional)
+            </label>
             <input
               type="number"
               name="grade12Result"
@@ -1108,6 +1109,19 @@ const EducationalInformationStep = ({
               step="0.01"
               min="0"
               max="4.0"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-white mb-2">
+              Grade 12 Exam Year (Optional)
+            </label>
+            <input
+              type="text"
+              name="yearOfExamG12"
+              value={formData.yearOfExamG12}
+              onChange={handleInputChange}
+              placeholder="e.g., 2015"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -1490,6 +1504,36 @@ const ReviewSubmitStep = ({
                 </p>
               )}
             </div>
+
+            {/* Entry Years - Optional */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                  Entry Year (E.C) - Optional
+                </label>
+                <input
+                  type="text"
+                  name="entryYearEC"
+                  value={formData.entryYearEC}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 2015"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 dark:text-gray-100 mb-1">
+                  Entry Year (G.C) - Optional
+                </label>
+                <input
+                  type="text"
+                  name="entryYearGC"
+                  value={formData.entryYearGC}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 2023"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1690,6 +1734,9 @@ const AddStudent = () => {
           exitExamScore: "",
           hasPassedExitExam: "",
           grade12Result: "",
+          yearOfExamG12: "",
+          entryYearGC: "",
+          entryYearEC: "",
           remark: "",
           document: null,
           documentStatusId: "", // NEW: Document status ID
@@ -1744,8 +1791,6 @@ const AddStudent = () => {
       try {
         // Fetch all dropdown data from single endpoint
         const lookupsData = await apiService.get(endPoints.lookupsDropdown);
-
-        console.log("Lookups data loaded:", lookupsData); // For debugging
 
         // Also fetch regions separately (keep as is)
         const regionsData = await apiService.get(endPoints.regions);
@@ -2095,6 +2140,9 @@ const AddStudent = () => {
       exitExamScore: floatOrNull(data.exitExamScore),
       isStudentPassExitExam: boolOrNull(data.hasPassedExitExam),
       grade12Result: floatOrNull(data.grade12Result),
+      yearOfExamG12: nullIfEmpty(data.yearOfExamG12),
+      entryYearGC: nullIfEmpty(data.entryYearGC),
+      entryYearEC: nullIfEmpty(data.entryYearEC),
       remark: nullIfEmpty(data.remark),
     };
 
@@ -2175,6 +2223,10 @@ const AddStudent = () => {
         localStorage.removeItem("registrarRegistrationFormData");
         localStorage.removeItem("registrarRegistrationCurrentStep");
 
+        // Clear Cache
+        await clearCacheForUrl(endPoints.studentUserNames);
+      await clearCacheForUrl(endPoints.studentsSlip);
+
         // Reset form state for fresh start
         setFormData({
           // Personal Info (English)
@@ -2235,6 +2287,9 @@ const AddStudent = () => {
           exitExamScore: "",
           hasPassedExitExam: "",
           grade12Result: "",
+          yearOfExamG12: "",
+          entryYearGC: "",
+          entryYearEC: "",
           remark: "",
           document: null,
         });

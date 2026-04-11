@@ -49,7 +49,7 @@ const SingleBatchClassYearSemester = () => {
     const fetchRecord = async () => {
       try {
         const res = await apiService.get<any>(
-          `${endPoints.BatchClassYearSemesters}/${id}`
+          `${endPoints.batchClassSemsterYear}/${id}`,
         );
 
         const data: BCSY = {
@@ -85,7 +85,7 @@ const SingleBatchClassYearSemester = () => {
 
     try {
       await apiService.delete(
-        `${endPoints.BatchClassYearSemesters}/${record.id}`
+        `${endPoints.batchClassSemsterYear}/${record.id}`,
       );
       navigate("/bcsy"); // or "/admin/bcsy" — adjust to your route
     } catch (err: any) {
@@ -112,8 +112,8 @@ const SingleBatchClassYearSemester = () => {
         payload.gradingSystemId = Number(form.gradingSystemId);
 
       const res = await apiService.put(
-        `${endPoints.BatchClassYearSemesters}/${record.id}`,
-        payload
+        `${endPoints.batchClassSemsterYear}/${record.id}`,
+        payload,
       );
 
       // Update local state

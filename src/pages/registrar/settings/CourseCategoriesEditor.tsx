@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type CourseCategory = {
   catID: number; // ✅ Updated to match actual API response
@@ -198,6 +199,7 @@ const CrudSection = ({
         });
       }
 
+      await clearCacheForUrl(endPoints.courseCategory);
       // Refresh data from API after successful operation
       const response = await apiService.get(endPoints.courseCategory);
       const transformedData = response.map((item: any) => ({
@@ -222,6 +224,7 @@ const CrudSection = ({
 
     try {
       await apiService.delete(`${endPoints.courseCategory}/${catID}`);
+      await clearCacheForUrl(endPoints.courseCategory);
       // Refresh data from API after delete
       const response = await apiService.get(endPoints.courseCategory);
       const transformedData = response.map((item: any) => ({

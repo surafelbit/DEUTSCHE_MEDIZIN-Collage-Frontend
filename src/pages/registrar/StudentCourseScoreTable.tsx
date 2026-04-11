@@ -4,37 +4,11 @@ import apiClient from "../../components/api/apiClient";
 import endPoints from "../../components/api/endPoints";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Eye, EyeOff, Trash2 } from "lucide-react";
-import {
-  loadFilterOptionsFromStorage,
-  saveFilterOptionsToStorage,
-} from "@/utils/storage";
+import apiService from "@/components/api/apiService";
 
 // ============ CACHING CONFIGURATION ============
 // LocalStorage keys for pagination persistence
 export const PAGINATION_STORAGE_KEY = "student-scores-pagination";
-
-// SessionStorage keys for API response caching
-export const CACHE_KEYS = {
-  LOOKUPS: "cache:lookups",
-  STUDENT_LIST: "cache:student-list",
-  COURSE_LIST: "cache:course-list",
-  SCORES: "cache:scores", // Optional: cache paginated scores by filter hash
-};
-
-// Cache expiration: 7 days in milliseconds
-export const CACHE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
-
-// Helper: Generate a cache key for scores based on filters + pagination
-const getScoresCacheKey = (filters: any, pagination: any) => {
-  const hash = btoa(
-    JSON.stringify({
-      filters,
-      page: pagination.current,
-      size: pagination.pageSize,
-    }),
-  ).replace(/[^a-zA-Z0-9]/g, "_");
-  return `${CACHE_KEYS.SCORES}:${hash}`;
-};
 
 const initialData = [];
 
@@ -121,35 +95,6 @@ export default function StudentCourseScoreTable() {
     }
   };
 
-  // ============ SESSION STORAGE: GENERIC CACHE ============
-  const setSessionCache = (key: string, data: any) => {
-    try {
-      const payload = { data, timestamp: Date.now() };
-      sessionStorage.setItem(key, JSON.stringify(payload));
-    } catch (e) {
-      console.warn(`Failed to cache ${key}:`, e);
-    }
-  };
-
-  const getSessionCache = <T,>(key: string): T | null => {
-    try {
-      const raw = sessionStorage.getItem(key);
-      if (!raw) return null;
-
-      const { data, timestamp } = JSON.parse(raw);
-      const isExpired = Date.now() - timestamp > CACHE_EXPIRATION_MS;
-
-      if (isExpired) {
-        sessionStorage.removeItem(key);
-        return null;
-      }
-      return data as T;
-    } catch (e) {
-      console.warn(`Failed to read cache ${key}:`, e);
-      return null;
-    }
-  };
-
   useEffect(() => {
     fetchFilterOptions();
   }, []);
@@ -175,29 +120,17 @@ export default function StudentCourseScoreTable() {
 
   const fetchFilterOptions = async () => {
     try {
-      // ✅ Check storage.ts utilities FIRST (as requested)
-      const cached = loadFilterOptionsFromStorage();
-      if (cached) {
-        console.log("✅ Filter options loaded from storage.ts cache");
-        saveFilterOptions(cached);
-        return;
-      }
-
-      // ❌ Cache miss → fetch from API
-      const response = await apiClient.get(endPoints.lookupsDropdown);
-      console.log("lookupsDropdown response:", response.data);
-
-      if (response.data) {
+      // ✅ apiService.get() already caches this via getCachedResponse
+      const response = await apiService.get(endPoints.lookupsDropdown);
+      console.log("lookupsDropdown response:", response);
+      if (response) {
         const options = {
-          departments: response.data.departments || [],
-          batchClassYearSemesters: response.data.batchClassYearSemesters || [],
-          courseSources: response.data.courseSources || [],
-          studentStatuses: response.data.studentStatuses || [],
+          departments: response.departments || [],
+          batchClassYearSemesters: response.batchClassYearSemesters || [],
+          courseSources: response.courseSources || [],
+          studentStatuses: response.studentStatuses || [],
         };
-
-        // ✅ Save to storage.ts AND local state
-        saveFilterOptionsToStorage(options); // ← uses your existing utility
-        saveFilterOptions(options);
+        saveFilterOptions(options); // ← just updates React state
       }
     } catch (error) {
       message.error("Failed to load filter options");
@@ -208,21 +141,9 @@ export default function StudentCourseScoreTable() {
   const fetchStudnet = async () => {
     try {
       setStudentListLoading(true);
-
-      // ✅ Check session cache first
-      const cached = getSessionCache<any[]>(CACHE_KEYS.STUDENT_LIST);
-      if (cached) {
-        console.log("✅ Student list loaded from session cache");
-        setStudentList(cached);
-        return;
-      }
-
-      // ❌ Cache miss → fetch API
-      const data = await apiClient.get(endPoints.studentUserNames);
-
-      // ✅ Cache the response with 7-day expiration
-      setSessionCache(CACHE_KEYS.STUDENT_LIST, data.data);
-      setStudentList(data.data);
+      // ✅ apiService.get() handles caching automatically
+      const data = await apiService.get(endPoints.studentUserNames);
+      setStudentList(data); // ← data is already the array
     } catch (err) {
       console.log(err);
     } finally {
@@ -233,21 +154,9 @@ export default function StudentCourseScoreTable() {
   const fetchCourseList = async () => {
     try {
       setCoursesLoading(true);
-
-      // ✅ Check session cache first
-      const cached = getSessionCache<any[]>(CACHE_KEYS.COURSE_LIST);
-      if (cached) {
-        console.log("✅ Course list loaded from session cache");
-        setCourseList(cached);
-        return;
-      }
-
-      // ❌ Cache miss → fetch API
-      const data = await apiClient.get("/courses/list");
-
-      // ✅ Cache the response
-      setSessionCache(CACHE_KEYS.COURSE_LIST, data.data);
-      setCourseList(data.data);
+      // ✅ apiService.get() handles caching automatically
+      const data = await apiService.get(endPoints.courseLists);
+      setCourseList(data);
     } catch (err) {
       console.log(err);
     } finally {
@@ -281,7 +190,6 @@ export default function StudentCourseScoreTable() {
         size: pagination.pageSize,
         sortBy: "score",
         sortDir: "desc",
-
         ...(filters.courseId && { courseId: filters.courseId }),
         ...(filters.bcysId && { bcysId: filters.bcysId }),
         ...(filters.studentId && { studentId: Number(filters.studentId) }),
@@ -294,11 +202,11 @@ export default function StudentCourseScoreTable() {
         }),
       };
 
-      const response = await apiClient.get(endPoints.getAllScores, { params });
+      // ✅ apiService.get() creates cache key WITH params automatically
+      const response = await apiService.get(endPoints.getAllScores, params);
 
-      // Inside fetchStudentCourseScores, after successful response handling:
-      if (response.data?.content) {
-        const formattedData = response.data.content.map((item) => ({
+      if (response?.content) {
+        const formattedData = response.content.map((item) => ({
           key: item.id.toString(),
           id: item.id,
           studentId: {
@@ -318,29 +226,15 @@ export default function StudentCourseScoreTable() {
 
         setData(formattedData);
 
-        // ✅ Save pagination to localStorage
+        // ✅ ONLY THIS: Save pagination to localStorage
         const newPagination = {
-          total: response.data.totalElements ?? pagination.total,
+          total: response.totalElements ?? pagination.total,
           current:
-            response.data.page != null
-              ? response.data.page + 1
-              : pagination.current,
-          pageSize: response.data.size ?? pagination.pageSize,
+            response.page != null ? response.page + 1 : pagination.current,
+          pageSize: response.size ?? pagination.pageSize,
         };
         setPagination(newPagination);
-        savePaginationToStorage(newPagination); // ← NEW: persist pagination
-
-        // ✅ OPTIONAL: Cache scores data (commented out by default - scores change frequently)
-        // If you want to cache scores, uncomment below:
-        /*
-  const cacheKey = getScoresCacheKey(filters, pagination);
-  setSessionCache(cacheKey, {
-    content: formattedData,
-    totalElements: response.data.totalElements,
-    page: response.data.page,
-    size: response.data.size,
-  });
-  */
+        savePaginationToStorage(newPagination);
       }
     } catch (error) {
       message.error("Failed to load student course scores");
@@ -914,21 +808,6 @@ export default function StudentCourseScoreTable() {
     fetchStudentCourseScores();
   };
 
-  const clearAllCaches = () => {
-    // Clear session caches
-    Object.values(CACHE_KEYS).forEach((key) => sessionStorage.removeItem(key));
-    // Clear localStorage pagination if needed
-    // localStorage.removeItem(PAGINATION_STORAGE_KEY);
-    console.log("🗑️ All caches cleared");
-  };
-
-  // Usage: Call this in clearFilters if you want to force fresh data:
-  // const clearFilters = () => {
-  //   clearAllCaches(); // ← optional
-  //   setFilters({...});
-  //   ...
-  // };
-
   const clearBatchUpdate = () => {
     setSelectedRowKeys([]);
     setBatchValues({
@@ -1280,7 +1159,7 @@ export default function StudentCourseScoreTable() {
             }
           >
             <Select.Option value="">All Departments</Select.Option>
-            {filterOptions.departments.map((dept) => (
+            {filterOptions.departments?.map((dept) => (
               <Select.Option key={dept.id} value={dept.id}>
                 {dept.name}
               </Select.Option>
@@ -1322,7 +1201,7 @@ export default function StudentCourseScoreTable() {
             )}
 
             {courseList
-              .filter((course) => {
+              ?.filter((course) => {
                 // No department selected → show everything
                 if (!filters.departmentId || filters.departmentId === "") {
                   return true;
@@ -1338,7 +1217,7 @@ export default function StudentCourseScoreTable() {
                 // Compare with course.department (which seems to be a string like "Medicine")
                 return course.department === selectedDept.name;
               })
-              .map((c) => {
+              ?.map((c) => {
                 const title =
                   c.cTitle ||
                   c.title ||
@@ -1378,7 +1257,7 @@ export default function StudentCourseScoreTable() {
             allowClear
             className="w-full"
           >
-            {filterOptions.batchClassYearSemesters.map((b) => (
+            {filterOptions.batchClassYearSemesters?.map((b) => (
               <Select.Option key={b.id} value={b.id}>
                 {b.displayName || b.name}
               </Select.Option>
@@ -1424,7 +1303,7 @@ export default function StudentCourseScoreTable() {
             }}
           >
             <Select.Option value="">All Statuses</Select.Option>
-            {filterOptions.studentStatuses.map((status) => (
+            {filterOptions.studentStatuses?.map((status) => (
               <Select.Option
                 key={status.id}
                 value={status.id}
@@ -1478,7 +1357,7 @@ export default function StudentCourseScoreTable() {
                 .includes(input.toLowerCase())
             }
           >
-            {studentList.map((c) => (
+            {studentList?.map((c) => (
               <Select.Option key={c.userId} value={Number(c.userId)}>
                 {c.username || c.userName || c.name}
               </Select.Option>
@@ -1657,7 +1536,7 @@ export default function StudentCourseScoreTable() {
               allowClear
               className="w-48"
             >
-              {filterOptions.courseSources.map((s) => (
+              {filterOptions.courseSources?.map((s) => (
                 <Select.Option key={s.id} value={s.id}>
                   {s.name}
                 </Select.Option>
@@ -1672,7 +1551,7 @@ export default function StudentCourseScoreTable() {
               allowClear
               className="w-48"
             >
-              {filterOptions.batchClassYearSemesters.map((b) => (
+              {filterOptions.batchClassYearSemesters?.map((b) => (
                 <Select.Option key={b.id} value={b.id}>
                   {b.name}
                 </Select.Option>
@@ -1695,7 +1574,7 @@ export default function StudentCourseScoreTable() {
               optionLabelProp="label"
             >
               {courseList
-                .filter((course) => {
+                ?.filter((course) => {
                   if (filters.departmentId && filters.departmentId !== "") {
                     const selectedDept = filterOptions.departments.find(
                       (d) => d.id === Number(filters.departmentId),
@@ -1706,7 +1585,7 @@ export default function StudentCourseScoreTable() {
                   }
                   return true;
                 })
-                .map((c) => {
+                ?.map((c) => {
                   const title =
                     c.cTitle ||
                     c.title ||
@@ -1956,7 +1835,7 @@ export default function StudentCourseScoreTable() {
                         optionLabelProp="label"
                       >
                         {courseList
-                          .filter((course) => {
+                          ?.filter((course) => {
                             // If department filter is active, filter courses by department
                             if (
                               filters.departmentId &&
@@ -1972,7 +1851,7 @@ export default function StudentCourseScoreTable() {
                             }
                             return true;
                           })
-                          .map((c) => {
+                          ?.map((c) => {
                             const title =
                               c.cTitle ||
                               c.title ||
@@ -2013,7 +1892,7 @@ export default function StudentCourseScoreTable() {
                         size="small"
                         placeholder="Select BCYS"
                       >
-                        {filterOptions.batchClassYearSemesters.map((b) => (
+                        {filterOptions.batchClassYearSemesters?.map((b) => (
                           <Select.Option key={b.id} value={b.id}>
                             {b.name}
                           </Select.Option>
@@ -2030,7 +1909,7 @@ export default function StudentCourseScoreTable() {
                         size="small"
                         placeholder="Select Source"
                       >
-                        {filterOptions.courseSources.map((s) => (
+                        {filterOptions.courseSources?.map((s) => (
                           <Select.Option key={s.id} value={s.id}>
                             {s.name}
                           </Select.Option>
@@ -2254,6 +2133,8 @@ export default function StudentCourseScoreTable() {
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>
+                <option value={70}>70</option>
+                <option value={100}>100</option>
               </select>
             </div>
             <nav className="flex items-center gap-1">

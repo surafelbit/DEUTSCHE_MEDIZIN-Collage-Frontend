@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type EnrollmentType = {
   enrollmentTypeCode: string;
@@ -148,6 +149,7 @@ const EnrollmentTypesEditor = () => {
         const response = await apiService.post("/enrollment-type", body);
         setEnrollmentTypes((prev) => [...prev, response]);
       }
+      await clearCacheForUrl(endPoints.enrollmentTypes);
       handleCloseModal();
     } catch (err: any) {
       console.error("Submit error:", err);
@@ -168,6 +170,7 @@ const EnrollmentTypesEditor = () => {
       setEnrollmentTypes((prev) =>
         prev.filter((et) => et.enrollmentTypeCode !== code)
       );
+      await clearCacheForUrl(endPoints.enrollmentTypes);
     } catch (err: any) {
       console.error("Delete error:", err);
       setError(

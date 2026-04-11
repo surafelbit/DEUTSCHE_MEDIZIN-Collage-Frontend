@@ -12,6 +12,7 @@ import {
 import apiService from "@/components/api/apiService"; // Adjust import path as needed
 import endPoints from "@/components/api/endPoints"; // Adjust import path as needed
 import { useToast } from "@/hooks/use-toast"; // Adjust path as needed
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type Interval = {
   id: number | null;
@@ -586,6 +587,7 @@ const CrudSection = ({
 
       setData(updatedData);
 
+      await clearCacheForUrl(endPoints.gradingSystem);
       handleCloseModal();
       refetch();
     } catch (e: any) {
@@ -612,6 +614,7 @@ const CrudSection = ({
     try {
       await apiService.delete(`${endPoints.gradingSystem}/${id}`);
       setData((prev) => prev.filter((d) => d.id !== id));
+      await clearCacheForUrl(endPoints.gradingSystem);
       toast({
         title: "Success",
         description: "Grading system deleted successfully!",

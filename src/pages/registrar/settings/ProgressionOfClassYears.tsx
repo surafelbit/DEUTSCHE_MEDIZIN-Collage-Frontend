@@ -18,6 +18,7 @@ import {
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
 import { useToast } from "@/hooks/use-toast";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 const ProgressionOfClassYears = () => {
   const [progressions, setProgressions] = useState([]);
@@ -289,6 +290,7 @@ const ProgressionOfClassYears = () => {
       }
 
       await apiService.put(endPoints.progressionSequences + '/bulk', updates);
+      await clearCacheForUrl(endPoints.progressionSequences);
       
       toast({
         title: "Success",
@@ -326,6 +328,7 @@ const ProgressionOfClassYears = () => {
       await apiService.delete(endPoints.progressionSequences + '/bulk', {
         data: idsToDelete
       });
+      await clearCacheForUrl(endPoints.progressionSequences);
       
       toast({
         title: "Success",
@@ -446,6 +449,7 @@ const AddMultipleProgressionsModal = ({ isOpen, onClose, lookupData, onRefresh }
     try {
       setSaving(true);
       const response = await apiService.post(endPoints.progressionSequences, payload);
+      await clearCacheForUrl(endPoints.progressionSequences);
       
       if (response.totalFailed > 0) {
         toast({

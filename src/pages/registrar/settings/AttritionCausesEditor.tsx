@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type AttritionCause = {
   id: number;
@@ -124,6 +125,7 @@ const AttritionCausesEditor = () => {
         );
         setCauses((prev) => [...prev, response]);
       }
+      await clearCacheForUrl(endPoints.attritionCauses);
       handleCloseModal();
     } catch (err: any) {
       console.error("Submit error:", err);
@@ -139,6 +141,7 @@ const AttritionCausesEditor = () => {
     try {
       await apiService.delete(`${endPoints.attritionCauses}/${id}`);
       setCauses((prev) => prev.filter((cause) => cause.id !== id));
+      await clearCacheForUrl(endPoints.attritionCauses);
     } catch (err: any) {
       console.error("Delete error:", err);
       setError("Failed to delete cause.");

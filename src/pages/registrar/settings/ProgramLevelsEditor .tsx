@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type ProgramLevel = {
   code: string;
@@ -267,6 +268,7 @@ const CrudSection = ({
         setData((prev) => [...prev, { ...response, active: true }]);
       }
 
+      await clearCacheForUrl(endPoints.programLevels);
       handleCloseModal();
       refetch(); // Refresh from server
     } catch (err: any) {
@@ -291,6 +293,7 @@ const CrudSection = ({
     try {
       await apiService.delete(`${endPoints.programLevels}/${code}`);
       setData((prev) => prev.filter((d) => d.code !== code));
+      await clearCacheForUrl(endPoints.programLevels);
     } catch (err: any) {
       console.error("Delete error:", err);
       alert(err.response?.data?.error || "Failed to delete program level.");

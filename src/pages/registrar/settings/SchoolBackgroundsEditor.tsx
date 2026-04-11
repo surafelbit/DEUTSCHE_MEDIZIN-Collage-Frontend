@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 type SchoolBackground = {
   id: number;
@@ -131,6 +132,7 @@ const SchoolBackgroundsEditor = () => {
         );
         setSchoolBackgrounds((prev) => [...prev, response]);
       }
+      await clearCacheForUrl(endPoints.schoolBackgrounds);
       handleCloseModal();
     } catch (err: any) {
       console.error("Submit error:", err);
@@ -149,6 +151,7 @@ const SchoolBackgroundsEditor = () => {
     try {
       await apiService.delete(`${endPoints.schoolBackgrounds}/${id}`);
       setSchoolBackgrounds((prev) => prev.filter((sb) => sb.id !== id));
+      await clearCacheForUrl(endPoints.schoolBackgrounds);
     } catch (err: any) {
       console.error("Delete error:", err);
       setError(
