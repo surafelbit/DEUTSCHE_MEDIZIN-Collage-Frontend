@@ -139,6 +139,30 @@ export default function Transcript_Generate() {
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
   const [selectedSemesterId, setSelectedSemesterId] = useState<string>("");
   const [selectedClassYearId, setSelectedClassYearId] = useState<string>("");
+  // ===== NEW: Sorting & Filtering State =====
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof StudentForSelection | null;
+    direction: "asc" | "desc";
+  }>({ key: null, direction: "asc" });
+
+  // ===== UPDATED: Applied Filters (affects table) =====
+  const [filters, setFilters] = useState<{
+    departmentName?: string[];
+    bcysDisplayName?: string[];
+  }>({});
+
+  // ===== NEW: Pending Filters (UI state inside dropdown) =====
+  const [pendingFilters, setPendingFilters] = useState<{
+    departmentName?: string[];
+    bcysDisplayName?: string[];
+  }>({});
+  // ====================================================
+
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  // Refs for fixed positioning dropdowns outside scroll container
+  const deptHeaderRef = useRef<HTMLTableCellElement>(null);
+  const bcysHeaderRef = useRef<HTMLTableCellElement>(null);
+  // ==========================================
 
   // Fetch students
   useEffect(() => {
@@ -180,16 +204,81 @@ export default function Transcript_Generate() {
     fetchDropdownData();
   }, []);
 
-  // Filter students based on search
-  const filteredStudents = useMemo(() => {
-    if (!searchTerm) return allStudents;
-    const term = searchTerm.toLowerCase();
-    return allStudents.filter(
-      (s) =>
-        s.fullNameENG.toLowerCase().includes(term) ||
-        s.username?.toLowerCase().includes(term),
-    );
-  }, [allStudents, searchTerm]);
+  // ===== UPDATED: Combined search + filter + sort =====
+  const filteredAndSortedStudents = useMemo(() => {
+    let result = [...allStudents];
+
+    // Apply text search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.fullNameENG?.toLowerCase().includes(term) ||
+          s.username?.toLowerCase().includes(term),
+      );
+    }
+
+    // ===== UPDATED: Multi-select Column Filters =====
+    if (filters.departmentName) {
+      // If array is empty, it means "Select None" (Show nothing)
+      // If array has items, show matching
+      if (filters.departmentName.length === 0) {
+        result = [];
+      } else {
+        result = result.filter((s) =>
+          filters.departmentName!.includes(s.departmentName),
+        );
+      }
+    }
+
+    if (filters.bcysDisplayName) {
+      if (filters.bcysDisplayName.length === 0) {
+        result = [];
+      } else {
+        result = result.filter((s) =>
+          filters.bcysDisplayName!.includes(s.bcysDisplayName),
+        );
+      }
+    }
+    // ================================================
+    // Apply sorting
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        const aVal = a[sortConfig.key!];
+        const bVal = b[sortConfig.key!];
+
+        if (aVal == null && bVal == null) return 0;
+        if (aVal == null) return sortConfig.direction === "asc" ? 1 : -1;
+        if (bVal == null) return sortConfig.direction === "asc" ? -1 : 1;
+
+        if (typeof aVal === "string" && typeof bVal === "string") {
+          const cmp = aVal.localeCompare(bVal);
+          return sortConfig.direction === "asc" ? cmp : -cmp;
+        }
+
+        if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [allStudents, searchTerm, filters, sortConfig]);
+  // ====================================================
+
+  // ===== NEW: Distinct values for filter dropdowns =====
+  const distinctDepartments = useMemo(() => {
+    return [...new Set(allStudents.map((s) => s.departmentName))]
+      .filter(Boolean)
+      .sort();
+  }, [allStudents]);
+
+  const distinctBCYS = useMemo(() => {
+    return [...new Set(allStudents.map((s) => s.bcysDisplayName))]
+      .filter(Boolean)
+      .sort();
+  }, [allStudents]);
+  // =====================================================
 
   const toggleStudent = (id: number) => {
     setSelectedStudents((prev) =>
@@ -198,7 +287,7 @@ export default function Transcript_Generate() {
   };
 
   const toggleAllVisible = () => {
-    const visibleIds = filteredStudents.map((s) => s.studentId);
+    const visibleIds = filteredAndSortedStudents.map((s) => s.studentId);
     const allSelected = visibleIds.every((id) => selectedStudents.includes(id));
     if (allSelected) {
       setSelectedStudents((prev) =>
@@ -1767,6 +1856,255 @@ export default function Transcript_Generate() {
 
   const isReport = searchType === "report";
 
+  // ===== UPDATED: Header Click Handler =====
+  const handleHeaderClick = (
+    key: keyof StudentForSelection,
+    isFilterable: boolean,
+  ) => {
+    if (isFilterable) {
+      handleDropdownOpen(key as "departmentName" | "bcysDisplayName");
+    } else {
+      setSortConfig((prev) => ({
+        key,
+        direction:
+          prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+      }));
+    }
+  };
+
+  // ===== NEW: Toggle sort direction (for use inside dropdown) =====
+  const toggleSort = (key: keyof StudentForSelection) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+  // ===========================================
+
+  // ===== NEW: Toggle Select All =====
+  const toggleSelectAll = (column: "departmentName" | "bcysDisplayName") => {
+    setFilters((prev) => {
+      const current = prev[column];
+      // If undefined or has items, clear it (Show All = undefined)
+      // If undefined, we set to [] (Show None) to allow manual selection
+      if (current === undefined) {
+        return { ...prev, [column]: [] };
+      }
+      // If it has items (or is empty), remove the filter key to show All
+      const next = { ...prev };
+      delete next[column];
+      return next;
+    });
+  };
+
+  // ===== UPDATED: Filter & Dropdown Handlers =====
+  const handleDropdownOpen = (column: "departmentName" | "bcysDisplayName") => {
+    const isOpen = openDropdown === column;
+    if (!isOpen) {
+      // Initialize pending state with currently applied filters (or empty array)
+      const currentApplied = filters[column];
+      setPendingFilters((prev) => ({
+        ...prev,
+        [column]: currentApplied ? [...currentApplied] : [],
+      }));
+    }
+    setOpenDropdown(isOpen ? null : column);
+  };
+
+  const togglePendingValue = (
+    column: "departmentName" | "bcysDisplayName",
+    value: string,
+  ) => {
+    setPendingFilters((prev) => {
+      const current = prev[column] || [];
+      const next = current.includes(value)
+        ? current.filter((v) => v !== value)
+        : [...current, value];
+      return { ...prev, [column]: next };
+    });
+  };
+
+  const togglePendingSelectAll = (
+    column: "departmentName" | "bcysDisplayName",
+    distinctValues: string[],
+  ) => {
+    setPendingFilters((prev) => {
+      const current = prev[column] || [];
+      const isAllSelected =
+        distinctValues.length > 0 && current.length === distinctValues.length;
+      return {
+        ...prev,
+        [column]: isAllSelected ? [] : [...distinctValues],
+      };
+    });
+  };
+
+  const applyPendingFilters = (
+    column: "departmentName" | "bcysDisplayName",
+  ) => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      const pending = pendingFilters[column];
+      // If empty or undefined, clear the filter (show all)
+      if (!pending || pending.length === 0) {
+        delete next[column];
+      } else {
+        next[column] = pending;
+      }
+      return next;
+    });
+    setOpenDropdown(null);
+  };
+
+  const clearAppliedFilter = (column: "departmentName" | "bcysDisplayName") => {
+    setFilters((prev) => {
+      const next = { ...prev };
+      delete next[column];
+      return next;
+    });
+    setOpenDropdown(null);
+  };
+  // =====================================================
+
+  // ===== UPDATED: Filter Dropdown with Fixed Positioning =====
+  const FilterDropdown = ({
+    columnKey,
+    distinctValues,
+    label,
+    anchorRef,
+  }: {
+    columnKey: "departmentName" | "bcysDisplayName";
+    distinctValues: string[];
+    label: string;
+    anchorRef: React.RefObject<HTMLTableCellElement | null>;
+  }) => {
+    const isOpen = openDropdown === columnKey;
+    const pending = pendingFilters[columnKey] || [];
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+
+    useEffect(() => {
+      if (isOpen && anchorRef.current) {
+        const rect = anchorRef.current.getBoundingClientRect();
+        setPos({ top: rect.bottom + 4, left: rect.left });
+      }
+    }, [isOpen, anchorRef]);
+
+    const isAllSelected =
+      distinctValues.length > 0 && pending.length === distinctValues.length;
+    const isIndeterminate =
+      pending.length > 0 && pending.length < distinctValues.length;
+
+    if (!isOpen) return null;
+
+    return (
+      <>
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setOpenDropdown(null)}
+        />
+        <div
+          className="fixed z-50 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl p-3"
+          style={{ top: pos.top, left: pos.left }}
+        >
+          <div className="font-medium text-sm mb-2 text-gray-700 dark:text-gray-300">
+            {label}
+          </div>
+
+          <label className="flex items-center space-x-2 px-2 py-2 border-b border-gray-200 dark:border-gray-700 mb-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isAllSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = isIndeterminate;
+              }}
+              onChange={() => togglePendingSelectAll(columnKey, distinctValues)}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {isAllSelected
+                ? "Select All"
+                : isIndeterminate
+                  ? `(${pending.length} selected)`
+                  : "Select All"}
+            </span>
+          </label>
+
+          <div className="max-h-48 overflow-y-auto space-y-1 mb-3">
+            {distinctValues.map((value) => (
+              <label
+                key={value}
+                className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer text-sm"
+              >
+                <input
+                  type="checkbox"
+                  checked={pending.includes(value)}
+                  onChange={() => togglePendingValue(columnKey, value)}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="flex-1 truncate text-gray-700 dark:text-gray-300">
+                  {value}
+                </span>
+                <span className="text-xs text-gray-400">
+                  (
+                  {
+                    allStudents.filter(
+                      (s) =>
+                        (columnKey === "departmentName"
+                          ? s.departmentName
+                          : s.bcysDisplayName) === value,
+                    ).length
+                  }
+                  )
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => applyPendingFilters(columnKey)}
+              className="flex-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+            >
+              Apply Filter
+            </button>
+            <button
+              onClick={() => clearAppliedFilter(columnKey)}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+
+          <button
+            onClick={() => toggleSort(columnKey)}
+            className="w-full mt-2 text-left px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded flex items-center gap-2"
+          >
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+              />
+            </svg>
+            Sort:{" "}
+            {sortConfig.key === columnKey
+              ? sortConfig.direction === "asc"
+                ? "▲ Asc"
+                : "▼ Desc"
+              : "Off"}
+          </button>
+        </div>
+      </>
+    );
+  };
+  // ========================================================
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors">
       <div className="max-w-7xl mx-auto">
@@ -1840,7 +2178,7 @@ export default function Transcript_Generate() {
               onClick={toggleAllVisible}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
             >
-              {filteredStudents.every((s) =>
+              {filteredAndSortedStudents.every((s) =>
                 selectedStudents.includes(s.studentId),
               )
                 ? "Deselect All"
@@ -1907,6 +2245,15 @@ export default function Transcript_Generate() {
               </span>{" "}
               student{selectedCount !== 1 ? "s" : ""}
             </div>
+
+            {(filters.departmentName || filters.bcysDisplayName) && (
+              <button
+                onClick={() => setFilters({})}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline ml-2"
+              >
+                ✕ Clear all filters
+              </button>
+            )}
             <button
               onClick={
                 isReport ? handleGenerateReports : handleGenerateTranscripts
@@ -1956,6 +2303,20 @@ export default function Transcript_Generate() {
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Filtered Count Indicator */}
+            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {filteredAndSortedStudents.length} student
+                {filteredAndSortedStudents.length !== 1 ? "s" : ""}
+              </span>
+              {(searchTerm ||
+                filters.departmentName?.length ||
+                filters.bcysDisplayName?.length) && (
+                <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
+                  filtered
+                </span>
+              )}
+            </div>
             <div className="max-h-96 overflow-y-auto">
               <table className="w-full">
                 <thead className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 sticky top-0">
@@ -1963,23 +2324,133 @@ export default function Transcript_Generate() {
                     <th className="p-3 text-left text-gray-700 dark:text-gray-200 font-semibold">
                       Select
                     </th>
-                    <th className="p-3 text-left text-gray-700 dark:text-gray-200 font-semibold">
-                      ID
+
+                    <th
+                      className="p-0 text-left text-gray-700 dark:text-gray-200 font-semibold cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                      onClick={() => handleHeaderClick("username", false)}
+                    >
+                      <div className="w-full h-full p-3 flex items-center gap-1">
+                        ID{" "}
+                        {sortConfig.key === "username" && (
+                          <span className="text-xs">
+                            {sortConfig.direction === "asc" ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </div>
                     </th>
-                    <th className="p-3 text-left text-gray-700 dark:text-gray-200 font-semibold">
-                      Name
+
+                    <th
+                      className="p-0 text-left text-gray-700 dark:text-gray-200 font-semibold cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                      onClick={() => handleHeaderClick("fullNameENG", false)}
+                    >
+                      <div className="w-full h-full p-3 flex items-center gap-1">
+                        Name{" "}
+                        {sortConfig.key === "fullNameENG" && (
+                          <span className="text-xs">
+                            {sortConfig.direction === "asc" ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </div>
                     </th>
-                    <th className="p-3 text-left text-gray-700 dark:text-gray-200 font-semibold">
-                      Department
+
+                    {/* Department */}
+                    <th
+                      ref={deptHeaderRef}
+                      className="p-0 text-left text-gray-700 dark:text-gray-200 font-semibold"
+                    >
+                      <div
+                        className="w-full h-full p-3 flex items-center justify-between cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                        onClick={() =>
+                          handleHeaderClick("departmentName", true)
+                        }
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Department</span>
+                          {sortConfig.key === "departmentName" && (
+                            <span className="text-xs">
+                              {sortConfig.direction === "asc" ? "▲" : "▼"}
+                            </span>
+                          )}
+                          {filters.departmentName &&
+                            filters.departmentName.length > 0 && (
+                              <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded">
+                                {filters.departmentName.length}
+                              </span>
+                            )}
+                        </div>
+                        <svg
+                          className="w-3 h-3 opacity-60"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                          />
+                        </svg>
+                      </div>
+                      <FilterDropdown
+                        columnKey="departmentName"
+                        distinctValues={distinctDepartments}
+                        label="Filter by Department"
+                        anchorRef={deptHeaderRef}
+                      />
                     </th>
-                    <th className="p-3 text-left text-gray-700 dark:text-gray-200 font-semibold">
-                      Recent BCYS
+
+                    {/* BCYS */}
+                    <th
+                      ref={bcysHeaderRef}
+                      className="p-0 text-left text-gray-700 dark:text-gray-200 font-semibold"
+                    >
+                      <div
+                        className="w-full h-full p-3 flex items-center justify-between cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+                        onClick={() =>
+                          handleHeaderClick("bcysDisplayName", true)
+                        }
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Recent BCYS</span>
+                          {sortConfig.key === "bcysDisplayName" && (
+                            <span className="text-xs">
+                              {sortConfig.direction === "asc" ? "▲" : "▼"}
+                            </span>
+                          )}
+                          {filters.bcysDisplayName &&
+                            filters.bcysDisplayName.length > 0 && (
+                              <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded">
+                                {filters.bcysDisplayName.length}
+                              </span>
+                            )}
+                        </div>
+                        <svg
+                          className="w-3 h-3 opacity-60"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                          />
+                        </svg>
+                      </div>
+                      <FilterDropdown
+                        columnKey="bcysDisplayName"
+                        distinctValues={distinctBCYS}
+                        label="Filter by BCYS"
+                        anchorRef={bcysHeaderRef}
+                      />
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredStudents.length > 0 ? (
-                    filteredStudents.map((student) => (
+                  {filteredAndSortedStudents.length > 0 ? (
+                    filteredAndSortedStudents.map((student) => (
                       <tr
                         key={student.studentId}
                         className={`hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
