@@ -75,6 +75,7 @@ const endPoints = {
   departmentStudents: "/department-heads/my-students",
   studentsActivation: "/students/:id/enable",
   studentsDeactivation: "/students/:id/disable",
+  studentsBulkAcademicFields: "/students/bulk/academic-fields",
   studentsSlip: "/students/slip-production",
   getAllStudentsCGPA_VD: "/vice-deans/get-all-students-cgpa",
   studentsAcademicProgress: "/students/:userId/academic-progress",

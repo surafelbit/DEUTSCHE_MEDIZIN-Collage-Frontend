@@ -6,10 +6,9 @@ import { ImageModal } from "@/hooks/ImageModal";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
 import { Checkbox } from "antd";
-import {
-  loadFilterOptionsFromStorage,
-  saveFilterOptionsToStorage,
-} from "@/utils/storage";
+import { useToast } from "@/hooks/use-toast";
+
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 interface FilterOption {
   id: string | number;
@@ -25,6 +24,12 @@ export interface DataTypes {
   status: string;
   department: string;
   batch: string;
+  originalBatch: string;
+  accountStatus: string;
+  studentRecentStatusId?: number;
+  departmentEnrolledId?: number;
+  batchId?: number;
+  batchClassYearSemesterId?: number;
   photo?: string;
   isDisabled?: boolean;
 }
@@ -35,6 +40,7 @@ export default function RegistrarStudents() {
     batch: [] as string[], // Changed to array for multiple selection
     batchFilter: [] as string[],
     status: "",
+    accountStatus: "",
   });
 
   const [options, setOptions] = useState<{
@@ -42,11 +48,13 @@ export default function RegistrarStudents() {
     batchClassYearSemesters: FilterOption[];
     studentStatuses: FilterOption[];
     batches: FilterOption[];
+    accountStatuses: FilterOption[];
   }>({
     departments: [],
     batchClassYearSemesters: [],
     studentStatuses: [],
     batches: [],
+    accountStatuses: [],
   });
 
   const [searchText, setSearchText] = useState("");
@@ -54,42 +62,66 @@ export default function RegistrarStudents() {
   const [loading, setLoading] = useState(true);
   const [showAmharic, setShowAmharic] = useState(false);
   const [showBatchDropdown, setShowBatchDropdown] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [bulkEditValues, setBulkEditValues] = useState({
+    status: "",
+    department: "",
+    accountStatus: "",
+  });
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   const { openModal, closeModal } = useModal() as any;
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const defaultAccountStatuses: FilterOption[] = [
+    { id: "ENABLED", name: "ENABLED" },
+    { id: "DISABLED", name: "DISABLED" },
+  ];
+
+  const resolveAccountStatuses = (source: any): FilterOption[] => {
+    const candidates = [
+      source?.accountStatuses,
+      source?.accountStatus,
+      source?.userStatuses,
+    ];
+    const resolved = candidates.find((candidate) => Array.isArray(candidate));
+    return resolved && resolved.length > 0 ? resolved : defaultAccountStatuses;
+  };
+
+  const normalizeAccountStatus = (value: string) => {
+    const normalized = value.toUpperCase();
+    if (normalized === "ACTIVE") return "ENABLED";
+    return normalized;
+  };
+
+  const normalizeLoadedAccountStatus = (value: any) => {
+    const normalized = String(value || "").toUpperCase();
+    if (normalized === "ACTIVE") return "ENABLED";
+    if (normalized === "ENABLED" || normalized === "DISABLED") {
+      return normalized;
+    }
+    return "ENABLED";
+  };
 
   /* ===================== Load filter options ===================== */
   useEffect(() => {
     async function loadFilters() {
       try {
-        // Check sessionStorage first for filter options
-        const cachedFilters = loadFilterOptionsFromStorage();
-
-        if (cachedFilters) {
-          setOptions({
-            departments: cachedFilters.departments || [],
-            batchClassYearSemesters:
-              cachedFilters.batchClassYearSemesters || [],
-            studentStatuses: cachedFilters.studentStatuses || [],
-            batches: cachedFilters.batches || [],
-          });
-          return;
-        }
-
-        // Otherwise fetch from API
         const res = await apiService.get(endPoints.lookupsDropdown);
-        const filterData = {
+        setOptions({
           departments: res.departments || [],
           batchClassYearSemesters: res.batchClassYearSemesters || [],
           studentStatuses: res.studentStatuses || [],
           batches: res.batches || [],
-        };
-
-        setOptions(filterData);
-        saveFilterOptionsToStorage(filterData);
+          accountStatuses: [
+            { id: "ENABLED", name: "ENABLED" },
+            { id: "DISABLED", name: "DISABLED" },
+          ],
+        });
       } catch (e) {
         console.error("Failed to load filters", e);
       }
@@ -156,8 +188,15 @@ export default function RegistrarStudents() {
             status: s.studentRecentStatus || "Unknown",
             department: s.departmentEnrolled || "-",
             batch: s.batchClassYearSemester || "-",
+            originalBatch: s.batchName || "-",
+            accountStatus: normalizeLoadedAccountStatus(s.accountStatus),
+            studentRecentStatusId: s.studentRecentStatusId,
+            departmentEnrolledId: s.departmentEnrolledId,
+            batchId: s.batchId,
+            batchClassYearSemesterId: s.batchClassYearSemesterId,
             photo: photoUrl,
-            isDisabled: s.accountStatus === "DISABLED",
+            isDisabled:
+              normalizeLoadedAccountStatus(s.accountStatus) === "DISABLED",
           };
         });
 
@@ -245,8 +284,15 @@ export default function RegistrarStudents() {
           status: s.studentRecentStatus || "Unknown",
           department: s.departmentEnrolled || "-",
           batch: s.batchClassYearSemester || "-",
+          originalBatch: s.batchName || "-",
+          accountStatus: normalizeLoadedAccountStatus(s.accountStatus),
+          studentRecentStatusId: s.studentRecentStatusId,
+          departmentEnrolledId: s.departmentEnrolledId,
+          batchId: s.batchId,
+          batchClassYearSemesterId: s.batchClassYearSemesterId,
           photo: photoUrl,
-          isDisabled: s.accountStatus === "DISABLED",
+          isDisabled:
+            normalizeLoadedAccountStatus(s.accountStatus) === "DISABLED",
         };
       });
 
@@ -282,6 +328,89 @@ export default function RegistrarStudents() {
     }));
   };
 
+  const resetBulkEditPanel = () => {
+    setSelectedRowKeys([]);
+    setBulkEditValues({ status: "", department: "", accountStatus: "" });
+  };
+
+  const handleApplyBulkChanges = async () => {
+    if (selectedRowKeys.length === 0) return;
+
+    const shouldUpdateStatus = Boolean(bulkEditValues.status);
+    const shouldUpdateDepartment = Boolean(bulkEditValues.department);
+    const shouldUpdateAccountStatus = Boolean(bulkEditValues.accountStatus);
+
+    if (
+      !shouldUpdateStatus &&
+      !shouldUpdateDepartment &&
+      !shouldUpdateAccountStatus
+    ) {
+      toast({
+        title: "No changes selected",
+        description: "Select at least one field before applying changes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedStudents = students.filter((student) =>
+      selectedRowKeys.includes(student.key),
+    );
+
+    const payload = selectedStudents.map((student) => {
+      const item: Record<string, string | number> = {
+        studentId: student.studentId,
+      };
+
+      if (shouldUpdateStatus) {
+        item.studentRecentStatusId = Number(bulkEditValues.status);
+      }
+
+      if (shouldUpdateDepartment) {
+        item.departmentEnrolledId = Number(bulkEditValues.department);
+      }
+
+      if (shouldUpdateAccountStatus) {
+        item.accountStatus = normalizeAccountStatus(
+          bulkEditValues.accountStatus,
+        );
+      }
+
+      return item;
+    });
+
+    try {
+      setIsBulkUpdating(true);
+      const response = await apiService.put(
+        endPoints.studentsBulkAcademicFields,
+        payload,
+      );
+
+      toast({
+        title: "Bulk update successful",
+        description:
+          response?.message ||
+          `${payload.length} student record(s) updated successfully.`,
+      });
+
+      await handleRefresh();
+      await clearCacheForUrl(endPoints.studentUserNames);
+      await clearCacheForUrl(endPoints.studentsSlip);
+      resetBulkEditPanel();
+    } catch (error: any) {
+      toast({
+        title: "Bulk update failed",
+        description:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Unable to apply bulk changes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   /* ===================== Filtering ===================== */
   const filteredData = useMemo(() => {
     const search = searchText.toLowerCase();
@@ -299,6 +428,10 @@ export default function RegistrarStudents() {
           s.batch?.startsWith(filters.batchFilter)
         : true;
       const matchStatus = filters.status ? s.status === filters.status : true;
+      const matchAccountStatus = filters.accountStatus
+        ? (filters.accountStatus === "ENABLED" && !s.isDisabled) ||
+          (filters.accountStatus === "DISABLED" && s.isDisabled)
+        : true;
 
       const searchable = [s.name, s.amharicName, s.id, s.department]
         .join(" ")
@@ -309,7 +442,8 @@ export default function RegistrarStudents() {
         matchDepartment &&
         matchBatch &&
         matchBatchFilter &&
-        matchStatus
+        matchStatus &&
+        matchAccountStatus
       );
     });
   }, [students, filters, searchText]);
@@ -405,6 +539,11 @@ export default function RegistrarStudents() {
       width: 100,
     },
     {
+      title: "Original Batch",
+      dataIndex: "originalBatch",
+      width: 110,
+    },
+    {
       title: "Department",
       dataIndex: "department",
       width: 140,
@@ -478,6 +617,14 @@ export default function RegistrarStudents() {
     },
   ];
 
+  const rowSelection = {
+    selectedRowKeys,
+    preserveSelectedRowKeys: true,
+    onChange: (newSelectedRowKeys: (string | number)[]) => {
+      setSelectedRowKeys(newSelectedRowKeys.map((k) => String(k)));
+    },
+  };
+
   return (
     <div className="min-h-screen p-4">
       <div className="bg-white dark:bg-gray-900 p-4 md:p-6 space-y-4 md:space-y-6">
@@ -547,6 +694,21 @@ export default function RegistrarStudents() {
             {options.studentStatuses.map((s) => (
               <option key={s.id} value={s.name}>
                 {s.name.replaceAll("_", " ")}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="filter-select"
+            onChange={(e) =>
+              setFilters((p) => ({ ...p, accountStatus: e.target.value }))
+            }
+            value={filters.accountStatus}
+          >
+            <option value="">All Account Status</option>
+            {options.accountStatuses.map((a) => (
+              <option key={a.id} value={String(a.name).toUpperCase()}>
+                {a.name.replaceAll("_", " ")}
               </option>
             ))}
           </select>
@@ -649,6 +811,7 @@ export default function RegistrarStudents() {
                   batch: [],
                   batchFilter: "",
                   status: "",
+                  accountStatus: "",
                 });
                 setSearchText("");
               }}
@@ -681,6 +844,89 @@ export default function RegistrarStudents() {
             {loading ? "Loading..." : "Refresh"}
           </button>
         </div>
+
+        {/* Bulk Edit Panel */}
+        {selectedRowKeys.length > 0 && (
+          <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
+            <div className="mb-3">
+              <h2 className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                Bulk Edit for {selectedRowKeys.length} Selected Student
+                {selectedRowKeys.length > 1 ? "s" : ""}
+              </h2>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-2">
+              <select
+                className="filter-select"
+                value={bulkEditValues.status}
+                onChange={(e) =>
+                  setBulkEditValues((prev) => ({
+                    ...prev,
+                    status: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Status (No Change)</option>
+                {options.studentStatuses.map((s) => (
+                  <option key={s.id} value={String(s.id)}>
+                    {s.name.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="filter-select"
+                value={bulkEditValues.department}
+                onChange={(e) =>
+                  setBulkEditValues((prev) => ({
+                    ...prev,
+                    department: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Department (No Change)</option>
+                {options.departments.map((d) => (
+                  <option key={d.id} value={String(d.id)}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                className="filter-select"
+                value={bulkEditValues.accountStatus}
+                onChange={(e) =>
+                  setBulkEditValues((prev) => ({
+                    ...prev,
+                    accountStatus: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Account Status (No Change)</option>
+                {options.accountStatuses.map((a) => (
+                  <option key={a.id} value={String(a.name).toUpperCase()}>
+                    {a.name.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={handleApplyBulkChanges}
+                disabled={isBulkUpdating}
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isBulkUpdating ? "Applying..." : "Apply Changes"}
+              </button>
+              <button
+                onClick={resetBulkEditPanel}
+                disabled={isBulkUpdating}
+                className="px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Selected BCYS Chips */}
         {filters.batch.length > 0 && (
@@ -742,6 +988,7 @@ export default function RegistrarStudents() {
             <Table<DataTypes>
               dataSource={paginatedData}
               columns={columns}
+              rowSelection={rowSelection}
               rowKey="key"
               pagination={{
                 current: currentPage,
@@ -766,14 +1013,26 @@ export default function RegistrarStudents() {
                 },
               }}
               onRow={(r) => ({
-                onClick: () => navigate(`/registrar/students/${r.key}`),
+                onClick: (event) => {
+                  const target = event.target as HTMLElement;
+                  const clickedCheckbox =
+                    target.closest(".ant-table-selection-column") ||
+                    target.closest(".ant-checkbox-wrapper");
+
+                  if (clickedCheckbox) return;
+                  navigate(`/registrar/students/${r.key}`);
+                },
               })}
               className="compact-table"
               rowClassName={(r) => {
+                const selectedClass = selectedRowKeys.includes(r.key)
+                  ? "selected-row"
+                  : "";
+
                 if (r.isDisabled) {
-                  return "student-row disabled-row";
+                  return `student-row disabled-row ${selectedClass}`.trim();
                 }
-                return "student-row active-row";
+                return `student-row active-row ${selectedClass}`.trim();
               }}
               scroll={{ x: 800 }}
             />
@@ -903,6 +1162,51 @@ export default function RegistrarStudents() {
   
   .dark .compact-table .ant-table-tbody > tr > td {
     border-bottom: 1px solid #374151 !important;
+  }
+
+  /* Selected rows */
+  .compact-table .ant-table-tbody > tr.ant-table-row-selected > td {
+    background: #dbeafe !important;
+  }
+
+  .compact-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+    background: #bfdbfe !important;
+  }
+
+  .dark .compact-table .ant-table-tbody > tr.ant-table-row-selected > td {
+    background: rgba(30, 64, 175, 0.28) !important;
+    color: #eff6ff !important;
+  }
+
+  .dark .compact-table .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+    background: rgba(30, 64, 175, 0.38) !important;
+    color: #eff6ff !important;
+  }
+
+  .compact-table .ant-table-tbody > tr.ant-table-row-selected .ant-table-cell-row-hover {
+    background: inherit !important;
+  }
+
+  .compact-table .ant-table-tbody > tr.ant-table-row-selected td {
+    color: inherit !important;
+  }
+
+  .selected-row > td {
+    background: #dbeafe !important;
+  }
+
+  .selected-row:hover > td {
+    background: #bfdbfe !important;
+  }
+
+  .dark .selected-row > td {
+    background: rgba(30, 64, 175, 0.28) !important;
+    color: #eff6ff !important;
+  }
+
+  .dark .selected-row:hover > td {
+    background: rgba(30, 64, 175, 0.38) !important;
+    color: #eff6ff !important;
   }
   
   /* Student Row Styles */
