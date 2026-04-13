@@ -38,7 +38,7 @@ export default function RegistrarStudents() {
   const [filters, setFilters] = useState({
     department: "",
     batch: [] as string[], // Changed to array for multiple selection
-    batchFilter: [] as string[],
+    batchFilter: "", // Change from [] as string[] to ""
     status: "",
     accountStatus: "",
   });
@@ -424,8 +424,7 @@ export default function RegistrarStudents() {
         filters.batch.length > 0 ? filters.batch.includes(s.batch) : true;
 
       const matchBatchFilter = filters.batchFilter
-        ? s.batch?.startsWith(`Batch ${filters.batchFilter}`) ||
-          s.batch?.startsWith(filters.batchFilter)
+        ? s.originalBatch === filters.batchFilter
         : true;
       const matchStatus = filters.status ? s.status === filters.status : true;
       const matchAccountStatus = filters.accountStatus
@@ -667,6 +666,7 @@ export default function RegistrarStudents() {
             ))}
           </select>
 
+          {/* Original Batch Filter */}
           <select
             className="filter-select"
             onChange={(e) =>
