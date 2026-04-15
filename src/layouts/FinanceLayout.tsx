@@ -109,50 +109,6 @@ export default function FinanceLayout() {
         </div>
       </div>
 
-      {/* Main content */}
-      {/* <div className="lg:pl-64">
-       
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:gap-x-6 sm:px-6 lg:px-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex flex-1 items-center">
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Finance Portal
-              </h1>
-            </div>
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <ThemeToggle />
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">FO</span>
-                </div>
-                <div className="hidden sm:block">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    Finance Officer
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Financial Management
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <main className="py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Outlet />
-          </div>
-        </main>
-      </div> */}
       <div
         className={`inset-0 w-full transition-all duration-300 ${
           sidebarOpen && window.innerWidth >= 1024 ? "ml-64" : "ml-0"
@@ -225,7 +181,6 @@ export default function FinanceLayout() {
 
         {/* Page content */}
         <main className="py-8">
-          {/* <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"> */}
           <div className="mx-8">
             <Outlet />
           </div>

@@ -11,14 +11,12 @@ import {
   Pill,
   FlaskConical,
   Building,
-  Loader2,
   Download,
   Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 interface Department {

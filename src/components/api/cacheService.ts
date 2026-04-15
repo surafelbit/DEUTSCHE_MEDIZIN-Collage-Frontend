@@ -52,10 +52,7 @@ const getBasePath = (url: string | undefined): string => {
   return url.split("?")[0];
 };
 
-/**
- * FIX: Cache API only accepts http:// or https:// schemes.
- * We use a dummy https:// domain to create valid URL keys.
- */
+
 const generateCacheKey = (url: string | undefined): string => {
   const basePath = getBasePath(url);
   // Encode to safely handle special characters in URLs
@@ -63,9 +60,7 @@ const generateCacheKey = (url: string | undefined): string => {
   return `https://app-cache.local/${encoded}`;
 };
 
-/**
- * Transparently handles cache lookup, expiry validation, and network fallback
- */
+
 export const getCachedResponse = async <T = any>(
   url: string,
   fetchFn: () => Promise<T>,
@@ -148,9 +143,7 @@ export const clearCacheForUrl = async (url: string): Promise<void> => {
   }
 };
 
-/**
- * Clear all cached API responses
- */
+
 export const clearAllApiCache = async (): Promise<void> => {
   if (typeof caches !== "undefined") {
     await caches.delete(CACHE_STORE_NAME);
