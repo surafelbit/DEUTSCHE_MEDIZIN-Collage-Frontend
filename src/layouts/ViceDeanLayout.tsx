@@ -7,8 +7,6 @@ import NotificationDropdown from "@/components/ui/NotificationDropdown";
 import {
   LayoutDashboard,
   Users,
-  BookOpen,
-  BarChart3,
   Layers,
   Menu,
   User,

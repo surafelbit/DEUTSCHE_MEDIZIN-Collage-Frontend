@@ -3,8 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Building, Layers, GraduationCap, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
 
