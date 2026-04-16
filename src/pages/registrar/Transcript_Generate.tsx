@@ -35,7 +35,12 @@ type StudentCopy = {
   courses: GradeReportCourse[];
   semesterGPA: number;
   semesterCGPA: number;
-  semesterCGPAGrade?: string;
+  semesterGPALetter?: string;
+  semesterCGPALetter?: string;
+  previousCredit?: number;
+  previousGradePoint?: number;
+  previousCGPA?: number;
+  previousCGPALetter?: string;
   cumulativeCredit?: number;
   cumulativeTotalPoint?: number;
   status: string;
@@ -378,6 +383,12 @@ export default function Transcript_Generate() {
                   : [],
                 semesterGPA: item.semesterGPA || 0,
                 semesterCGPA: item.semesterCGPA || 0,
+                semesterGPALetter: item.semesterGPALetter || "N/A",
+                semesterCGPALetter: item.semesterCGPALetter || "N/A",
+                previousCredit: item.previousCredit || 0,
+                previousGradePoint: item.previousGradePoint || 0,
+                previousCGPA: item.previousCGPA || 0,
+                previousCGPALetter: item.previousCGPALetter || "N/A",
                 status: item.status || "PASSED",
               },
             ],
@@ -629,6 +640,12 @@ export default function Transcript_Generate() {
               ],
               semesterGPA: 3.8,
               semesterCGPA: 3.8,
+              semesterGPALetter: "A",
+              semesterCGPALetter: "A",
+              previousCredit: 44.0,
+              previousGradePoint: 176.0,
+              previousCGPA: 4.0,
+              previousCGPALetter: "A",
               status: "PASSED",
             },
           ],
@@ -844,8 +861,11 @@ export default function Transcript_Generate() {
         doc.setFont("helvetica", "normal");
 
         // Right side - Summary Table
-        const prevTotalCredit = 44.0;
-        const prevTotalGP = 176.0;
+        const prevTotalCredit = copy.previousCredit || 0;
+        const prevTotalGP = copy.previousGradePoint || 0;
+        const prevCGPA = copy.previousCGPA || 0;
+        const prevCGPALetter = copy.previousCGPALetter || "N/A";
+
         const cumulativeCredit = prevTotalCredit + totalCr;
         const cumulativeGP = prevTotalGP + totalPoint;
         const cumulativeGPA = cumulativeGP / cumulativeCredit;
@@ -858,22 +878,22 @@ export default function Transcript_Generate() {
               "Previous",
               prevTotalCredit.toFixed(2),
               prevTotalGP.toFixed(2),
-              "4.00",
-              "A",
+              prevCGPA.toFixed(2),
+              prevCGPALetter,
             ],
             [
               "Semestre",
               totalCr.toFixed(2),
               totalPoint.toFixed(2),
-              copy.semesterGPA?.toFixed(2) || "3.80",
-              "A",
+              copy.semesterGPA?.toFixed(2) || "0.00",
+              copy.semesterGPALetter || "N/A",
             ],
             [
               "Cumulative",
               cumulativeCredit.toFixed(2),
               cumulativeGP.toFixed(2),
               cumulativeGPA.toFixed(2),
-              "A",
+              copy.semesterCGPALetter || "N/A",
             ],
           ],
           theme: "grid",
@@ -955,13 +975,13 @@ export default function Transcript_Generate() {
     const doc = new jsPDF("p", "mm", "a4"); // Portrait
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 5;
-    const columnWidth = (pageWidth - margin * 2.5) / 2;
+    const margin = 4;
+    const columnWidth = (pageWidth - margin * 2.2) / 2; // Increased to match wider title column
 
     realTranscripts.forEach((transcript, index) => {
       if (index > 0) doc.addPage();
 
-      let y = margin + 2;
+      let y = margin;
 
       // Header with logo
       try {
@@ -972,9 +992,14 @@ export default function Transcript_Generate() {
 
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("DEUTSCHE HOCHSCHULE FÜR MEDIZIN", pageWidth / 2, y + 4, {
-        align: "center",
-      });
+      doc.text(
+        "DEUTSCHE HOCHSCHULE FÜR MEDIZIN COLLEGE",
+        pageWidth / 2,
+        y + 4,
+        {
+          align: "center",
+        },
+      );
 
       doc.setFontSize(9);
       doc.text("STUDENT ACADEMIC RECORD", pageWidth / 2, y + 8, {
@@ -997,8 +1022,8 @@ export default function Transcript_Generate() {
         y += 16;
       }
 
-      // Student Info Table - Full labels as requested
-      const tableWidth = 130;
+      // Student Info Table
+      const tableWidth = 180;
       const centerX = (pageWidth - tableWidth) / 2;
 
       autoTable(doc, {
@@ -1012,21 +1037,21 @@ export default function Transcript_Generate() {
           ],
           [
             "Full Name",
-            transcript.fullName?.substring(0, 25) || "",
+            transcript.fullName || "",
             "Enrolment Type",
-            transcript.programModality?.name?.substring(0, 10) || "-",
+            transcript.programModality?.name || "-",
           ],
           [
             "Sex",
             transcript.gender || "",
             "Department",
-            transcript.department?.name?.substring(0, 15) || "-",
+            transcript.department?.name || "-",
           ],
           [
             "Program",
-            transcript.programLevel?.name?.substring(0, 10) || "-",
+            transcript.programLevel?.name || "-",
             "Field of Study",
-            transcript.department?.name?.substring(0, 15) || "-",
+            transcript.department?.name || "-",
           ],
           [
             "Date Of Admission",
@@ -1037,8 +1062,8 @@ export default function Transcript_Generate() {
         ],
         theme: "grid",
         styles: {
-          fontSize: 6,
-          cellPadding: 1,
+          fontSize: 5.5,
+          cellPadding: 0.8,
           lineWidth: 0.1,
           textColor: [0, 0, 0],
           halign: "center",
@@ -1050,21 +1075,28 @@ export default function Transcript_Generate() {
             fillColor: [235, 245, 255],
             halign: "left",
           },
-          1: { cellWidth: 40, halign: "left" },
+          1: {
+            cellWidth: 65,
+            halign: "left",
+            fontStyle: "bold",
+          },
           2: {
             fontStyle: "bold",
             cellWidth: 25,
             fillColor: [235, 245, 255],
             halign: "left",
           },
-          3: { cellWidth: 40, halign: "left" },
+          3: {
+            cellWidth: 65,
+            halign: "left",
+          },
         },
         margin: { left: centerX },
       });
 
-      y = (doc as any).lastAutoTable.finalY + 4;
+      y = (doc as any).lastAutoTable.finalY + 2;
 
-      // Process semesters in pairs
+      // Process semesters - STACKED VERTICALLY WITH NO SPACE
       for (let i = 0; i < transcript.studentCopies.length; i += 2) {
         let leftStartY = y;
         let rightStartY = y;
@@ -1073,25 +1105,26 @@ export default function Transcript_Generate() {
         const leftCopy = transcript.studentCopies[i];
         if (leftCopy) {
           let currentY = leftStartY;
-          const headerWidth = columnWidth * 0.82;
-          // Semester header - centered with full text
+          const headerWidth = columnWidth;
+
+          // Semester header
           doc.setFillColor(255, 140, 0);
-          doc.rect(margin, currentY - 2, headerWidth, 4, "F");
+          doc.rect(margin, currentY, headerWidth, 4.5, "F");
           doc.setTextColor(255, 255, 255);
-          doc.setFontSize(5);
+          doc.setFontSize(7);
           doc.setFont("helvetica", "bold");
-          const headerText = `${getAcademicYearString(leftCopy.academicYear)} • Year ${leftCopy.classyear?.name || "I"} • ${leftCopy.semester?.name || "First Semester"}`;
-          doc.text(headerText, margin + headerWidth / 2, currentY, {
+          const headerText = `${getAcademicYearString(leftCopy.academicYear)}        •        ClassYear: ${leftCopy.classyear?.name || "I"}        •        ${leftCopy.semester?.name || "First Semester"}`;
+          doc.text(headerText, margin + headerWidth / 2, currentY + 2.8, {
             align: "center",
           });
-          currentY += 3;
+          currentY += 4.5;
           doc.setTextColor(0, 0, 0);
 
           // Courses table
           const coursesData = leftCopy.courses.map((c, j) => [
             (j + 1).toString(),
-            c.courseCode?.substring(0, 15) || "",
-            c.courseTitle?.substring(0, 40) || "",
+            c.courseCode || "",
+            c.courseTitle || "",
             c.totalCrHrs?.toFixed(2) || "0",
             c.letterGrade || "",
             c.gradePoint?.toFixed(2) || "0",
@@ -1103,8 +1136,8 @@ export default function Transcript_Generate() {
             body: coursesData,
             theme: "grid",
             styles: {
-              fontSize: 4.5,
-              cellPadding: 0.5,
+              fontSize: 6.5,
+              cellPadding: 0.8,
               lineWidth: 0.05,
               textColor: [0, 0, 0],
               overflow: "linebreak",
@@ -1113,31 +1146,29 @@ export default function Transcript_Generate() {
               fillColor: [240, 240, 240],
               textColor: [0, 0, 0],
               fontStyle: "bold",
-              fontSize: 5,
+              fontSize: 7,
             },
             columnStyles: {
-              0: { cellWidth: 3, halign: "center" },
-              1: { cellWidth: 18 },
-              2: { cellWidth: 35 },
-              3: { cellWidth: 10, halign: "center" },
-              4: { cellWidth: 5, halign: "center" },
+              0: { cellWidth: 4, halign: "center" },
+              1: { cellWidth: 22, halign: "left" },
+              2: { cellWidth: 50, halign: "left" }, // INCREASED: 40 → 48
+              3: { cellWidth: 8, halign: "center" },
+              4: { cellWidth: 6, halign: "center" },
               5: { cellWidth: 10, halign: "center" },
             },
             margin: { left: margin, right: pageWidth - margin - columnWidth },
           });
 
-          currentY = (doc as any).lastAutoTable.finalY + 2;
+          currentY = (doc as any).lastAutoTable.finalY + 1.5;
 
-          // Summary stats - increased font size and moved down
-          doc.setFillColor(255, 140, 0);
-          doc.rect(margin, currentY, headerWidth, 3.5, "F");
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6); // Increased font size
+          // Summary stats - NO BACKGROUND, BLACK TEXT, MORE SPACING
+          doc.setFontSize(7);
           doc.setFont("helvetica", "bold");
+          doc.setTextColor(0, 0, 0);
           doc.text(
-            `SGPA:${leftCopy.semesterGPA.toFixed(2)}  CGPA:${leftCopy.semesterCGPA.toFixed(2)}  Status:${leftCopy.status}`,
-            margin + 1,
-            currentY + 2,
+            `SGPA: ${leftCopy.semesterGPA.toFixed(2)}    CGPA: ${leftCopy.semesterCGPA.toFixed(2)}    Status: ${leftCopy.status}`,
+            margin + 1.5,
+            currentY + 2.5,
           );
           currentY += 4;
           doc.setTextColor(0, 0, 0);
@@ -1150,26 +1181,26 @@ export default function Transcript_Generate() {
         if (rightCopy) {
           let currentY = rightStartY;
           const rightX = pageWidth / 2 + margin / 2;
-          const headerWidth = columnWidth * 0.82;
+          const headerWidth = columnWidth;
 
-          // Semester header - centered with full text
+          // Semester header
           doc.setFillColor(255, 140, 0);
-          doc.rect(rightX, currentY - 2, headerWidth, 4, "F");
+          doc.rect(rightX, currentY, headerWidth, 4.5, "F");
           doc.setTextColor(255, 255, 255);
-          doc.setFontSize(5);
+          doc.setFontSize(7);
           doc.setFont("helvetica", "bold");
-          const headerText = `${getAcademicYearString(rightCopy.academicYear)} • Year ${rightCopy.classyear?.name || "I"} • ${rightCopy.semester?.name || "First Semester"}`;
-          doc.text(headerText, rightX + headerWidth / 2, currentY, {
+          const headerText = `${getAcademicYearString(rightCopy.academicYear)}        •        ClassYear: ${rightCopy.classyear?.name || "I"}        •        ${rightCopy.semester?.name || "First Semester"}`;
+          doc.text(headerText, rightX + headerWidth / 2, currentY + 2.8, {
             align: "center",
           });
-          currentY += 3;
+          currentY += 4.5;
           doc.setTextColor(0, 0, 0);
 
           // Courses table
           const coursesData = rightCopy.courses.map((c, j) => [
             (j + 1).toString(),
-            c.courseCode?.substring(0, 15) || "",
-            c.courseTitle?.substring(0, 40) || "",
+            c.courseCode || "",
+            c.courseTitle || "",
             c.totalCrHrs?.toFixed(2) || "0",
             c.letterGrade || "",
             c.gradePoint?.toFixed(2) || "0",
@@ -1181,8 +1212,8 @@ export default function Transcript_Generate() {
             body: coursesData,
             theme: "grid",
             styles: {
-              fontSize: 4.5,
-              cellPadding: 0.5,
+              fontSize: 6.5,
+              cellPadding: 0.8,
               lineWidth: 0.05,
               textColor: [0, 0, 0],
               overflow: "linebreak",
@@ -1191,31 +1222,29 @@ export default function Transcript_Generate() {
               fillColor: [240, 240, 240],
               textColor: [0, 0, 0],
               fontStyle: "bold",
-              fontSize: 5,
+              fontSize: 7,
             },
             columnStyles: {
-              0: { cellWidth: 3, halign: "center" },
-              1: { cellWidth: 18 },
-              2: { cellWidth: 35 },
-              3: { cellWidth: 10, halign: "center" },
-              4: { cellWidth: 5, halign: "center" },
+              0: { cellWidth: 4, halign: "center" },
+              1: { cellWidth: 22, halign: "left" },
+              2: { cellWidth: 50, halign: "left" }, // INCREASED: 40 → 48
+              3: { cellWidth: 8, halign: "center" },
+              4: { cellWidth: 6, halign: "center" },
               5: { cellWidth: 10, halign: "center" },
             },
             margin: { left: rightX, right: margin },
           });
 
-          currentY = (doc as any).lastAutoTable.finalY + 2;
+          currentY = (doc as any).lastAutoTable.finalY + 1.5;
 
-          // Summary stats - increased font size and moved down
-          doc.setFillColor(255, 140, 0);
-          doc.rect(rightX, currentY, headerWidth, 3.5, "F");
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(6); // Increased font size
+          // Summary stats - NO BACKGROUND, BLACK TEXT, MORE SPACING
+          doc.setFontSize(7);
           doc.setFont("helvetica", "bold");
+          doc.setTextColor(0, 0, 0);
           doc.text(
-            `SGPA:${rightCopy.semesterGPA.toFixed(2)}  CGPA:${rightCopy.semesterCGPA.toFixed(2)}  Status:${rightCopy.status}`,
-            rightX + 1,
-            currentY + 2,
+            `SGPA: ${rightCopy.semesterGPA.toFixed(2)}    CGPA: ${rightCopy.semesterCGPA.toFixed(2)}    Status: ${rightCopy.status}`,
+            rightX + 1.5,
+            currentY + 2.5,
           );
           currentY += 4;
           doc.setTextColor(0, 0, 0);
@@ -1223,32 +1252,24 @@ export default function Transcript_Generate() {
           rightStartY = currentY;
         }
 
-        y = Math.max(leftStartY, rightStartY) + 2;
+        // Calculate y position for next row - NO SEPARATOR LINE, MINIMAL SPACE
+        y = Math.max(leftStartY, rightStartY);
 
-        // Draw horizontal separator line after each semester pair
-        doc.setDrawColor(180, 180, 180); // light gray (optional)
-        doc.setLineWidth(0.3);
-
-        doc.line(
-          margin, // start X (left margin)
-          y, // start Y
-          pageWidth - margin, // end X (right margin)
-          y, // end Y (same Y → horizontal line)
-        );
-
-        // add space after the line
-        y += 4;
+        // Add just 1mm space between semester rows if there are more semesters
+        if (i + 2 < transcript.studentCopies.length) {
+          y += 1;
+        }
       }
 
-      // Signatures - moved down to prevent overlap
+      // Signatures - with more space from top
       if (y > pageHeight - 20) {
         doc.addPage();
         y = margin;
       }
 
-      y += 5; // Add extra space before signatures
+      y += 15; // More space before signatures
 
-      doc.setFontSize(6);
+      doc.setFontSize(7);
       doc.setTextColor(0, 0, 0);
       doc.text("______________________________", pageWidth * 0.25, y, {
         align: "center",
@@ -1256,39 +1277,29 @@ export default function Transcript_Generate() {
       doc.text("______________________________", pageWidth * 0.75, y, {
         align: "center",
       });
-      y += 2;
-      doc.setFontSize(5);
+      y += 4; // More space between line and labels
+
+      doc.setFontSize(6);
       doc.text("Registrar", pageWidth * 0.25, y + 3, { align: "center" });
       doc.text("Dean", pageWidth * 0.75, y + 3, { align: "center" });
-      y += 10;
-      doc.text("Date: ___________________", pageWidth * 0.25, y, {
-        align: "center",
-      });
-      doc.text("Date: ___________________", pageWidth * 0.75, y, {
-        align: "center",
-      });
 
-      y += 10;
+      y += 12; // More space before footer
 
-      // Footer section
-
+      // Footer section - tighter line spacing
       if (transcript.footerText) {
-        // Split the footer text into lines
         const footerLines = transcript.footerText.split("\n");
 
-        doc.setFontSize(7);
+        doc.setFontSize(5);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(60, 60, 60);
 
-        // Print each line of the footer
         footerLines.forEach((line, lineIndex) => {
-          doc.text(line, pageWidth / 2, y + lineIndex * 4, {
+          doc.text(line, pageWidth / 2, y + lineIndex * 2, {
+            // Tighter spacing: 3.5 → 2.5
             align: "center",
             maxWidth: pageWidth - margin * 2,
           });
         });
-
-        y += footerLines.length * 4 + 2;
       }
     });
 
@@ -1396,8 +1407,11 @@ export default function Transcript_Generate() {
       sheetData.push([]);
 
       // Summary Table
-      const prevTotalCredit = 44.0;
-      const prevTotalGP = 176.0;
+      const prevTotalCredit = copy.previousCredit || 0;
+      const prevTotalGP = copy.previousGradePoint || 0;
+      const prevCGPA = copy.previousCGPA || 0;
+      const prevCGPALetter = copy.previousCGPALetter || "N/A";
+
       const cumulativeCredit = prevTotalCredit + totalCr;
       const cumulativeGP = prevTotalGP + totalPoint;
 
@@ -1406,22 +1420,22 @@ export default function Transcript_Generate() {
         "Previous TOTAL",
         prevTotalCredit.toFixed(2),
         prevTotalGP.toFixed(2),
-        "4.00",
-        "A",
+        prevCGPA.toFixed(2),
+        prevCGPALetter,
       ]);
       sheetData.push([
         "Semestre TOTAL",
         totalCr.toFixed(2),
         totalPoint.toFixed(2),
-        copy.semesterGPA?.toFixed(2) || "3.80",
-        "A",
+        copy.semesterGPA?.toFixed(2) || "0.00",
+        copy.semesterGPALetter || "N/A",
       ]);
       sheetData.push([
         "Cumulative",
         cumulativeCredit.toFixed(2),
         cumulativeGP.toFixed(2),
         (cumulativeGP / cumulativeCredit).toFixed(2),
-        "A",
+        copy.semesterCGPALetter || "N/A",
       ]);
       sheetData.push([]);
 
@@ -1609,30 +1623,30 @@ export default function Transcript_Generate() {
     if (!printWindow) return;
 
     let printContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Student Academic Records</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; background: white; color: black; }
-          .page { page-break-after: always; }
-          .header { background-color: #FFD700; padding: 10px; text-align: center; position: relative; height: 60px; }
-          .logo { position: absolute; left: 10px; top: 5px; width: 50px; height: 50px; background: #ccc; }
-          h2, h3, h4 { margin: 5px 0; color: black; }
-          table { border-collapse: collapse; width: 100%; margin: 10px 0; border: 1px solid black; }
-          th, td { border: 1px solid black; padding: 6px; text-align: left; color: black; }
-          th { background-color: #6495ED; color: white; font-weight: bold; text-align: center; }
-          .student-info td:first-child, .student-info td:nth-child(3) { background-color: #FFFFE0; font-weight: bold; color: black; }
-          .summary td { background-color: #FFF8DC; color: black; }
-          .total-line { font-weight: bold; text-align: right; margin-top: 5px; color: black; }
-          .signature { margin-top: 30px; display: flex; justify-content: space-between; color: black; }
-          .grading-scale { font-size: 11px; margin-top: 10px; color: black; }
-          .status { font-weight: bold; margin: 10px 0; color: black; }
-          .footer-note { font-size: 11px; margin-top: 10px; color: #666; }
-        </style>
-      </head>
-      <body>
-    `;
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Student Academic Records</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; background: white; color: black; }
+        .page { page-break-after: always; }
+        .header { background-color: #FFD700; padding: 10px; text-align: center; position: relative; height: 60px; }
+        .logo { position: absolute; left: 10px; top: 5px; width: 50px; height: 50px; background: #ccc; }
+        h2, h3, h4 { margin: 5px 0; color: black; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; border: 1px solid black; }
+        th, td { border: 1px solid black; padding: 6px; text-align: left; color: black; }
+        th { background-color: #6495ED; color: white; font-weight: bold; text-align: center; }
+        .student-info td:first-child, .student-info td:nth-child(3) { background-color: #FFFFE0; font-weight: bold; color: black; }
+        .summary td { background-color: #FFF8DC; color: black; }
+        .total-line { font-weight: bold; text-align: right; margin-top: 5px; color: black; }
+        .signature { margin-top: 30px; display: flex; justify-content: space-between; color: black; }
+        .grading-scale { font-size: 11px; margin-top: 10px; color: black; }
+        .status { font-weight: bold; margin: 10px 0; color: black; }
+        .footer-note { font-size: 11px; margin-top: 10px; color: #666; }
+      </style>
+    </head>
+    <body>
+  `;
 
     realReports.forEach((report) => {
       const copy = report.studentCopies[0];
@@ -1646,79 +1660,103 @@ export default function Transcript_Generate() {
         (sum, c) => sum + (c.gradePoint || 0),
         0,
       );
-      const prevTotalCredit = 44.0;
-      const prevTotalGP = 176.0;
+
+      // ===== UPDATED: Use actual data from backend instead of hardcoded values =====
+      const prevTotalCredit = copy.previousCredit || 0;
+      const prevTotalGP = copy.previousGradePoint || 0;
+      const prevCGPA = copy.previousCGPA || 0;
+      const prevCGPALetter = copy.previousCGPALetter || "N/A";
+
       const cumulativeCredit = prevTotalCredit + totalCr;
       const cumulativeGP = prevTotalGP + totalPoint;
+      // ===== END OF UPDATED SECTION =====
 
       printContent += `
-        <div class="page">
-          <div class="header">
-            <div class="logo"></div>
-            <h3>MD1_[PC_I]</h3>
-            <div>DEUTSCHE HOCHSCHULE FÜR MEDIZIN MEDICAL COLLEGE</div>
-            <h4>STUDENT ACADEMIC RECORD</h4>
-          </div>
-
-          <table class="student-info">
-            <tr><td>ID Number</td><td>${report.idNumber || ""}</td><td>Date Of Admission</td><td>${report.dateEnrolledGC || ""}</td></tr>
-            <tr><td>Name of Student</td><td>${report.fullName || ""}</td><td>Enrolment Type</td><td>${report.programModality?.name || "Regular"}</td></tr>
-            <tr><td>Sex</td><td>${report.gender || ""}</td><td>Department</td><td>${report.department?.name || ""}</td></tr>
-            <tr><td>Program</td><td>${report.programLevel?.name || "Degree"}</td><td>Field of Study</td><td>${report.department?.name || ""}</td></tr>
-            <tr><td>Date Of Birth</td><td>${report.birthDateGC || ""}</td><td>Date Issued</td><td>${report.dateIssuedGC || ""}</td></tr>
-          </table>
-
-          <div style="font-weight: bold; margin: 10px 0; color: black;">
-            Academic Year: ${getAcademicYearString(copy.academicYear)}   Class Year: ${copy.classyear?.name || "II"}   Semester: ${copy.semester?.name || "I"}   MRT_121
-          </div>
-
-          <table>
-            <thead><tr><th>Course Title</th><th>Course Code</th><th>Cr.Hr.</th><th>Letter Grade</th><th>Gr.Point</th></tr></thead>
-            <tbody>
-              ${copy.courses
-                .map(
-                  (c) => `
-                <tr>
-                  <td>${c.courseTitle || ""}</td>
-                  <td>${c.courseCode || ""}</td>
-                  <td style="text-align: center">${(c.totalCrHrs || 0).toFixed(2)}</td>
-                  <td style="text-align: center; font-weight: bold; color: blue;">${c.letterGrade || ""}</td>
-                  <td style="text-align: center">${(c.gradePoint || 0).toFixed(2)}</td>
-                </tr>
-              `,
-                )
-                .join("")}
-            </tbody>
-          </table>
-
-          <div class="total-line">Total: ${totalCr.toFixed(2)}   GR: ${totalPoint.toFixed(2)}   F=Below 40</div>
-
-          <table class="summary">
-            <thead><tr><th>Summary</th><th>Credit</th><th>GP</th><th>ANG</th><th>ALG</th></tr></thead>
-            <tbody>
-              <tr><td>Previous TOTAL</td><td>${prevTotalCredit.toFixed(2)}</td><td>${prevTotalGP.toFixed(2)}</td><td>4.00</td><td>A</td></tr>
-              <tr><td>Semestre TOTAL</td><td>${totalCr.toFixed(2)}</td><td>${totalPoint.toFixed(2)}</td><td>${(copy.semesterGPA || 3.8).toFixed(2)}</td><td>A</td></tr>
-              <tr><td>Cumulative</td><td>${cumulativeCredit.toFixed(2)}</td><td>${cumulativeGP.toFixed(2)}</td><td>${(cumulativeGP / cumulativeCredit).toFixed(2)}</td><td>A</td></tr>
-            </tbody>
-          </table>
-
-          <div class="status">Status: Pass   Status Description: Very Good</div>
-
-          <div class="grading-scale">
-            Grading System: A+,A=4, A-=3.75, B+=3.50, B=3.00, B-=2.75, C+=2.50, C=2.00, D=1.00, F=0.00, I=Incomplete<br>
-            A=Excellent, B+=Good, C+=Satisfactory, C=Fair, D=Below Pass Mark, F=Fail
-          </div>
-
-          <div class="footer-note">
-            "Course Repeated", "Courses Taken from other university/College", DATE ISSUE & [Date]
-          </div>
-
-          <div class="signature">
-            <div>REGISTRAR: _________________________</div>
-            <div>DEAN/VICE DEAN: _________________________</div>
-          </div>
+      <div class="page">
+        <div class="header">
+          <div class="logo"></div>
+          <h3>MD1_[PC_I]</h3>
+          <div>DEUTSCHE HOCHSCHULE FÜR MEDIZIN MEDICAL COLLEGE</div>
+          <h4>STUDENT ACADEMIC RECORD</h4>
         </div>
-      `;
+
+        <table class="student-info">
+          <tr><td>ID Number</td><td>${report.idNumber || ""}</td><td>Date Of Admission</td><td>${report.dateEnrolledGC || ""}</td></tr>
+          <tr><td>Name of Student</td><td>${report.fullName || ""}</td><td>Enrolment Type</td><td>${report.programModality?.name || "Regular"}</td></tr>
+          <tr><td>Sex</td><td>${report.gender || ""}</td><td>Department</td><td>${report.department?.name || ""}</td></tr>
+          <tr><td>Program</td><td>${report.programLevel?.name || "Degree"}</td><td>Field of Study</td><td>${report.department?.name || ""}</td></tr>
+          <tr><td>Date Of Birth</td><td>${report.birthDateGC || ""}</td><td>Date Issued</td><td>${report.dateIssuedGC || ""}</td></tr>
+        </table>
+
+        <div style="font-weight: bold; margin: 10px 0; color: black;">
+          Academic Year: ${getAcademicYearString(copy.academicYear)}   Class Year: ${copy.classyear?.name || "II"}   Semester: ${copy.semester?.name || "I"}   MRT_121
+        </div>
+
+        <table>
+          <thead><tr><th>Course Title</th><th>Course Code</th><th>Cr.Hr.</th><th>Letter Grade</th><th>Gr.Point</th></tr></thead>
+          <tbody>
+            ${copy.courses
+              .map(
+                (c) => `
+              <tr>
+                <td>${c.courseTitle || ""}</td>
+                <td>${c.courseCode || ""}</td>
+                <td style="text-align: center">${(c.totalCrHrs || 0).toFixed(2)}</td>
+                <td style="text-align: center; font-weight: bold; color: blue;">${c.letterGrade || ""}</td>
+                <td style="text-align: center">${(c.gradePoint || 0).toFixed(2)}</td>
+              </tr>
+            `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+
+        <div class="total-line">Total: ${totalCr.toFixed(2)}   GR: ${totalPoint.toFixed(2)}   F=Below 40</div>
+
+        <table class="summary">
+          <thead><tr><th>Summary</th><th>Credit</th><th>GP</th><th>ANG</th><th>ALG</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Previous TOTAL</td>
+              <td>${prevTotalCredit.toFixed(2)}</td>
+              <td>${prevTotalGP.toFixed(2)}</td>
+              <td>${prevCGPA.toFixed(2)}</td>
+              <td>${prevCGPALetter}</td>
+            </tr>
+            <tr>
+              <td>Semestre TOTAL</td>
+              <td>${totalCr.toFixed(2)}</td>
+              <td>${totalPoint.toFixed(2)}</td>
+              <td>${(copy.semesterGPA || 0).toFixed(2)}</td>
+              <td>${copy.semesterGPALetter || "N/A"}</td>
+            </tr>
+            <tr>
+              <td>Cumulative</td>
+              <td>${cumulativeCredit.toFixed(2)}</td>
+              <td>${cumulativeGP.toFixed(2)}</td>
+              <td>${(cumulativeGP / cumulativeCredit).toFixed(2)}</td>
+              <td>${copy.semesterCGPALetter || "N/A"}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="status">Status: Pass   Status Description: Very Good</div>
+
+        <div class="grading-scale">
+          Grading System: A+,A=4, A-=3.75, B+=3.50, B=3.00, B-=2.75, C+=2.50, C=2.00, D=1.00, F=0.00, I=Incomplete<br>
+          A=Excellent, B+=Good, C+=Satisfactory, C=Fair, D=Below Pass Mark, F=Fail
+        </div>
+
+        <div class="footer-note">
+          "Course Repeated", "Courses Taken from other university/College", DATE ISSUE & [Date]
+        </div>
+
+        <div class="signature">
+          <div>REGISTRAR: _________________________</div>
+          <div>DEAN/VICE DEAN: _________________________</div>
+        </div>
+      </div>
+    `;
     });
 
     printContent += `</body></html>`;
@@ -2552,8 +2590,13 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
     (sum, c) => sum + (c.gradePoint || 0),
     0,
   );
-  const prevTotalCredit = 44.0;
-  const prevTotalGP = 176.0;
+
+  // REPLACE THESE HARDCODED VALUES:
+  const prevTotalCredit = copy.previousCredit || 0;
+  const prevTotalGP = copy.previousGradePoint || 0;
+  const prevCGPA = copy.previousCGPA || 0;
+  const prevCGPALetter = copy.previousCGPALetter || "N/A";
+
   const cumulativeCredit = prevTotalCredit + totalCr;
   const cumulativeGP = prevTotalGP + totalPoint;
   const academicYearStr = getAcademicYearString(copy.academicYear);
@@ -2743,10 +2786,10 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
                     {prevTotalGP.toFixed(2)}
                   </td>
                   <td className="p-1 border-r border-gray-300 dark:border-gray-600 text-center text-gray-900 dark:text-white">
-                    4.00
+                    {prevCGPA.toFixed(2)}
                   </td>
                   <td className="p-1 text-center text-gray-900 dark:text-white">
-                    A
+                    {prevCGPALetter}
                   </td>
                 </tr>
                 <tr className="border border-gray-300 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/60">
@@ -2760,10 +2803,10 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
                     {totalPoint.toFixed(2)}
                   </td>
                   <td className="p-1 border-r border-gray-300 dark:border-gray-600 text-center text-gray-900 dark:text-white">
-                    {(copy.semesterGPA || 3.8).toFixed(2)}
+                    {(copy.semesterGPA || 0).toFixed(2)}
                   </td>
                   <td className="p-1 text-center text-gray-900 dark:text-white">
-                    A
+                    {copy.semesterGPALetter || "N/A"}
                   </td>
                 </tr>
                 <tr className="border border-gray-300 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/60">
@@ -2780,7 +2823,7 @@ function StudentCopyView({ report }: { report: RealGradeReport }) {
                     {(cumulativeGP / cumulativeCredit).toFixed(2)}
                   </td>
                   <td className="p-1 text-center text-gray-900 dark:text-white">
-                    A
+                    {copy.semesterCGPALetter || "N/A"}
                   </td>
                 </tr>
               </tbody>
