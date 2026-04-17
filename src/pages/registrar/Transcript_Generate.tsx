@@ -18,6 +18,7 @@ import autoTable from "jspdf-autotable";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
 import LOGO_BASE64 from "@/components/Extra/LOGO_BASE64";
+import { useToast } from "@/hooks/use-toast";
 
 // Types
 type GradeReportCourse = {
@@ -106,6 +107,7 @@ type StudentForSelection = {
 type SearchType = "report" | "transcript";
 
 const ACADEMIC_YEAR_NOT_PROVIDED = "Not Provided";
+const MAX_STUDENTS_LIMIT = 20; // You can change this value anytime
 
 const getAcademicYearString = (academicYear: any): string => {
   if (!academicYear) return ACADEMIC_YEAR_NOT_PROVIDED;
@@ -126,6 +128,7 @@ const getAcademicYearString = (academicYear: any): string => {
 };
 
 export default function Transcript_Generate() {
+  const { toast } = useToast();
   const [searchType, setSearchType] = useState<SearchType | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
@@ -135,6 +138,7 @@ export default function Transcript_Generate() {
   const [realReports, setRealReports] = useState<RealGradeReport[]>([]);
   const [realTranscripts, setRealTranscripts] = useState<RealTranscript[]>([]);
   const [Error, setError] = useState<string | null>(null);
+  const [activeTabIndex, setActiveTabIndex] = useState<number>(0);
   const [semesters, setSemesters] = useState<
     { academicPeriodCode: string; name: string }[]
   >([]);
@@ -167,7 +171,32 @@ export default function Transcript_Generate() {
   // Refs for fixed positioning dropdowns outside scroll container
   const deptHeaderRef = useRef<HTMLTableCellElement>(null);
   const bcysHeaderRef = useRef<HTMLTableCellElement>(null);
+  const reportsSectionRef = useRef<HTMLDivElement>(null);
+  const transcriptsSectionRef = useRef<HTMLDivElement>(null);
   // ==========================================
+
+  // Auto-scroll to generated results
+  useEffect(() => {
+    if (realReports.length > 0 && reportsSectionRef.current) {
+      setTimeout(() => {
+        reportsSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [realReports]);
+
+  useEffect(() => {
+    if (realTranscripts.length > 0 && transcriptsSectionRef.current) {
+      setTimeout(() => {
+        transcriptsSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 100);
+    }
+  }, [realTranscripts]);
 
   // Fetch students
   useEffect(() => {
@@ -313,12 +342,22 @@ export default function Transcript_Generate() {
     setRealTranscripts([]);
   };
 
-  // Generate Student Copies
   const handleGenerateReports = async () => {
     if (selectedStudents.length === 0) {
       setError("Please select at least one student");
       return;
     }
+
+    // CHECK MAX STUDENTS LIMIT
+    if (selectedStudents.length > MAX_STUDENTS_LIMIT) {
+      toast({
+        title: "Too many students selected",
+        description: `You can only generate reports for up to ${MAX_STUDENTS_LIMIT} students at a time. Please deselect ${selectedStudents.length - MAX_STUDENTS_LIMIT} student(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!selectedSemesterId || !selectedClassYearId) {
       setError("Please select both Semester and Class Year");
       return;
@@ -345,8 +384,31 @@ export default function Transcript_Generate() {
             ? [response]
             : [];
 
-      const transformedReports: RealGradeReport[] = reportsArray.map(
-        (item: any) => {
+      // Check if response is empty
+      if (reportsArray.length === 0) {
+        toast({
+          title: "No results found",
+          description:
+            "No student copy data available for the selected students.",
+          variant: "destructive",
+        });
+        setRealReports([]);
+        return;
+      }
+
+      // Check for students with no data (empty courses)
+      const studentsWithNoData: string[] = [];
+
+      const transformedReports: RealGradeReport[] = reportsArray
+        .map((item: any) => {
+          // Check if this student has no courses/data
+          if (!item.courses || item.courses.length === 0) {
+            studentsWithNoData.push(
+              item.idNumber || item.studentId || "Unknown",
+            );
+            return null;
+          }
+
           return {
             idNumber: item.idNumber || item.studentId || "N/A",
             fullName: item.fullName || item.studentName || "Unknown",
@@ -393,77 +455,48 @@ export default function Transcript_Generate() {
               },
             ],
           };
-        },
-      );
+        })
+        .filter((report): report is RealGradeReport => report !== null);
+
+      // Toast for students with no data
+      if (studentsWithNoData.length > 0) {
+        toast({
+          title: "Some students have no data",
+          description: `No student copy available for: ${studentsWithNoData.join(", ")}`,
+          variant: "destructive",
+        });
+      }
 
       console.log("Transformed Reports:", transformedReports);
       setRealReports(transformedReports);
+      setActiveTabIndex(0);
+
+      // Success toast if we have reports
+      if (transformedReports.length > 0) {
+        toast({
+          title: "Reports Generated",
+          description: `Successfully generated ${transformedReports.length} student cop${transformedReports.length === 1 ? "y" : "ies"}.`,
+        });
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.error ||
         err?.message ||
         "Failed to generate student copies";
-      setError(message);
 
-      // Create mock data for testing
-      const mockReports = selectedStudents.map((id, idx) => ({
-        idNumber: `STU${id}`,
-        fullName: `Student ${idx + 1}`,
-        gender: idx % 2 === 0 ? "Male" : "Female",
-        birthDateGC: "1995-01-01",
-        dateEnrolledGC: "2021-10-11",
-        dateIssuedGC: new Date()
-          .toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })
-          .replace(/ /g, "-"),
-        studentBCYS:
-          allStudents.find((s) => s.studentId === id)?.bcysDisplayName || "N/A",
-        programModality: { id: "1", name: "Regular" },
-        programLevel: { id: "1", name: "Degree" },
-        department: { id: 1, name: "Medical Radiotechnology" },
-        studentCopies: [
-          {
-            classyear: { id: 1, name: "II" },
-            semester: { id: "1", name: "I" },
-            academicYear: null,
-            courses: [
-              {
-                courseCode: "RAD SM_2174",
-                courseTitle: "ANATOMY",
-                totalCrHrs: 6.0,
-                letterGrade: "A-",
-                gradePoint: 22.5,
-              },
-              {
-                courseCode: "RAD SM_2175",
-                courseTitle: "PHYSIOLOGY",
-                totalCrHrs: 3.0,
-                letterGrade: "A+",
-                gradePoint: 12.0,
-              },
-              {
-                courseCode: "RAD SM_2176",
-                courseTitle: "BIOCHEMISTRY",
-                totalCrHrs: 2.0,
-                letterGrade: "A",
-                gradePoint: 8.0,
-              },
-            ],
-            semesterGPA: 3.8,
-            semesterCGPA: 3.8,
-            status: "PASSED",
-          },
-        ],
-      }));
-      setRealReports(mockReports);
+      // Toast for error
+      toast({
+        title: "Generation Failed",
+        description: message,
+        variant: "destructive",
+      });
+
+      setError(message);
+      setRealReports([]);
     } finally {
       setLoadingReports(false);
     }
   };
-
   // Generate Transcripts
   const handleGenerateTranscripts = async () => {
     if (selectedStudents.length === 0) {
@@ -471,11 +504,20 @@ export default function Transcript_Generate() {
       return;
     }
 
+    // CHECK MAX STUDENTS LIMIT
+    if (selectedStudents.length > MAX_STUDENTS_LIMIT) {
+      toast({
+        title: "Too many students selected",
+        description: `You can only generate transcripts for up to ${MAX_STUDENTS_LIMIT} students at a time. Please deselect ${selectedStudents.length - MAX_STUDENTS_LIMIT} student(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoadingReports(true);
     setError(null);
 
     try {
-      // Try multiple possible endpoints for transcript generation
       let response;
       try {
         response = await apiService.post(
@@ -485,7 +527,6 @@ export default function Transcript_Generate() {
           },
         );
       } catch (error) {
-        // Fallback to student copy endpoint with all semesters
         response = await apiService.post(endPoints.studentCopy, {
           studentIds: selectedStudents,
           includeAllSemesters: true,
@@ -494,7 +535,6 @@ export default function Transcript_Generate() {
 
       console.log("Transcript Response:", response);
 
-      // Handle different response formats
       let transcripts: RealTranscript[] = [];
 
       if (response?.gradeReports && Array.isArray(response.gradeReports)) {
@@ -504,154 +544,66 @@ export default function Transcript_Generate() {
       } else if (response?.data && Array.isArray(response.data)) {
         transcripts = response.data;
       } else if (response && typeof response === "object") {
-        // If response is a single object, wrap it in an array
         transcripts = [response];
       }
 
-      // If still no transcripts, create mock data for testing
+      // Check if response is empty
       if (transcripts.length === 0) {
-        console.warn("No transcripts received, creating mock data");
-        transcripts = selectedStudents.map((id, idx) => {
-          const student = allStudents.find((s) => s.studentId === id);
-          return {
-            idNumber: student?.username || `STU${id}`,
-            fullName: student?.fullNameENG || `Student ${idx + 1}`,
-            gender: "Male",
-            birthDateGC: "1995-01-01",
-            dateEnrolledGC: "2021-10-11",
-            dateIssuedGC: new Date()
-              .toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })
-              .replace(/ /g, "-"),
-            programModality: { id: "1", name: "Regular" },
-            programLevel: { id: "1", name: "Degree" },
-            department: { id: 1, name: student?.departmentName || "Nursing" },
-            studentCopies: [
-              {
-                classyear: { id: 1, name: "I" },
-                semester: { id: "1", name: "First Semester" },
-                academicYear: null,
-                courses: [
-                  {
-                    courseCode: "ENGL 1011",
-                    courseTitle: "Communicative English Skills I",
-                    totalCrHrs: 3,
-                    letterGrade: "A",
-                    gradePoint: 12.0,
-                  },
-                  {
-                    courseCode: "PSYC 1012",
-                    courseTitle: "General Psychology",
-                    totalCrHrs: 3,
-                    letterGrade: "B+",
-                    gradePoint: 9.9,
-                  },
-                  {
-                    courseCode: "MATH 1014",
-                    courseTitle: "Mathematics",
-                    totalCrHrs: 3,
-                    letterGrade: "A",
-                    gradePoint: 12.0,
-                  },
-                ],
-                semesterGPA: 3.8,
-                semesterCGPA: 3.8,
-                status: "PASSED",
-              },
-              {
-                classyear: { id: 1, name: "I" },
-                semester: { id: "2", name: "Second Semester" },
-                academicYear: null,
-                courses: [
-                  {
-                    courseCode: "ANAT 1013",
-                    courseTitle: "Anatomy & Physiology",
-                    totalCrHrs: 4,
-                    letterGrade: "A",
-                    gradePoint: 16.0,
-                  },
-                  {
-                    courseCode: "CHEM 1023",
-                    courseTitle: "General Chemistry",
-                    totalCrHrs: 3,
-                    letterGrade: "A",
-                    gradePoint: 12.0,
-                  },
-                ],
-                semesterGPA: 4.0,
-                semesterCGPA: 3.9,
-                status: "PASSED",
-              },
-            ],
-          };
+        toast({
+          title: "No results found",
+          description:
+            "No transcript data available for the selected students.",
+          variant: "destructive",
+        });
+        setRealTranscripts([]);
+        return;
+      }
+
+      // Check for students with no data (empty studentCopies)
+      const studentsWithNoData: string[] = [];
+
+      const validTranscripts = transcripts.filter((t) => {
+        if (!t.studentCopies || t.studentCopies.length === 0) {
+          studentsWithNoData.push(t.idNumber || "Unknown");
+          return false;
+        }
+        return true;
+      });
+
+      // Toast for students with no data
+      if (studentsWithNoData.length > 0) {
+        toast({
+          title: "Some students have no data",
+          description: `No transcript available for: ${studentsWithNoData.join(", ")}`,
+          variant: "destructive",
         });
       }
 
-      setRealTranscripts(transcripts);
+      setRealTranscripts(validTranscripts);
+      setActiveTabIndex(0);
+
+      // Success toast if we have transcripts
+      if (validTranscripts.length > 0) {
+        toast({
+          title: "Transcripts Generated",
+          description: `Successfully generated ${validTranscripts.length} transcript${validTranscripts.length === 1 ? "" : "s"}.`,
+        });
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.error ||
         err?.message ||
         "Failed to generate transcripts";
-      setError(message);
 
-      // Create mock data for testing even on error
-      const mockTranscripts = selectedStudents.map((id, idx) => {
-        const student = allStudents.find((s) => s.studentId === id);
-        return {
-          idNumber: student?.username || `STU${id}`,
-          fullName: student?.fullNameENG || `Student ${idx + 1}`,
-          gender: "Male",
-          birthDateGC: "1995-01-01",
-          dateEnrolledGC: "2021-10-11",
-          dateIssuedGC: new Date()
-            .toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
-            .replace(/ /g, "-"),
-          programModality: { id: "1", name: "Regular" },
-          programLevel: { id: "1", name: "Degree" },
-          department: { id: 1, name: student?.departmentName || "Nursing" },
-          studentCopies: [
-            {
-              classyear: { id: 1, name: "I" },
-              semester: { id: "1", name: "First Semester" },
-              academicYear: null,
-              courses: [
-                {
-                  courseCode: "ENGL 1011",
-                  courseTitle: "Communicative English Skills I",
-                  totalCrHrs: 3,
-                  letterGrade: "A",
-                  gradePoint: 12.0,
-                },
-                {
-                  courseCode: "PSYC 1012",
-                  courseTitle: "General Psychology",
-                  totalCrHrs: 3,
-                  letterGrade: "B+",
-                  gradePoint: 9.9,
-                },
-              ],
-              semesterGPA: 3.8,
-              semesterCGPA: 3.8,
-              semesterGPALetter: "A",
-              semesterCGPALetter: "A",
-              previousCredit: 44.0,
-              previousGradePoint: 176.0,
-              previousCGPA: 4.0,
-              previousCGPALetter: "A",
-              status: "PASSED",
-            },
-          ],
-        };
+      // Toast for error
+      toast({
+        title: "Generation Failed",
+        description: message,
+        variant: "destructive",
       });
-      setRealTranscripts(mockTranscripts);
+
+      setError(message);
+      setRealTranscripts([]);
     } finally {
       setLoadingReports(false);
     }
@@ -1153,7 +1105,7 @@ export default function Transcript_Generate() {
               1: { cellWidth: 22, halign: "left" },
               2: { cellWidth: 50, halign: "left" }, // INCREASED: 40 → 48
               3: { cellWidth: 8, halign: "center" },
-              4: { cellWidth: 6, halign: "center" },
+              4: { cellWidth: 7, halign: "center" },
               5: { cellWidth: 10, halign: "center" },
             },
             margin: { left: margin, right: pageWidth - margin - columnWidth },
@@ -1229,7 +1181,7 @@ export default function Transcript_Generate() {
               1: { cellWidth: 22, halign: "left" },
               2: { cellWidth: 50, halign: "left" }, // INCREASED: 40 → 48
               3: { cellWidth: 8, halign: "center" },
-              4: { cellWidth: 6, halign: "center" },
+              4: { cellWidth: 7, halign: "center" },
               5: { cellWidth: 10, halign: "center" },
             },
             margin: { left: rightX, right: margin },
@@ -2153,45 +2105,8 @@ export default function Transcript_Generate() {
           >
             <ArrowLeft /> Back
           </button>
-          <div className="flex gap-2">
-            <button
-              onClick={
-                isReport ? exportStudentCopyToPDF : exportTranscriptToPDF
-              }
-              disabled={
-                isReport
-                  ? realReports.length === 0
-                  : realTranscripts.length === 0
-              }
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              <Download size={18} /> PDF
-            </button>
-            <button
-              onClick={
-                isReport ? exportStudentCopyToExcel : exportTranscriptToExcel
-              }
-              disabled={
-                isReport
-                  ? realReports.length === 0
-                  : realTranscripts.length === 0
-              }
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
-            >
-              <Download size={18} /> Excel
-            </button>
-            <button
-              onClick={isReport ? printStudentCopy : printTranscript}
-              disabled={
-                isReport
-                  ? realReports.length === 0
-                  : realTranscripts.length === 0
-              }
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              <Printer size={18} /> Print
-            </button>
-          </div>
+          {/* Download buttons moved down next to results */}
+          <div></div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6 border border-gray-200 dark:border-gray-700">
@@ -2535,26 +2450,122 @@ export default function Transcript_Generate() {
           </div>
         )}
 
-        {/* Generated Reports Section with improved visibility */}
+        {/* Results with Tabs */}
         {isReport && realReports.length > 0 && (
-          <div className="mt-8 space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Generated Reports
-            </h3>
-            {realReports.map((report, index) => (
-              <StudentCopyView key={index} report={report} />
-            ))}
+          <div ref={reportsSectionRef} className="mt-8">
+            {/* Download Buttons - Moved down here */}
+            <div className="flex justify-end gap-2 mb-4">
+              <button
+                onClick={exportStudentCopyToPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                <Download size={16} /> PDF
+              </button>
+              <button
+                onClick={exportStudentCopyToExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm"
+              >
+                <Download size={16} /> Excel
+              </button>
+              <button
+                onClick={printStudentCopy}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                <Printer size={16} /> Print
+              </button>
+            </div>
+
+            {/* Tabs Header */}
+            <div className="border-b border-gray-200 dark:border-gray-700">
+              <div className="tabs-container flex">
+                {realReports.map((report, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveTabIndex(index)}
+                    className={`
+          px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200
+          flex items-center gap-2 whitespace-nowrap flex-shrink-0
+          ${
+            activeTabIndex === index
+              ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-t border-l border-r border-gray-200 dark:border-gray-700 -mb-px"
+              : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border border-transparent"
+          }
+        `}
+                  >
+                    <span className="font-mono">{report.idNumber}</span>
+                    {activeTabIndex === index && (
+                      <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Tab Content */}
+            <div className="bg-white dark:bg-gray-800 border-l border-r border-b border-gray-200 dark:border-gray-700 rounded-b-lg p-4">
+              {realReports[activeTabIndex] && (
+                <StudentCopyView report={realReports[activeTabIndex]} />
+              )}
+            </div>
           </div>
         )}
 
         {!isReport && realTranscripts.length > 0 && (
-          <div className="mt-8 space-y-6">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Generated Transcripts
-            </h3>
-            {realTranscripts.map((transcript, index) => (
-              <TranscriptView key={index} transcript={transcript} />
-            ))}
+          <div ref={transcriptsSectionRef} className="mt-8">
+            {/* Download Buttons - Moved down here */}
+            <div className="flex justify-end gap-2 mb-4">
+              <button
+                onClick={exportTranscriptToPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+              >
+                <Download size={16} /> PDF
+              </button>
+              <button
+                onClick={exportTranscriptToExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm"
+              >
+                <Download size={16} /> Excel
+              </button>
+              <button
+                onClick={printTranscript}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                <Printer size={16} /> Print
+              </button>
+            </div>
+
+            {/* Tabs Header */}
+            <div className="border-b border-gray-200 dark:border-gray-700">
+              <div className="tabs-container flex">
+                {realTranscripts.map((transcript, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveTabIndex(index)}
+                    className={`
+          px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200
+          flex items-center gap-2 whitespace-nowrap flex-shrink-0
+          ${
+            activeTabIndex === index
+              ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border-t border-l border-r border-gray-200 dark:border-gray-700 -mb-px"
+              : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border border-transparent"
+          }
+        `}
+                  >
+                    <span className="font-mono">{transcript.idNumber}</span>
+                    {activeTabIndex === index && (
+                      <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Tab Content */}
+            <div className="bg-white dark:bg-gray-800 border-l border-r border-b border-gray-200 dark:border-gray-700 rounded-b-lg p-4">
+              {realTranscripts[activeTabIndex] && (
+                <TranscriptView transcript={realTranscripts[activeTabIndex]} />
+              )}
+            </div>
           </div>
         )}
       </div>

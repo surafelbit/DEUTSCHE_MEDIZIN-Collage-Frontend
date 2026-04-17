@@ -168,8 +168,11 @@
 .custom-table .ant-table-tbody > tr:not(.ant-table-row-editing):hover {
   transform: scale(1.02); /* Tailwind: scale-102 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Tailwind: shadow-md */
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-    padding 0.3s ease-in-out, font-size 0.3s ease-in-out;
+  transition:
+    transform 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out,
+    padding 0.3s ease-in-out,
+    font-size 0.3s ease-in-out;
   position: relative;
   z-index: 10; /* Tailwind: z-10 */
 }
@@ -194,8 +197,11 @@
 .dark .custom-table .ant-table-tbody > tr:not(.ant-table-row-editing):hover {
   transform: scale(1.02); /* Tailwind: scale-102 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Tailwind: shadow-md with darker tone */
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-    padding 0.3s ease-in-out, font-size 0.3s ease-in-out;
+  transition:
+    transform 0.3s ease-in-out,
+    box-shadow 0.3s ease-in-out,
+    padding 0.3s ease-in-out,
+    font-size 0.3s ease-in-out;
   position: relative;
   z-index: 10; /* Tailwind: z-10 */
 }
@@ -266,6 +272,57 @@
   transform: translateY(50px);
 }
 
+/* ==========Transcript tab styles============= */
+/* Custom Scrollbar for Tabs */
+.tabs-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+  white-space: nowrap;
+}
+
+.tabs-container::-webkit-scrollbar {
+  height: 6px;
+  width: 0;
+}
+
+.tabs-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dark mode */
+.dark .tabs-container {
+  scrollbar-color: #475569 #1e293b;
+}
+
+.dark .tabs-container::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark .tabs-container::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.dark .tabs-container::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Hide vertical scrollbar */
+.tabs-container::-webkit-scrollbar:vertical {
+  display: none;
+}
+/* ==================================================== */
 
 @keyframes slideDown {
   from {
