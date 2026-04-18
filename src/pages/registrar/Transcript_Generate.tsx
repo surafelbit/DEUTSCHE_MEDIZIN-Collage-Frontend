@@ -1062,10 +1062,10 @@ export default function Transcript_Generate() {
           // Semester header
           doc.setFillColor(255, 140, 0);
           doc.rect(margin, currentY, headerWidth, 4.5, "F");
-          doc.setTextColor(255, 255, 255);
+          doc.setTextColor(2, 26, 84);
           doc.setFontSize(7);
           doc.setFont("helvetica", "bold");
-          const headerText = `${getAcademicYearString(leftCopy.academicYear)}        •        ClassYear: ${leftCopy.classyear?.name || "I"}        •        ${leftCopy.semester?.name || "First Semester"}`;
+          const headerText = `Acaddemic Year: ${getAcademicYearString(leftCopy.academicYear)}        •        ClassYear: ${leftCopy.classyear?.name || "I"}        •        ${leftCopy.semester?.name || "First Semester"}`;
           doc.text(headerText, margin + headerWidth / 2, currentY + 2.8, {
             align: "center",
           });
@@ -1138,10 +1138,10 @@ export default function Transcript_Generate() {
           // Semester header
           doc.setFillColor(255, 140, 0);
           doc.rect(rightX, currentY, headerWidth, 4.5, "F");
-          doc.setTextColor(255, 255, 255);
+          doc.setTextColor(2, 26, 84);
           doc.setFontSize(7);
           doc.setFont("helvetica", "bold");
-          const headerText = `${getAcademicYearString(rightCopy.academicYear)}        •        ClassYear: ${rightCopy.classyear?.name || "I"}        •        ${rightCopy.semester?.name || "First Semester"}`;
+          const headerText = `Academic Year: ${getAcademicYearString(rightCopy.academicYear)}        •        ClassYear: ${rightCopy.classyear?.name || "I"}        •        ${rightCopy.semester?.name || "First Semester"}`;
           doc.text(headerText, rightX + headerWidth / 2, currentY + 2.8, {
             align: "center",
           });
