@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import apiService from "../../components/api/apiService";
 import endPoints from "../../components/api/endPoints";
+import PrerequisiteSelector from "@/designs/PrerequisiteSelector";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 interface Course {
+  isPassFail: boolean;
   id: number;
   ccode: string;
   ctitle: string;
@@ -101,7 +104,7 @@ export default function DepartmentDetail() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
   const [expandedSemesters, setExpandedSemesters] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [grandTotalCredits, setGrandTotalCredits] = useState<number>(0);
   const [editingCourse, setEditingCourse] = useState<any>(null);
@@ -116,6 +119,7 @@ export default function DepartmentDetail() {
     classYearID: "",
     semesterCode: "",
     prerequisiteIds: [] as number[],
+    isPassFail: false, // ADD THIS LINE
   });
 
   const [newCourse, setNewCourse] = useState({
@@ -137,7 +141,7 @@ export default function DepartmentDetail() {
   ] = useState<Course[]>([]);
   const [departmentDetails, setDepartmentDetails] =
     useState<DepartmentData | null>(null);
-  
+
   // New states for department dropdown
   const [allDepartments, setAllDepartments] = useState<DepartmentOption[]>([]);
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
@@ -146,13 +150,13 @@ export default function DepartmentDetail() {
   const [isLoadingFilters, setIsLoadingFilters] = useState(false);
   const [isCreateDepartmentOpen, setIsCreateDepartmentOpen] = useState(false);
   const [newDepartment, setNewDepartment] = useState({
-  deptName: "",
-  totalCrHr: "",
-  departmentCode: "",
-  modalityCode: "",
-  programLevelCode: "",
-});
-const [isCreatingDepartment, setIsCreatingDepartment] = useState(false);
+    deptName: "",
+    totalCrHr: "",
+    departmentCode: "",
+    modalityCode: "",
+    programLevelCode: "",
+  });
+  const [isCreatingDepartment, setIsCreatingDepartment] = useState(false);
 
   // If we have passed department data, use it immediately
   useEffect(() => {
@@ -161,12 +165,12 @@ const [isCreatingDepartment, setIsCreatingDepartment] = useState(false);
       setDepartmentId(passedDepartmentData.dptID);
     }
   }, [passedDepartmentData]);
-  
+
   useEffect(() => {
     if (department?.years) {
       const total = department.years.reduce(
         (sum, y) => sum + (y.totalCredits || 0),
-        0
+        0,
       );
       setGrandTotalCredits(total);
     }
@@ -203,14 +207,14 @@ const [isCreatingDepartment, setIsCreatingDepartment] = useState(false);
     try {
       setIsLoadingDepartments(true);
       const response = await apiService.get("/departments");
-      
+
       // Transform the response to match our interface
       const departments: DepartmentOption[] = response.map((dept: any) => ({
         id: dept.dptID,
         name: dept.deptName,
-        code: dept.departmentCode
+        code: dept.departmentCode,
       }));
-      
+
       setAllDepartments(departments);
     } catch (error) {
       console.error("Error fetching departments:", error);
@@ -227,67 +231,72 @@ const [isCreatingDepartment, setIsCreatingDepartment] = useState(false);
     }
   }, [showDepartmentDropdown]);
 
-// Fetch filter options on component mount
-useEffect(() => {
-  const fetchFilterOptions = async () => {
+  // Fetch filter options on component mount
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        setIsLoadingFilters(true);
+        const response = await apiService.get("/filters/options");
+        setFilterOptions(response);
+      } catch (error) {
+        console.error("Error fetching filter options:", error);
+      } finally {
+        setIsLoadingFilters(false);
+      }
+    };
+
+    fetchFilterOptions();
+  }, []);
+
+  const handleCreateDepartment = async () => {
+    if (
+      !newDepartment.deptName ||
+      !newDepartment.departmentCode ||
+      !newDepartment.totalCrHr
+    ) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     try {
-      setIsLoadingFilters(true);
-      const response = await apiService.get("/filters/options");
-      setFilterOptions(response);
-    } catch (error) {
-      console.error("Error fetching filter options:", error);
+      setIsCreatingDepartment(true);
+      const response = await apiService.post("/departments/single", {
+        deptName: newDepartment.deptName,
+        totalCrHr: parseInt(newDepartment.totalCrHr),
+        departmentCode: newDepartment.departmentCode,
+        modalityCode: selectedModality || "",
+        programLevelCode: selectedLevel || "",
+      });
+
+      alert("Department created successfully!");
+      setIsCreateDepartmentOpen(false);
+      setNewDepartment({
+        deptName: "",
+        totalCrHr: "",
+        departmentCode: "",
+        modalityCode: "",
+        programLevelCode: "",
+      });
+
+      // Refresh departments list
+      if (selectedModality && selectedLevel) {
+        const response = await apiService.get(endPoints.departments);
+        const filteredDepartments = response.filter((dept: any) => {
+          const matchesModality =
+            dept.programModality?.modalityCode === selectedModality;
+          const matchesLevel =
+            dept.programModality?.programLevel?.code === selectedLevel ||
+            dept.programLevel?.code === selectedLevel;
+          return matchesModality && matchesLevel;
+        });
+        setDepartments(filteredDepartments);
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.error || "Failed to create department");
     } finally {
-      setIsLoadingFilters(false);
+      setIsCreatingDepartment(false);
     }
   };
-  
-  fetchFilterOptions();
-}, []);
-
-const handleCreateDepartment = async () => {
-  if (!newDepartment.deptName || !newDepartment.departmentCode || !newDepartment.totalCrHr) {
-    alert("Please fill in all required fields");
-    return;
-  }
-
-  try {
-    setIsCreatingDepartment(true);
-    const response = await apiService.post("/departments/single", {
-      deptName: newDepartment.deptName,
-      totalCrHr: parseInt(newDepartment.totalCrHr),
-      departmentCode: newDepartment.departmentCode,
-      modalityCode: selectedModality || "",
-      programLevelCode: selectedLevel || "",
-    });
-
-    alert("Department created successfully!");
-    setIsCreateDepartmentOpen(false);
-    setNewDepartment({
-      deptName: "",
-      totalCrHr: "",
-      departmentCode: "",
-      modalityCode: "",
-      programLevelCode: "",
-    });
-    
-    // Refresh departments list
-    if (selectedModality && selectedLevel) {
-      const response = await apiService.get(endPoints.departments);
-      const filteredDepartments = response.filter((dept: any) => {
-        const matchesModality = dept.programModality?.modalityCode === selectedModality;
-        const matchesLevel = dept.programModality?.programLevel?.code === selectedLevel || 
-                            dept.programLevel?.code === selectedLevel;
-        return matchesModality && matchesLevel;
-      });
-      setDepartments(filteredDepartments);
-    }
-  } catch (error: any) {
-    alert(error.response?.data?.error || "Failed to create department");
-  } finally {
-    setIsCreatingDepartment(false);
-  }
-};
-
 
   // Get level and modality names from department data
   const getProgramLevelAndModality = () => {
@@ -357,7 +366,7 @@ const handleCreateDepartment = async () => {
       if (!departmentId) return;
       try {
         const courses = await apiService.get(
-          `/courses/department/${departmentId}`
+          `/courses/department/${departmentId}`,
         );
         setDepartmentCoursesForPrerequisites(courses);
       } catch (error) {
@@ -377,7 +386,7 @@ const handleCreateDepartment = async () => {
     try {
       setIsLoading(true);
       const departmentCourses = await apiService.get(
-        `/courses/department/${departmentId}`
+        `/courses/department/${departmentId}`,
       );
 
       if (!departmentCourses || departmentCourses.length === 0) {
@@ -424,12 +433,13 @@ const handleCreateDepartment = async () => {
             creditHours: credit,
             prerequisites:
               course.prerequisites?.map(
-                (p: any) => p.ccode || p.prerequisiteCode
+                (p: any) => p.ccode || p.prerequisiteCode,
               ) || [],
             teacher: "Not Assigned",
             theoryHrs: course.theoryHrs,
             labHrs: course.labHrs,
             category: course.courseCategory?.name || "Unknown",
+            isPassFail: course.isPassFail || false, // ADD THIS LINE
             originalCourse: course,
           });
 
@@ -437,7 +447,7 @@ const handleCreateDepartment = async () => {
 
           return acc;
         },
-        {}
+        {},
       );
 
       // Now transform into the years array with totals
@@ -452,9 +462,9 @@ const handleCreateDepartment = async () => {
               name: semName,
               totalCredits: semData.totalCredits,
               courses: semData.courses,
-            })
+            }),
           ),
-        })
+        }),
       );
 
       const departmentInfo: DepartmentInfo = {
@@ -482,7 +492,7 @@ const handleCreateDepartment = async () => {
       const grandTotalCredits = departmentInfo.years
         ? departmentInfo.years.reduce(
             (sum, year) => sum + (year.totalCredits || 0),
-            0
+            0,
           )
         : 0;
 
@@ -556,7 +566,7 @@ const handleCreateDepartment = async () => {
     return courses.filter(
       (course) =>
         course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.code.toLowerCase().includes(searchTerm.toLowerCase())
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   };
 
@@ -604,9 +614,12 @@ const handleCreateDepartment = async () => {
         alert("Course added successfully!");
         // Refresh the course list
         await fetchDepartmentCourses();
+        // remove from cache
+        await clearCacheForUrl(endPoints.allCourses);
+        await clearCacheForUrl(endPoints.courseLists);
         // Refresh prerequisites list
         const courses = await apiService.get(
-          `/courses/department/${departmentId}`
+          `/courses/department/${departmentId}`,
         );
         setDepartmentCoursesForPrerequisites(courses);
         // Reset form
@@ -645,6 +658,7 @@ const handleCreateDepartment = async () => {
       classYearID: course.originalCourse?.classYear?.id?.toString() || "",
       semesterCode: course.originalCourse?.semester?.code || "",
       prerequisiteIds: prerequisiteIds,
+      isPassFail: course.originalCourse?.isPassFail || false, // ADD THIS LINE
     });
   };
 
@@ -672,6 +686,7 @@ const handleCreateDepartment = async () => {
         classYearID: parseInt(editValues.classYearID),
         semesterCode: editValues.semesterCode,
         prerequisiteIds: editValues.prerequisiteIds,
+        isPassFail: editValues.isPassFail, // ADD THIS LINE
       });
 
       // Immediately update the UI state
@@ -688,13 +703,18 @@ const handleCreateDepartment = async () => {
                   ctitle: editValues.name,
                   theoryHrs: parseInt(editValues.theoryHrs),
                   labHrs: parseInt(editValues.labHrs),
+                  isPassFail: editValues.isPassFail, // ADD THIS LINE
+
                   department: {
                     id: parseInt(editValues.departmentID),
-                    name: allDepartments.find(d => d.id === parseInt(editValues.departmentID))?.name || "Unknown"
+                    name:
+                      allDepartments.find(
+                        (d) => d.id === parseInt(editValues.departmentID),
+                      )?.name || "Unknown",
                   },
                   prerequisites: editValues.prerequisiteIds.map((id) => {
                     const prereqCourse = departmentCoursesForPrerequisites.find(
-                      (c) => c.id === id
+                      (c) => c.id === id,
                     );
                     return prereqCourse
                       ? {
@@ -705,7 +725,7 @@ const handleCreateDepartment = async () => {
                       : { id, name: "", ccode: "" };
                   }),
                 }
-              : course
+              : course,
           ),
           years: prevDepartment.years?.map((year) => ({
             ...year,
@@ -725,12 +745,12 @@ const handleCreateDepartment = async () => {
                       prerequisites: editValues.prerequisiteIds.map((id) => {
                         const prereqCourse =
                           departmentCoursesForPrerequisites.find(
-                            (c) => c.id === id
+                            (c) => c.id === id,
                           );
                         return prereqCourse ? prereqCourse.ccode : `ID: ${id}`;
                       }),
                     }
-                  : course
+                  : course,
               ),
             })),
           })),
@@ -740,6 +760,8 @@ const handleCreateDepartment = async () => {
       alert("Course updated successfully!");
       setEditingCourse(null);
       setShowDepartmentDropdown(false);
+      await clearCacheForUrl(endPoints.allCourses);
+      await clearCacheForUrl(endPoints.courseLists);
 
       // Refresh data in background
       await Promise.all([
@@ -753,7 +775,7 @@ const handleCreateDepartment = async () => {
       alert(
         error.response?.data?.error ||
           error.message ||
-          "Failed to update course"
+          "Failed to update course",
       );
 
       // Revert to original data if update fails
@@ -772,9 +794,11 @@ const handleCreateDepartment = async () => {
         alert("Course deleted successfully!");
         // Refresh the course list
         await fetchDepartmentCourses();
+        await clearCacheForUrl(endPoints.allCourses);
+        await clearCacheForUrl(endPoints.courseLists);
         // Refresh prerequisites list
         const courses = await apiService.get(
-          `/courses/department/${departmentId}`
+          `/courses/department/${departmentId}`,
         );
         setDepartmentCoursesForPrerequisites(courses);
       }
@@ -795,21 +819,22 @@ const handleCreateDepartment = async () => {
       classYearID: "",
       semesterCode: "",
       prerequisiteIds: [],
+      isPassFail: false, // ADD THIS LINE
     });
     setShowDepartmentDropdown(false);
   };
 
   // Custom handler for prerequisite selection
-  const handlePrerequisiteChange = (selectedOptions: HTMLSelectElement) => {
-    const selectedIds = Array.from(selectedOptions.selectedOptions, (option) =>
-      parseInt(option.value)
-    ).filter((val) => !isNaN(val));
+  // const handlePrerequisiteChange = (selectedOptions: HTMLSelectElement) => {
+  //   const selectedIds = Array.from(selectedOptions.selectedOptions, (option) =>
+  //     parseInt(option.value)
+  //   ).filter((val) => !isNaN(val));
 
-    setEditValues({
-      ...editValues,
-      prerequisiteIds: selectedIds,
-    });
-  };
+  //   setEditValues({
+  //     ...editValues,
+  //     prerequisiteIds: selectedIds,
+  //   });
+  // };
 
   // Handler for selecting a department from dropdown
   const handleSelectDepartment = (deptId: number, deptName: string) => {
@@ -824,9 +849,11 @@ const handleCreateDepartment = async () => {
   const getSelectedDepartmentName = () => {
     if (!editValues.departmentID) return "Select Department";
     const selectedDept = allDepartments.find(
-      (d) => d.id === parseInt(editValues.departmentID)
+      (d) => d.id === parseInt(editValues.departmentID),
     );
-    return selectedDept ? `${selectedDept.name} (${selectedDept.code})` : "Select Department";
+    return selectedDept
+      ? `${selectedDept.name} (${selectedDept.code})`
+      : "Select Department";
   };
 
   if (isLoading) {
@@ -984,8 +1011,18 @@ const handleCreateDepartment = async () => {
         {isFormOpen && (
           <div className="mt-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8 rounded-2xl shadow-inner border border-gray-200 dark:border-gray-700">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center gap-3">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               Add New Course
             </h2>
@@ -994,31 +1031,39 @@ const handleCreateDepartment = async () => {
                 type="text"
                 placeholder="Course Title *"
                 value={newCourse.cTitle}
-                onChange={(e) => setNewCourse({ ...newCourse, cTitle: e.target.value })}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, cTitle: e.target.value })
+                }
                 className="border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
               <input
                 type="text"
                 placeholder="Course Code *"
                 value={newCourse.cCode}
-                onChange={(e) => setNewCourse({ ...newCourse, cCode: e.target.value })}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, cCode: e.target.value })
+                }
                 className="border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
               <input
                 type="number"
                 placeholder="Theory Hours *"
                 value={newCourse.theoryHrs}
-                onChange={(e) => setNewCourse({ ...newCourse, theoryHrs: e.target.value })}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, theoryHrs: e.target.value })
+                }
                 className="border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
               <input
                 type="number"
                 placeholder="Lab Hours *"
                 value={newCourse.labHrs}
-                onChange={(e) => setNewCourse({ ...newCourse, labHrs: e.target.value })}
+                onChange={(e) =>
+                  setNewCourse({ ...newCourse, labHrs: e.target.value })
+                }
                 className="border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
-              
+
               {/* Course Category Dropdown */}
               <div className="relative">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -1026,7 +1071,12 @@ const handleCreateDepartment = async () => {
                 </label>
                 <select
                   value={newCourse.courseCategoryID}
-                  onChange={(e) => setNewCourse({ ...newCourse, courseCategoryID: e.target.value })}
+                  onChange={(e) =>
+                    setNewCourse({
+                      ...newCourse,
+                      courseCategoryID: e.target.value,
+                    })
+                  }
                   className="w-full border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 >
                   <option value="">Select Category</option>
@@ -1044,13 +1094,21 @@ const handleCreateDepartment = async () => {
                   Department *
                 </label>
                 <select
-                  value={newCourse.departmentID || departmentId?.toString() || ""}
-                  onChange={(e) => setNewCourse({ ...newCourse, departmentID: e.target.value })}
+                  value={
+                    newCourse.departmentID || departmentId?.toString() || ""
+                  }
+                  onChange={(e) =>
+                    setNewCourse({ ...newCourse, departmentID: e.target.value })
+                  }
                   className="w-full border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 >
                   <option value="">Select Department</option>
                   {filterOptions?.departments?.map((dept: any) => (
-                    <option key={dept.id} value={dept.id} selected={dept.id === departmentId}>
+                    <option
+                      key={dept.id}
+                      value={dept.id}
+                      selected={dept.id === departmentId}
+                    >
                       {dept.name} (ID: {dept.id})
                     </option>
                   ))}
@@ -1069,7 +1127,9 @@ const handleCreateDepartment = async () => {
                 </label>
                 <select
                   value={newCourse.classYearID}
-                  onChange={(e) => setNewCourse({ ...newCourse, classYearID: e.target.value })}
+                  onChange={(e) =>
+                    setNewCourse({ ...newCourse, classYearID: e.target.value })
+                  }
                   className="w-full border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 >
                   <option value="">Select Class Year</option>
@@ -1088,7 +1148,9 @@ const handleCreateDepartment = async () => {
                 </label>
                 <select
                   value={newCourse.semesterCode}
-                  onChange={(e) => setNewCourse({ ...newCourse, semesterCode: e.target.value })}
+                  onChange={(e) =>
+                    setNewCourse({ ...newCourse, semesterCode: e.target.value })
+                  }
                   className="w-full border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
                 >
                   <option value="">Select Semester</option>
@@ -1113,14 +1175,18 @@ const handleCreateDepartment = async () => {
                       ...newCourse,
                       prerequisiteIds: Array.from(
                         e.target.selectedOptions,
-                        (option) => parseInt(option.value)
+                        (option) => parseInt(option.value),
                       ).filter((val) => !isNaN(val)),
                     })
                   }
                   className="w-full border-2 border-gray-200 dark:border-gray-700 px-4 py-3 rounded-xl bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 min-h-[120px] overflow-y-auto"
                 >
                   {departmentCoursesForPrerequisites.map((course) => (
-                    <option key={course.id} value={course.id} title={`${course.ccode} - ${course.ctitle}`}>
+                    <option
+                      key={course.id}
+                      value={course.id}
+                      title={`${course.ccode} - ${course.ctitle}`}
+                    >
                       {course.ccode} - {course.ctitle}
                     </option>
                   ))}
@@ -1130,14 +1196,24 @@ const handleCreateDepartment = async () => {
                 </p>
               </div>
             </div>
-            
+
             <button
               onClick={handleAddCourse}
               className="mt-6 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               <span className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 Add Course
               </span>
@@ -1204,7 +1280,7 @@ const handleCreateDepartment = async () => {
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {year.semesters.reduce(
                         (total, sem) => total + sem.courses.length,
-                        0
+                        0,
                       )}
                     </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -1312,13 +1388,17 @@ const handleCreateDepartment = async () => {
                                     <th className="p-4 text-left font-bold text-gray-700 dark:text-gray-300">
                                       Category
                                     </th>
+                                    <th className="p-4 text-center font-bold text-gray-700 dark:text-gray-300">
+                                      Grading Type
+                                    </th>
                                     {/* Department column only shows when editing */}
                                     {editingCourse && (
                                       <th className="p-4 text-left font-bold text-gray-700 dark:text-gray-300">
                                         Department
                                       </th>
                                     )}
-                                    <th className="p-4 text-left font-bold text-gray-700 dark:text-gray-300">
+
+                                    <th className="p-4 text-left font-bold text-gray-700 dark:text-gray-300 min-w-[300px]">
                                       Prerequisites
                                     </th>
                                     <th className="p-4 text-center font-bold text-gray-700 dark:text-gray-300">
@@ -1336,175 +1416,325 @@ const handleCreateDepartment = async () => {
                                           editingCourse.id === course.id
                                             ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700"
                                             : index % 2 === 0
-                                            ? "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-                                            : "bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                              ? "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                              : "bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-700"
                                         } border-b border-gray-100 dark:border-gray-700 last:border-b-0`}
                                       >
                                         {editingCourse &&
                                         editingCourse.id === course.id ? (
-                                           <>
-                                                <td className="p-4">
-                                                  <input
-                                                    type="text"
-                                                    value={editValues.code}
-                                                    onChange={(e) => setEditValues({ ...editValues, code: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  />
-                                                </td>
-                                                <td className="p-4">
-                                                  <input
-                                                    type="text"
-                                                    value={editValues.name}
-                                                    onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  />
-                                                </td>
-                                                <td className="p-4">
-                                                  <input
-                                                    type="number"
-                                                    value={editValues.theoryHrs}
-                                                    onChange={(e) => setEditValues({ ...editValues, theoryHrs: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  />
-                                                </td>
-                                                <td className="p-4">
-                                                  <input
-                                                    type="number"
-                                                    value={editValues.labHrs}
-                                                    onChange={(e) => setEditValues({ ...editValues, labHrs: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  />
-                                                </td>
-                                                <td className="p-4 text-center font-semibold text-gray-700 dark:text-gray-300">
-                                                  {parseInt(editValues.theoryHrs || "0") + parseInt(editValues.labHrs || "0")}
-                                                </td>
-                                                
-                                                {/* Course Category Dropdown - Edit */}
-                                                <td className="p-4">
-                                                  <select
-                                                    value={editValues.courseCategoryID}
-                                                    onChange={(e) => setEditValues({ ...editValues, courseCategoryID: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  >
-                                                    <option value="">Select Category</option>
-                                                    {filterOptions?.courseCategories?.map((cat: any) => (
-                                                      <option key={cat.id} value={cat.id}>
-                                                        {cat.name}
-                                                      </option>
-                                                    ))}
-                                                  </select>
-                                                </td>
+                                          <>
+                                            <td className="p-4">
+                                              <input
+                                                type="text"
+                                                value={editValues.code}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    code: e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              />
+                                            </td>
+                                            <td className="p-4">
+                                              <input
+                                                type="text"
+                                                value={editValues.name}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    name: e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              />
+                                            </td>
+                                            <td className="p-4">
+                                              <input
+                                                type="number"
+                                                value={editValues.theoryHrs}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    theoryHrs: e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              />
+                                            </td>
+                                            <td className="p-4">
+                                              <input
+                                                type="number"
+                                                value={editValues.labHrs}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    labHrs: e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              />
+                                            </td>
+                                            <td className="p-4 text-center font-semibold text-gray-700 dark:text-gray-300">
+                                              {parseInt(
+                                                editValues.theoryHrs || "0",
+                                              ) +
+                                                parseInt(
+                                                  editValues.labHrs || "0",
+                                                )}
+                                            </td>
 
-                                                {/* Department Dropdown - Edit */}
-                                                <td className="p-4">
-                                                  <select
-                                                    value={editValues.departmentID}
-                                                    onChange={(e) => setEditValues({ ...editValues, departmentID: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  >
-                                                    <option value="">Select Department</option>
-                                                    {filterOptions?.departments?.map((dept: any) => (
-                                                      <option key={dept.id} value={dept.id}>
-                                                        {dept.name} (ID: {dept.id})
-                                                      </option>
-                                                    ))}
-                                                  </select>
-                                                </td>
+                                            {/* Course Category Dropdown - Edit */}
+                                            <td className="p-4">
+                                              <select
+                                                value={
+                                                  editValues.courseCategoryID
+                                                }
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    courseCategoryID:
+                                                      e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              >
+                                                <option value="">
+                                                  Select Category
+                                                </option>
+                                                {filterOptions?.courseCategories?.map(
+                                                  (cat: any) => (
+                                                    <option
+                                                      key={cat.id}
+                                                      value={cat.id}
+                                                    >
+                                                      {cat.name}
+                                                    </option>
+                                                  ),
+                                                )}
+                                              </select>
+                                            </td>
+                                            {/* Grading Type in edit mode */}
+                                            <td className="p-4 text-center">
+                                              <button
+                                                onClick={() =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    isPassFail:
+                                                      !editValues.isPassFail,
+                                                  })
+                                                }
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                                                  editValues.isPassFail
+                                                    ? "bg-orange-600"
+                                                    : "bg-green-600"
+                                                }`}
+                                              >
+                                                <span
+                                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                    editValues.isPassFail
+                                                      ? "translate-x-6"
+                                                      : "translate-x-1"
+                                                  }`}
+                                                />
+                                              </button>
+                                              <span className="ml-2 text-xs font-medium text-gray-600 dark:text-gray-400">
+                                                {editValues.isPassFail
+                                                  ? "Pass/Fail"
+                                                  : "Letter Grade"}
+                                              </span>
+                                            </td>
 
-                                                {/* Class Year Dropdown - Edit */}
-                                                <td className="p-4">
-                                                  <select
-                                                    value={editValues.classYearID}
-                                                    onChange={(e) => setEditValues({ ...editValues, classYearID: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  >
-                                                    <option value="">Select Class Year</option>
-                                                    {filterOptions?.classYears?.map((year: any) => (
-                                                      <option key={year.id} value={year.id}>
-                                                        Year {year.name} (ID: {year.id})
-                                                      </option>
-                                                    ))}
-                                                  </select>
-                                                </td>
+                                            {/* Department Dropdown - Edit */}
+                                            <td className="p-4">
+                                              <select
+                                                value={editValues.departmentID}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    departmentID:
+                                                      e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              >
+                                                <option value="">
+                                                  Select Department
+                                                </option>
+                                                {filterOptions?.departments?.map(
+                                                  (dept: any) => (
+                                                    <option
+                                                      key={dept.id}
+                                                      value={dept.id}
+                                                    >
+                                                      {dept.name} (ID: {dept.id}
+                                                      )
+                                                    </option>
+                                                  ),
+                                                )}
+                                              </select>
+                                            </td>
 
-                                                {/* Semester Dropdown - Edit */}
-                                                <td className="p-4">
-                                                  <select
-                                                    value={editValues.semesterCode}
-                                                    onChange={(e) => setEditValues({ ...editValues, semesterCode: e.target.value })}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  >
-                                                    <option value="">Select Semester</option>
-                                                    {filterOptions?.semesters?.map((sem: any) => (
-                                                      <option key={sem.id} value={sem.id}>
-                                                        {sem.name} (Code: {sem.id})
-                                                      </option>
-                                                    ))}
-                                                  </select>
-                                                </td>
+                                            {/* Prerequisites Multi-select - Edit */}
+                                            <td className="p-4 min-w-[300px]">
+                                              <PrerequisiteSelector
+                                                availableCourses={
+                                                  departmentCoursesForPrerequisites
+                                                }
+                                                selectedIds={
+                                                  editValues.prerequisiteIds
+                                                }
+                                                onChange={(ids) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    prerequisiteIds: ids,
+                                                  })
+                                                }
+                                              />
+                                            </td>
 
-                                                {/* Prerequisites Multi-select - Edit */}
-                                                <td className="p-4">
-                                                  <select
-                                                    multiple
-                                                    value={editValues.prerequisiteIds.map(String)}
-                                                    onChange={(e) => handlePrerequisiteChange(e.target)}
-                                                    className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                                  >
-                                                    {departmentCoursesForPrerequisites.map((prereqCourse) => (
-                                                      <option
-                                                        key={prereqCourse.id}
-                                                        value={prereqCourse.id}
-                                                        title={`${prereqCourse.ccode} - ${prereqCourse.ctitle}`}
-                                                        className={editValues.prerequisiteIds.includes(prereqCourse.id) ? "bg-blue-100 dark:bg-blue-900" : ""}
+                                            {/* Class Year Dropdown - Edit */}
+                                            <td className="p-4">
+                                              <select
+                                                value={editValues.classYearID}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    classYearID: e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              >
+                                                <option value="">
+                                                  Select Class Year
+                                                </option>
+                                                {filterOptions?.classYears?.map(
+                                                  (year: any) => (
+                                                    <option
+                                                      key={year.id}
+                                                      value={year.id}
+                                                    >
+                                                      Year {year.name} (ID:{" "}
+                                                      {year.id})
+                                                    </option>
+                                                  ),
+                                                )}
+                                              </select>
+                                            </td>
+
+                                            {/* Semester Dropdown - Edit */}
+                                            <td className="p-4 min-w-[300px]">
+                                              <select
+                                                value={editValues.semesterCode}
+                                                onChange={(e) =>
+                                                  setEditValues({
+                                                    ...editValues,
+                                                    semesterCode:
+                                                      e.target.value,
+                                                  })
+                                                }
+                                                className="w-full border-2 border-gray-200 dark:border-gray-600 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              >
+                                                <option value="">
+                                                  Select Semester
+                                                </option>
+                                                {filterOptions?.semesters?.map(
+                                                  (sem: any) => (
+                                                    <option
+                                                      key={sem.id}
+                                                      value={sem.id}
+                                                    >
+                                                      {sem.name} (Code: {sem.id}
+                                                      )
+                                                    </option>
+                                                  ),
+                                                )}
+                                              </select>
+                                            </td>
+
+                                            <td className="p-4">
+                                              <div className="flex gap-2 justify-center">
+                                                <button
+                                                  onClick={() =>
+                                                    handleUpdateCourse(
+                                                      course.originalCourse
+                                                        ?.id || course.id,
+                                                    )
+                                                  }
+                                                  disabled={
+                                                    isUpdating === course.id
+                                                  }
+                                                  className={`${
+                                                    isUpdating === course.id
+                                                      ? "bg-gray-400 cursor-not-allowed"
+                                                      : "bg-green-600 hover:bg-green-700"
+                                                  } text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 min-w-[100px] justify-center`}
+                                                >
+                                                  {isUpdating === course.id ? (
+                                                    <>
+                                                      <svg
+                                                        className="animate-spin h-4 w-4 text-white"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
                                                       >
-                                                        {prereqCourse.ccode} - {prereqCourse.ctitle}
-                                                      </option>
-                                                    ))}
-                                                  </select>
-                                                  <div className="text-xs text-gray-500 mt-1">
-                                                    Selected: {editValues.prerequisiteIds.length}
-                                                  </div>
-                                                </td>
-
-                                                <td className="p-4">
-                                                  <div className="flex gap-2 justify-center">
-                                                    <button
-                                                      onClick={() => handleUpdateCourse(course.originalCourse?.id || course.id)}
-                                                      disabled={isUpdating === course.id}
-                                                      className={`${
-                                                        isUpdating === course.id ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
-                                                      } text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 min-w-[100px] justify-center`}
-                                                    >
-                                                      {isUpdating === course.id ? (
-                                                        <>
-                                                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                          </svg>
-                                                          Saving...
-                                                        </>
-                                                      ) : (
-                                                        <>
-                                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                          </svg>
-                                                          Save
-                                                        </>
-                                                      )}
-                                                    </button>
-                                                    <button
-                                                      onClick={handleCancelEdit}
-                                                      className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2"
-                                                    >
-                                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        <circle
+                                                          className="opacity-25"
+                                                          cx="12"
+                                                          cy="12"
+                                                          r="10"
+                                                          stroke="currentColor"
+                                                          strokeWidth="4"
+                                                        ></circle>
+                                                        <path
+                                                          className="opacity-75"
+                                                          fill="currentColor"
+                                                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                        ></path>
                                                       </svg>
-                                                      Cancel
-                                                    </button>
-                                                  </div>
-                                                </td>
-                                              </>
+                                                      Saving...
+                                                    </>
+                                                  ) : (
+                                                    <>
+                                                      <svg
+                                                        className="w-4 h-4"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                      >
+                                                        <path
+                                                          strokeLinecap="round"
+                                                          strokeLinejoin="round"
+                                                          strokeWidth={2}
+                                                          d="M5 13l4 4L19 7"
+                                                        />
+                                                      </svg>
+                                                      Save
+                                                    </>
+                                                  )}
+                                                </button>
+                                                <button
+                                                  onClick={handleCancelEdit}
+                                                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2"
+                                                >
+                                                  <svg
+                                                    className="w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path
+                                                      strokeLinecap="round"
+                                                      strokeLinejoin="round"
+                                                      strokeWidth={2}
+                                                      d="M6 18L18 6M6 6l12 12"
+                                                    />
+                                                  </svg>
+                                                  Cancel
+                                                </button>
+                                              </div>
+                                            </td>
+                                          </>
                                         ) : (
                                           <>
                                             <td className="p-4 font-mono font-bold text-blue-700 dark:text-blue-300">
@@ -1527,11 +1757,28 @@ const handleCreateDepartment = async () => {
                                                 {course.category}
                                               </span>
                                             </td>
+
+                                            <td className="p-4 text-center">
+                                              {course.isPassFail ||
+                                              course.originalCourse
+                                                ?.isPassFail ? (
+                                                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full text-sm font-semibold">
+                                                  Pass/Fail
+                                                </span>
+                                              ) : (
+                                                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-semibold">
+                                                  Letter Grade
+                                                </span>
+                                              )}
+                                            </td>
+
                                             {/* Department column only shows when editing */}
                                             {editingCourse && (
                                               <td className="p-4">
                                                 <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-semibold">
-                                                  {course.originalCourse?.department?.name || "Unknown"}
+                                                  {course.originalCourse
+                                                    ?.department?.name ||
+                                                    "Unknown"}
                                                 </span>
                                               </td>
                                             )}
@@ -1543,7 +1790,7 @@ const handleCreateDepartment = async () => {
                                                     {course.prerequisites.map(
                                                       (
                                                         prereq: string,
-                                                        index: number
+                                                        index: number,
                                                       ) => (
                                                         <span
                                                           key={index}
@@ -1551,7 +1798,7 @@ const handleCreateDepartment = async () => {
                                                         >
                                                           {prereq}
                                                         </span>
-                                                      )
+                                                      ),
                                                     )}
                                                   </div>
                                                 ) : (
@@ -1588,7 +1835,7 @@ const handleCreateDepartment = async () => {
                                                   onClick={() =>
                                                     handleDeleteCourse(
                                                       course.originalCourse
-                                                        ?.id || course.id
+                                                        ?.id || course.id,
                                                     )
                                                   }
                                                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2"
@@ -1613,7 +1860,7 @@ const handleCreateDepartment = async () => {
                                           </>
                                         )}
                                       </tr>
-                                    )
+                                    ),
                                   )}
                                 </tbody>
                               </table>

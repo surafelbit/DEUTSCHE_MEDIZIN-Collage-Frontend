@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import RefreshServerButton from "@/components/ui/RefreshServerButton";
 import apiClient from "../components/api/apiClient";
 import endPoints from "../components/api/endPoints";
 
@@ -256,6 +257,7 @@ export default function ViceDeanLayout() {
 
           {/* Right Section */}
           <div className="flex items-center gap-x-4 lg:gap-x-6">
+            <RefreshServerButton />
             <ThemeToggle />
             
             {/* Notification Dropdown - ADDED */}
