@@ -611,6 +611,7 @@ const CrudSection = ({ title, data, setData }: CrudProps) => {
       }
 
       await clearCacheForUrl(endPoints.batchClassSemsterYear);
+
       closeModal();
     } catch (err: any) {
       toast({

@@ -21,6 +21,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import RefreshServerButton from "@/components/ui/RefreshServerButton";
 import {
   Dialog,
   DialogContent,
@@ -266,6 +267,7 @@ export default function StudentLayout() {
 
           {/* Right section */}
           <div className="flex items-center gap-x-4 lg:gap-x-6">
+            <RefreshServerButton />
             <ThemeToggle />
 
             {/* Notification Dropdown - ADDED */}

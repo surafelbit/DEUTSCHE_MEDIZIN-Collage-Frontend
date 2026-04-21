@@ -275,6 +275,8 @@ const CrudSection = ({ title, data, setData }) => {
         setData([...data, transformed]);
       }
       await clearCacheForUrl(endPoints.batches);
+            await clearCacheForUrl(endPoints.lookupsDropdown);
+      
     } catch (err) {
       // Handle exact error responses from your API
       console.error("Failed to save batch:", err);
@@ -314,6 +316,8 @@ Are you absolutely sure you want to delete "${batchName}"?`;
       await apiService.delete(`${endPoints.batches}/${id}`);
       setData(data.filter((d) => d.id !== id));
       await clearCacheForUrl(endPoints.batches);
+            await clearCacheForUrl(endPoints.lookupsDropdown);
+      
     } catch (err) {
       const errorMessage =
         err?.response?.data?.error || "Failed to delete batch.";

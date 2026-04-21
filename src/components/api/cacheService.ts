@@ -39,19 +39,37 @@ export const CACHE_CONFIG: Record<string, CacheConfig> = {
 
   // DropDown options (change infrequently)
   [endPoints.allCourses]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.courseLists]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
   [endPoints.studentUserNames]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
   [endPoints.studentsSlip]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.courseLists]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
 };
 
 const CACHE_STORE_NAME = "api-response-cache";
 // =======================================================
 
+const LOOKUPS_DROPDOWN_DEPENDENCIES = new Set<string>([
+  endPoints.impairments,
+  endPoints.schoolBackgrounds,
+  endPoints.enrollmentTypes,
+  endPoints.attritionCauses,
+  endPoints.semesters,
+  endPoints.programLevels,
+  endPoints.programModalities,
+  endPoints.academicYears,
+  endPoints.departments,
+  endPoints.classYears,
+  endPoints.courseSources,
+  endPoints.courseCategory,
+  endPoints.batchClassSemsterYear,
+  endPoints.batches,
+  endPoints.studentStatus,
+  endPoints.gradingSystem,
+]);
+
 const getBasePath = (url: string | undefined): string => {
   if (!url) return "";
   return url.split("?")[0];
 };
-
 
 const generateCacheKey = (url: string | undefined): string => {
   const basePath = getBasePath(url);
@@ -59,7 +77,6 @@ const generateCacheKey = (url: string | undefined): string => {
   const encoded = encodeURIComponent(basePath);
   return `https://app-cache.local/${encoded}`;
 };
-
 
 export const getCachedResponse = async <T = any>(
   url: string,
@@ -130,6 +147,7 @@ export const getCachedResponse = async <T = any>(
 export const clearCacheForUrl = async (url: string): Promise<void> => {
   if (typeof caches === "undefined") return;
 
+  const basePath = getBasePath(url);
   const dataKey = generateCacheKey(url);
   const metaKey = `${dataKey}/meta`;
 
@@ -137,12 +155,23 @@ export const clearCacheForUrl = async (url: string): Promise<void> => {
     const cache = await caches.open(CACHE_STORE_NAME);
     await cache.delete(dataKey);
     await cache.delete(metaKey);
+
+    // Keep lookupsDropdown in sync when one of its dependency endpoints is invalidated.
+    if (LOOKUPS_DROPDOWN_DEPENDENCIES.has(basePath)) {
+      const lookupsDataKey = generateCacheKey(endPoints.lookupsDropdown);
+      const lookupsMetaKey = `${lookupsDataKey}/meta`;
+      await cache.delete(lookupsDataKey);
+      await cache.delete(lookupsMetaKey);
+      console.log(
+        `🗑️ lookupsDropdown cache also cleared due to dependency invalidation: ${url}`,
+      );
+    }
+
     console.log(`🗑️ Cache cleared for ${url}`);
   } catch (error) {
     console.warn(`Failed to clear cache for ${url}:`, error);
   }
 };
-
 
 export const clearAllApiCache = async (): Promise<void> => {
   if (typeof caches !== "undefined") {
