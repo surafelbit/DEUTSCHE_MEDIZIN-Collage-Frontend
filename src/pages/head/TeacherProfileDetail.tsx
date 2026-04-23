@@ -1514,7 +1514,7 @@ export default function TeacherProfileDetail() {
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen bg-transparent py-8 px-4">
       <div className="max-w-5xl mx-auto space-y-8">
         <Skeleton className="h-12 w-64 bg-muted" />
         <Card className="bg-card border-border">
