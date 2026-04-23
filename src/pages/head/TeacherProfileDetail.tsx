@@ -965,8 +965,8 @@ const hasChanges = () => {
 
           {/* Main Content */}
           <div className="p-6 md:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
-              <div className="lg:col-span-2 space-y-10">
+            <div className="grid grid-cols-1 gap-8 lg:gap-10">
+              <div className="space-y-10">
                 <section>
                   <h3 className="text-xl font-semibold mb-6 flex items-center gap-3 text-foreground">
                     <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -1288,16 +1288,13 @@ const hasChanges = () => {
                     </div>
                   </section>
                 )}
-              </div>
 
-              <div className="lg:col-span-1">
-                {/* Course Assignments Section */}
-                <div className="bg-card rounded-xl border shadow-sm p-6">
+                {/* Course Assignments Section - Moved here after Address */}
+                <section>
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold flex items-center gap-3">
+                    <h3 className="text-xl font-semibold flex items-center gap-3 text-foreground">
                       <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      Course Assignments (
-                      {teacher?.assignedCourses?.length || 0})
+                      Course Assignments ({teacher?.assignedCourses?.length || 0})
                     </h3>
 
                     <Button
@@ -1332,8 +1329,7 @@ const hasChanges = () => {
                     </Alert>
                   )}
 
-                  {(!teacher?.assignedCourses ||
-                    teacher.assignedCourses.length === 0) && (
+                  {(!teacher?.assignedCourses || teacher.assignedCourses.length === 0) && (
                     <div className="text-center py-10 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
                       <BookOpen className="h-12 w-12 mx-auto mb-3 opacity-60" />
                       <p className="font-medium">No courses assigned yet</p>
@@ -1344,58 +1340,56 @@ const hasChanges = () => {
                   )}
 
                   {teacher?.assignedCourses?.length > 0 && (
-                    <div className="space-y-3 mb-8 max-h-[300px] overflow-y-auto pr-2">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 mb-8">
                       {teacher.assignedCourses.map((course) => (
-                        <div
-                          key={course.id}
-                          className="flex items-start justify-between p-3.5 rounded-lg border bg-muted/40 hover:bg-muted/60 transition-colors group"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium leading-tight">
-                              {course.courseCode} — {course.courseTitle}
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              {course.batchClassYearSemesterName}
-                            </div>
-                          </div>
+                        <Card key={course.id} className="overflow-hidden border-l-4 border-l-blue-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="secondary" className="text-xs">
+                                    {course.totalCrHrs} Cr.Hrs
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {course.batchClassYearSemesterName}
+                                  </Badge>
+                                </div>
+                                <p className="font-semibold text-foreground">
+                                  {course.courseCode}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {course.courseTitle}
+                                </p>
+                              </div>
 
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="text-xs">
-                              {course.totalCrHrs} Cr.Hrs
-                            </Badge>
-
-                            {assignmentMode && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                onClick={() =>
-                                  setConfirmDeleteId(
-                                    course.teacherCourseAssigmentId
-                                  )
-                                }
-                                disabled={
-                                  deletingAssignmentId ===
-                                  course.teacherCourseAssigmentId
-                                }
-                              >
-                                {deletingAssignmentId ===
-                                course.teacherCourseAssigmentId ? (
-                                  <RefreshCw className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <X className="h-4 w-4" />
-                                )}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
+                              {assignmentMode && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                  onClick={() =>
+                                    setConfirmDeleteId(course.teacherCourseAssigmentId)
+                                  }
+                                  disabled={deletingAssignmentId === course.teacherCourseAssigmentId}
+                                >
+                                  {deletingAssignmentId === course.teacherCourseAssigmentId ? (
+                                    <RefreshCw className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   )}
 
                   {assignmentMode && (
-                    <div className="pt-4 border-t border-border">
-                      <h4 className="text-base font-semibold mb-4">
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <h4 className="text-base font-semibold mb-4 flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 text-blue-600" />
                         Assign New Course
                       </h4>
 
@@ -1408,8 +1402,8 @@ const hasChanges = () => {
                               Loading courses...
                             </div>
                           ) : departmentCourses.length === 0 ? (
-                            <div className="text-sm text-amber-600 dark:text-amber-400">
-                              No courses available in department
+                            <div className="text-sm text-amber-600 dark:text-amber-400 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                              No courses available in your department
                             </div>
                           ) : (
                             <Select
@@ -1422,22 +1416,18 @@ const hasChanges = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 {departmentCourses.map((c: any) => {
-                                  const isAlreadyAssigned =
-                                    teacher.assignedCourses.some(
-                                      (ac) => ac.id === c.id
-                                    );
+                                  const isAlreadyAssigned = teacher.assignedCourses.some(
+                                    (ac) => ac.id === c.id
+                                  );
                                   return (
                                     <SelectItem
                                       key={c.id}
                                       value={String(c.id)}
                                       disabled={isAlreadyAssigned}
-                                      className={
-                                        isAlreadyAssigned ? "opacity-50" : ""
-                                      }
+                                      className={isAlreadyAssigned ? "opacity-50" : ""}
                                     >
                                       {c.code} – {c.title}
-                                      {isAlreadyAssigned &&
-                                        " (already assigned)"}
+                                      {isAlreadyAssigned && " (already assigned)"}
                                     </SelectItem>
                                   );
                                 })}
@@ -1454,7 +1444,7 @@ const hasChanges = () => {
                               Loading periods...
                             </div>
                           ) : classYearBatch.length === 0 ? (
-                            <div className="text-sm text-amber-600 dark:text-amber-400">
+                            <div className="text-sm text-amber-600 dark:text-amber-400 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                               No batch/class/year/semester options available
                             </div>
                           ) : (
@@ -1468,13 +1458,8 @@ const hasChanges = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 {classYearBatch.map((item: any) => (
-                                  <SelectItem
-                                    key={item.id}
-                                    value={String(item.id)}
-                                  >
-                                    {item.name ||
-                                      item.displayName ||
-                                      `ID ${item.id}`}
+                                  <SelectItem key={item.id} value={String(item.id)}>
+                                    {item.name || item.displayName || `ID ${item.id}`}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1491,7 +1476,7 @@ const hasChanges = () => {
                             loadingBcys ||
                             saving
                           }
-                          className="w-full"
+                          className="w-full bg-blue-600 hover:bg-blue-700"
                         >
                           {saving ? (
                             <>
@@ -1499,58 +1484,61 @@ const hasChanges = () => {
                               Assigning...
                             </>
                           ) : (
-                            "Assign Course"
+                            <>
+                              <BookOpen className="h-4 w-4 mr-2" />
+                              Assign Course
+                            </>
                           )}
                         </Button>
                       </div>
                     </div>
                   )}
-                </div>
-
-                {/* Delete Confirmation Modal */}
-                {confirmDeleteId && (
-                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <Card className="max-w-md w-full border-destructive/30">
-                      <CardContent className="pt-6">
-                        <h3 className="text-lg font-semibold text-destructive mb-3">
-                          Remove this course assignment?
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-6">
-                          This will permanently delete the assignment{" "}
-                          <strong>
-                            and all related student assessments / records
-                          </strong>
-                          .
-                          <br />
-                          This action <strong>cannot be undone</strong>.
-                        </p>
-                        <div className="flex justify-end gap-3">
-                          <Button
-                            variant="outline"
-                            onClick={() => setConfirmDeleteId(null)}
-                            disabled={deletingAssignmentId !== null}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => handleRevokeCourse(confirmDeleteId)}
-                            disabled={deletingAssignmentId !== null}
-                          >
-                            {deletingAssignmentId === confirmDeleteId
-                              ? "Removing..."
-                              : "Remove"}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
+                </section>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal - Moved outside */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full border-destructive/30">
+            <CardContent className="pt-6">
+              <h3 className="text-lg font-semibold text-destructive mb-3">
+                Remove this course assignment?
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                This will permanently delete the assignment{" "}
+                <strong>
+                  and all related student assessments / records
+                </strong>
+                .
+                <br />
+                This action <strong>cannot be undone</strong>.
+              </p>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmDeleteId(null)}
+                  disabled={deletingAssignmentId !== null}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleRevokeCourse(confirmDeleteId)}
+                  disabled={deletingAssignmentId !== null}
+                >
+                  {deletingAssignmentId === confirmDeleteId
+                    ? "Removing..."
+                    : "Remove"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
