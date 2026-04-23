@@ -25,6 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Loader2,
   ArrowLeft,
   Phone,
@@ -44,6 +53,8 @@ import {
   Upload,
   Camera,
   Shield,
+  Key,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -64,6 +75,7 @@ interface Woreda {
 
 interface DepartmentHead {
   id: number;
+  userId: number;
   username: string;
   firstNameENG: string;
   firstNameAMH: string;
@@ -105,6 +117,10 @@ export default function DepartmentHeadDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [documentLoading, setDocumentLoading] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const [regions, setRegions] = useState<Region[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -269,6 +285,60 @@ export default function DepartmentHeadDetail() {
       }
     } finally {
       setDocumentLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!headId || !head) return;
+
+    // Validation
+    if (!newPassword) {
+      toast.error("Please enter a new password");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      setResetPasswordLoading(true);
+      
+      // Get the user ID - the API expects the department head's user ID
+      const userId = head.userId || head.id;
+      
+      const response = await apiClient.post(
+        endPoints.resetDepartmentHeadPassword(userId),
+        { newPassword: newPassword }
+      );
+
+      toast.success(response.data?.message || "Password reset successfully!");
+      
+      // Close dialog and clear form
+      setPasswordDialogOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      
+    } catch (err: any) {
+      console.error("Password reset error:", err);
+      
+      if (err.response?.status === 403) {
+        toast.error("Insufficient privileges to reset department head password");
+      } else if (err.response?.status === 404) {
+        toast.error("User not found");
+      } else if (err.response?.status === 400) {
+        toast.error(err.response.data?.message || "Invalid password");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to reset password. Please try again.");
+      }
+    } finally {
+      setResetPasswordLoading(false);
     }
   };
 
@@ -583,6 +653,86 @@ export default function DepartmentHeadDetail() {
                 )}
               </Badge>
               
+              {/* Reset Password Button */}
+              <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20"
+                  >
+                    <Key className="h-4 w-4 mr-2" />
+                    Reset Password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Lock className="h-5 w-5 text-yellow-600" />
+                      Reset Password
+                    </DialogTitle>
+                    <DialogDescription>
+                      Reset password for {head.firstNameENG} {head.fatherNameENG}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        New Password
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="Enter new password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-gray-500">Password must be at least 6 characters long</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Confirm Password
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setPasswordDialogOpen(false);
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleResetPassword}
+                      disabled={resetPasswordLoading}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                    >
+                      {resetPasswordLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Resetting...
+                        </>
+                      ) : (
+                        <>
+                          <Key className="h-4 w-4 mr-2" />
+                          Reset Password
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
               {isEditing ? (
                 <div className="flex gap-2">
                   <Button
@@ -867,6 +1017,17 @@ export default function DepartmentHeadDetail() {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+              {/* Username Display (Read-only) */}
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Username
+                </label>
+                <p className="text-gray-900 dark:text-white mt-1 pl-[1.5rem] font-mono">
+                  {head.username}
+                </p>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[
                   { label: "First Name (English)", name: "firstNameENG", value: head.firstNameENG },

@@ -11,7 +11,6 @@ import {
   Pill,
   FlaskConical,
   Building,
-  Download,
   Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -200,13 +199,6 @@ export default function DeanDepartments() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => toast.info("Report export feature coming soon")}
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex items-center gap-2 shadow-sm"
-            >
-              <Download className="w-4 h-4" />
-              Export Report
-            </button>
             <button className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white px-8 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
               <Plus className="w-4 h-4" />
               New Department

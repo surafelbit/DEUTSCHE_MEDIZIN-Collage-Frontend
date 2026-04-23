@@ -64,6 +64,8 @@ const endPoints = {
   getTeacherCourses: "/teachers/my-courses",
   getCourseStudents: "/teachers/courses/:teacherCourseAssignmentId/students",
   updateDepartment: (id: number | string) => `/departments/${id}`,
+  resetTeacherPassword: (userId: string | number) => 
+  `/auth/head/teachers/${userId}/reset-password`,
 
   /* =======================     Students  ======================== */
   students: "/students",
@@ -199,6 +201,12 @@ const endPoints = {
   updateViceDean: "/vice-deans",
   getViceDeanPhoto: "/vice-deans/get-photo",
   getViceDeanDocument: "/vice-deans/get-document",
+  resetViceDeanPassword: (userId: string | number) => 
+  `/auth/vice-deans/${userId}/reset-password`, 
+
+  /* =======================     Department Heads  ======================== */
+resetDepartmentHeadPassword: (userId: string | number) => 
+  `/auth/department-heads/${userId}/reset-password`,
 
   /* =======================     Dean Assessment Endpoints ======================== */
   getDeanHeadApprovedScores: "/deans/head-approved-scores",

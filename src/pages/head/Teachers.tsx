@@ -10,16 +10,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   UserPlus,
   Mail,
@@ -30,7 +23,7 @@ import {
 } from "lucide-react";
 import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
-import { useNavigate } from "react-router-dom";
+
 type Teacher = {
   teacherId: number;
   fullName: string;
@@ -39,7 +32,6 @@ type Teacher = {
   phoneNumber: string;
   yearsOfExperience: number;
   numberOfCourses: number;
-  // Optional: if backend sends Amharic names or photo in future
   firstNameAmharic?: string;
   lastNameAmharic?: string;
   photographBase64?: string;
@@ -51,7 +43,6 @@ export default function HeadTeachers() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
 
   // Fetch real teachers on mount
   useEffect(() => {
@@ -59,8 +50,7 @@ export default function HeadTeachers() {
       setLoading(true);
       setError(null);
       try {
-        const res = await apiClient.get(endPoints.departmentTeachers); // Adjust if your endPoints has a specific key
-        // Assuming endPoints.departmentTeachers = "/department-heads/teachers"
+        const res = await apiClient.get(endPoints.departmentTeachers);
 
         if (res.data && Array.isArray(res.data)) {
           setTeachers(res.data);
@@ -164,7 +154,7 @@ export default function HeadTeachers() {
                     <th className="py-3 pr-6">Title</th>
                     <th className="py-3 pr-6">Courses</th>
                     <th className="py-3 pr-6">Actions</th>
-                  </tr>
+                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
@@ -180,7 +170,8 @@ export default function HeadTeachers() {
                     filtered.map((teacher) => (
                       <tr
                         key={teacher.teacherId}
-                        className="border-b hover:bg-muted/50"
+                        className="border-b hover:bg-muted/50 cursor-pointer"
+                        onClick={() => navigate(`/head/teachers/${teacher.teacherId}`)}
                       >
                         <td className="py-4 pr-6">
                           <Avatar>
@@ -200,10 +191,6 @@ export default function HeadTeachers() {
                         </td>
                         <td className="py-4 pr-6">
                           <div className="font-medium">{teacher.fullName}</div>
-                          {/* If Amharic name is added later */}
-                          {/* <div className="text-sm text-muted-foreground font-geez">
-                            {teacher.firstNameAmharic} {teacher.lastNameAmharic}
-                          </div> */}
                         </td>
                         <td className="py-4 pr-6">
                           <Badge variant="secondary">Your Department</Badge>
@@ -215,123 +202,16 @@ export default function HeadTeachers() {
                           </Badge>
                         </td>
                         <td className="py-4 pr-6">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                // onClick={() => setSelectedTeacher(teacher)}
-                                onClick={() =>
-                                  navigate(
-                                    "/head/teachers/" + teacher.teacherId
-                                  )
-                                }
-                              >
-                                View Profile
-                              </Button>
-                            </DialogTrigger>
-
-                            <DialogContent className="max-w-2xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-2xl">
-                                  Teacher Profile
-                                </DialogTitle>
-                              </DialogHeader>
-
-                              {selectedTeacher && (
-                                <div className="space-y-6 py-6">
-                                  <div className="flex items-center gap-6">
-                                    <Avatar className="h-24 w-24">
-                                      <AvatarImage
-                                        src={
-                                          selectedTeacher.photographBase64 ||
-                                          undefined
-                                        }
-                                      />
-                                      <AvatarFallback className="text-2xl">
-                                        {selectedTeacher.fullName
-                                          .split(" ")
-                                          .map((n) => n[0])
-                                          .join("")}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <h3 className="text-xl font-semibold">
-                                        {selectedTeacher.fullName}
-                                      </h3>
-                                      <p className="text-muted-foreground">
-                                        ID: {selectedTeacher.teacherId}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                      <div className="flex items-center gap-3">
-                                        <Briefcase className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">
-                                            Academic Title
-                                          </p>
-                                          <p className="font-medium">
-                                            {selectedTeacher.title}
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      <div className="flex items-center gap-3">
-                                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">
-                                            Experience
-                                          </p>
-                                          <p className="font-medium">
-                                            {selectedTeacher.yearsOfExperience}{" "}
-                                            years
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      <div>
-                                        <p className="text-sm text-muted-foreground">
-                                          Courses Assigned
-                                        </p>
-                                        <p className="font-medium text-lg">
-                                          {selectedTeacher.numberOfCourses}
-                                        </p>
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                      <div className="flex items-center gap-3">
-                                        <Mail className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">
-                                            Email
-                                          </p>
-                                          <p className="font-medium">
-                                            {selectedTeacher.email}
-                                          </p>
-                                        </div>
-                                      </div>
-
-                                      <div className="flex items-center gap-3">
-                                        <Phone className="h-5 w-5 text-muted-foreground" />
-                                        <div>
-                                          <p className="text-sm text-muted-foreground">
-                                            Phone
-                                          </p>
-                                          <p className="font-medium">
-                                            {selectedTeacher.phoneNumber}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </DialogContent>
-                          </Dialog>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/head/teachers/${teacher.teacherId}`);
+                            }}
+                          >
+                            View Profile
+                          </Button>
                         </td>
                       </tr>
                     ))

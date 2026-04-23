@@ -1663,6 +1663,7 @@ const ProgressIndicator = ({ currentStep, totalSteps }) => {
 
 // Main Multi-Step Form Component
 const MultiStepRegistrationForm = () => {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
   const [errorMessage, setErrorMessage] = useState("");
@@ -2257,136 +2258,111 @@ const MultiStepRegistrationForm = () => {
           id="contact"
           className="relative w-full mt-5 flex items-center justify-center overflow-hidden"
         >
-          {/* Light rays absolutely positioned behind content */}
-          <div className="absolute inset-0 z-0 pointer-events-none">
-            <LightRays
-              raysOrigin="top-center"
-              raysColor="#ffffff"
-              raysSpeed={1}
-              lightSpread={1}
-              rayLength={2}
-              pulsating={true}
-              fadeDistance={1}
-              saturation={1}
-              followMouse={true}
-              mouseInfluence={0.1}
-              noiseAmount={0}
-              distortion={0}
-              className="w-full h-full"
-            />
-          </div>
-          {/* <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12"> */}
-
-          <footer className="text-white py-1">
-            <div className="container mx-auto px-4">
-              <div className="grid md:grid-cols-4 gap-8">
-                <div>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-12 rounded-full   rounded-lg flex items-center justify-center">
-                      <img
-                        src="/assets/companylogo.jpg"
-                        className="h-[50px] w-full rounded-full "
-                      />
+        <div className="absolute inset-0 z-0 pointer-events-none">
+                  <LightRays
+                    raysOrigin="top-center"
+                    raysColor="#ffffff"
+                    raysSpeed={1}
+                    lightSpread={1}
+                    rayLength={2}
+                    pulsating={true}
+                    fadeDistance={1}
+                    saturation={1}
+                    followMouse={true}
+                    mouseInfluence={0.1}
+                    noiseAmount={0}
+                    distortion={0}
+                    className="w-full h-full"
+                  />
+                </div>
+    
+                <footer className="text-white py-1">
+                  <div className="container mx-auto px-4">
+                    <div className="grid md:grid-cols-4 gap-8">
+                      <div>
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-12 rounded-full rounded-lg flex items-center justify-center">
+                            <img
+                              src="/assets/companylogo.jpg"
+                              className="h-[50px] w-full rounded-full"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-gray-500 hover:text-gray-400 dark:text-white font-bold">
+                              DEUTSCHE HOCHSCHULE
+                            </h3>
+                            <p className="text-gray-500 hover:text-gray-400 dark:text-white text-sm text-">
+                              FÜR MEDIZIN COLLEGE
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-blue-600 hover:text-gray-400">
+                          Excellence in medical education since 2020.
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className=" text-gray-500 hover:text-gray-400 dark:text-white font-semibold mb-4">Quick Links</h4>
+                        <ul className="space-y-2 text-black">
+                          <li>
+                            <Link
+                              to="/register"
+                              className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                            >
+                              Apply Now
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              to="/login"
+                              className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                            >
+                              Student Portal
+                            </Link>
+                          </li>
+                          <li>
+                            <a
+                              href="#programs"
+                              className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                            >
+                              Programs
+                            </a>
+                          </li>
+                          <li>
+                            <a
+                              href="#"
+                              className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
+                            >
+                              Research
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-4">{t("contact")}</h4>
+                        <ul className="space-y-2 ">
+                          <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                            Kebele 14, In front of NOC, Tofik Real Estate, Bahir Dar
+                          </li>
+                          <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                            +251 90 039 2346/+251583207659
+                          </li>
+                          <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                            info@deutsche-hochschule-fuer-medizin.com
+                          </li>
+                          <li className="text-blue-600 hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
+                            P.O.Box: 364
+                          </li>
+                        </ul>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold">some</h3>
-                      <p className="text-sm text-">thing</p>
+                    <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                      <p>
+                        Deutsche Hochschule für Medizin College Bahirdar Website.
+                      </p>
                     </div>
                   </div>
-                  <p className="text-gray-400">
-                    Excellence in medical education since 1985.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-4">Quick Links</h4>
-                  <ul className="space-y-2 text-black">
-                    <li>
-                      <Link
-                        to="/register"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                      >
-                        Apply Now
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/login"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                      >
-                        Student Portal
-                      </Link>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                      >
-                        Programs
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400"
-                      >
-                        Research
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-4">something</h4>
-                  <ul className="space-y-2 ">
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                      123 Medical Campus Drive
-                    </li>
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                      Berlin, Germany 10115
-                    </li>
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                      +49 30 1234 5678
-                    </li>
-                    <li className="text-black hover:text-gray-400 dark:text-white dark:hover:text-gray-400">
-                      info@dhfm-college.de
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-4">Follow Us</h4>
-                  <div className="flex space-x-4">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-400 hover:text-white"
-                    >
-                      <span className="sr-only">Facebook</span>📘
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-400 hover:text-white"
-                    >
-                      <span className="sr-only">Twitter</span>🐦
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-400 hover:text-white"
-                    >
-                      <span className="sr-only">LinkedIn</span>💼
-                    </Button>
-                  </div>
-                </div>
+                </footer>
               </div>
-              <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>
-                  Deutsche Hochschule für Medizin College. All
-                  rights reserved.
-                </p>
-              </div>
-            </div>
-          </footer>
-        </div>
       </div>
     </div>
   );
