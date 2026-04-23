@@ -199,6 +199,10 @@ const endPoints = {
   updateViceDean: "/vice-deans",
   getViceDeanPhoto: "/vice-deans/get-photo",
   getViceDeanDocument: "/vice-deans/get-document",
+  
+  /* =======================     Department Heads  ======================== */
+resetDepartmentHeadPassword: (userId: string | number) => 
+  `/auth/department-heads/${userId}/reset-password`,
 
   /* =======================     Dean Assessment Endpoints ======================== */
   getDeanHeadApprovedScores: "/deans/head-approved-scores",

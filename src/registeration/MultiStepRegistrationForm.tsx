@@ -2301,7 +2301,7 @@ const MultiStepRegistrationForm = () => {
                         </p>
                       </div>
                       <div>
-                        <h4 className="font-semibold mb-4">Quick Links</h4>
+                        <h4 className=" text-gray-500 hover:text-gray-400 dark:text-white font-semibold mb-4">Quick Links</h4>
                         <ul className="space-y-2 text-black">
                           <li>
                             <Link
