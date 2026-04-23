@@ -447,7 +447,7 @@
 //   );
 // }
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -471,6 +471,8 @@ import {
   ChevronDown,
   ChevronUp,
   Eye,
+  Printer,
+  Download,
 } from "lucide-react";
 import apiService from "@/components/api/apiService";
 import apiClient from "@/components/api/apiClient";
@@ -632,6 +634,38 @@ export default function FormsCenter() {
       .join(" ");
   };
 
+  // Disable keyboard shortcuts for print and save
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Disable Ctrl+P, Cmd+P (Print)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      e.preventDefault();
+      toast({
+        title: "Printing Disabled",
+        description: "Printing is not allowed for this form. Please contact the administration if you need a physical copy.",
+        variant: "destructive",
+      });
+    }
+    // Disable Ctrl+S, Cmd+S (Save)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      toast({
+        title: "Saving Disabled",
+        description: "Saving is not allowed for this form.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Prevent context menu (right-click)
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Actions Disabled",
+      description: "Download, save, and print options are disabled for this form.",
+      variant: "destructive",
+    });
+  };
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl space-y-6">
       <div className="flex justify-between items-center">
@@ -697,7 +731,7 @@ export default function FormsCenter() {
               ? "Loading your available forms..."
               : forms.length === 0
                 ? "No forms are currently available"
-                : "Click Preview to view the form"}
+                : "Click Preview to view the form (Download and printing are disabled)"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -754,36 +788,61 @@ export default function FormsCenter() {
         </CardContent>
       </Card>
 
-      {/* Preview Dialog - No download option */}
+      {/* Preview Dialog - Compatible with Microsoft Edge */}
       <Dialog open={!!previewForm} onOpenChange={(open) => !open && closePreview()}>
-        <DialogContent className="max-w-4xl w-[90vw] h-[85vh]">
-          <DialogHeader>
+        <DialogContent
+          className="max-w-[95vw] w-full h-[95vh] p-0 sm:p-6"
+          onKeyDown={handleKeyDown}
+          onContextMenu={handleContextMenu}
+        >
+          <DialogHeader className="px-4 pt-4 sm:px-6 sm:pt-0">
             <DialogTitle>
               Preview: {previewForm ? formatFormName(previewForm.name) : ""}
             </DialogTitle>
-            <DialogDescription>
-              View the form content below. Downloads are disabled for this form.
+            <DialogDescription className="flex items-center gap-2">
+              <span>View-only mode. Downloads and printing are disabled.</span>
+              <Badge variant="destructive" className="text-xs">
+                No Download / No Print
+              </Badge>
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 min-h-0 mt-4">
+          <div className="flex-1 min-h-0 mt-2 px-1 sm:px-2">
             {previewLoading ? (
               <div className="flex flex-col items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                 <p className="mt-2 text-muted-foreground">Loading preview...</p>
               </div>
             ) : previewUrl ? (
-              <iframe
-                src={previewUrl}
-                className="w-full h-full border-0 rounded-lg"
-                title={`Preview of ${previewForm?.name}`}
-              />
+              <object
+                data={previewUrl}
+                type="application/pdf"
+                className="w-full h-full rounded-lg"
+                style={{ minHeight: "calc(95vh - 140px)" }}
+              >
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground mb-2">
+                    PDF viewer is not supported in your browser.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Please use a modern browser like Chrome, Firefox, or Edge to view this form.
+                  </p>
+                </div>
+              </object>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
+                <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground">Unable to load preview</p>
               </div>
             )}
           </div>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-between items-center gap-2 p-4 sm:p-6 pt-2">
+            <div className="text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Printer className="h-3 w-3" />
+                Printing disabled
+              </span>
+            </div>
             <Button variant="default" onClick={closePreview}>
               Close
             </Button>
