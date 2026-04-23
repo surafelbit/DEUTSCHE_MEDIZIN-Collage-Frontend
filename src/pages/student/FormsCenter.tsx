@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -11,12 +10,20 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   FileText,
   Loader2,
   Download,
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  Eye,
 } from "lucide-react";
 import apiService from "@/components/api/apiService";
 import apiClient from "@/components/api/apiClient";
@@ -37,7 +44,7 @@ interface FormTemplate {
   updatedAt: string;
 }
 
-// Academic policies
+// Academic policies 
 const policies = [
   {
     section: "1. Readmission",
@@ -46,9 +53,9 @@ const policies = [
       "A student who is subject to academic dismissal cannot claim readmission as a matter of right",
       "A student may apply for re-admission at least after one semester following withdrawal from the College except for CEP students who may apply for readmission at any time",
       "A student may be readmitted after academic dismissal only when all of the following are fulfilled:",
-      "  • A student whose academic status is dismissed but allowed to repeat deficient modules/courses may be readmitted following withdrawal from the College",
-      "  • Space is available in the programme and there exists a likelihood that the student will raise his grade point to the required level after removing any deficiencies which should not take more than two consecutive semesters",
-      "  • If the maximum duration of stay in the programme has not expired or is not likely to expire before the completion of the remaining courses of study",
+      " • A student whose academic status is dismissed but allowed to repeat deficient modules/courses may be readmitted following withdrawal from the College",
+      " • Space is available in the programme and there exists a likelihood that the student will raise his grade point to the required level after removing any deficiencies which should not take more than two consecutive semesters",
+      " • If the maximum duration of stay in the programme has not expired or is not likely to expire before the completion of the remaining courses of study",
       "A student who officially withdraws due to personal reasons can be readmitted if the maximum duration of stay in the programme has not expired or is not likely to expire before the completion of the remaining courses of study",
       "An academically dismissed student, who is re-admitted and allowed to repeat a course or courses in a given semester or, in case of part-time regular and CEP a maximum of two consecutive semesters, shall be dismissed for good for not attaining good academic standing upon determination of status",
       "Readmission is permitting a student dismissed for academic reasons or withdrew for non-academic reasons to attend a program for the second time. Readmission will be allowed subject to the availability of space",
@@ -78,6 +85,9 @@ export default function FormsCenter() {
   const [forms, setForms] = useState<FormTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [previewForm, setPreviewForm] = useState<FormTemplate | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [showPolicies, setShowPolicies] = useState(false);
   const { toast } = useToast();
 
@@ -179,6 +189,57 @@ export default function FormsCenter() {
     }
   };
 
+  const handlePreviewForm = async (form: FormTemplate) => {
+    try {
+      setPreviewForm(form);
+      setPreviewLoading(true);
+
+      const response = await apiClient.get(
+        endPoints.downloadFormTemplate(form.id),
+        {
+          responseType: "blob",
+        },
+      );
+
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    } catch (error: any) {
+      console.error("Error previewing form:", error);
+
+      if (error.response?.status === 403) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to view this form",
+          variant: "destructive",
+        });
+      } else if (error.response?.status === 404) {
+        toast({
+          title: "Not Found",
+          description: "The requested form could not be found.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Preview Failed",
+          description: "An error occurred while loading the form for preview.",
+          variant: "destructive",
+        });
+      }
+      setPreviewForm(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewForm(null);
+    setPreviewUrl(null);
+  };
+
   const formatFormName = (name: string) => {
     return name
       .split(/[-_]/)
@@ -187,16 +248,16 @@ export default function FormsCenter() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Forms Center</h1>
-        <p className="text-blue-100">
-          View and access all student service forms in one place.
-        </p>
-      </div>
+    <div className="container mx-auto py-8 px-4 max-w-4xl space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Forms Center</h1>
+          <p className="text-muted-foreground mt-2">
+            View and access all student service forms in one place.
+          </p>
+        </div>
 
-      {/* Help Button and Policies Section */}
-      <div className="flex justify-end">
+        {/* Help Button and Policies Section */}
         <Button
           variant="outline"
           onClick={() => setShowPolicies(!showPolicies)}
@@ -225,10 +286,8 @@ export default function FormsCenter() {
             <div className="space-y-6">
               {policies.map((policy, idx) => (
                 <div key={idx}>
-                  <h3 className="font-semibold text-lg mb-3">
-                    {policy.section}
-                  </h3>
-                  <ul className="list-decimal pl-5 space-y-2">
+                  <h3 className="font-semibold text-lg mb-3">{policy.section}</h3>
+                  <ul className="list-disc pl-6 space-y-2">
                     {policy.rules.map((rule, ruleIdx) => (
                       <li
                         key={ruleIdx}
@@ -258,14 +317,16 @@ export default function FormsCenter() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex justify-center items-center py-8">
+            <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <span className="ml-2">Loading forms...</span>
+              <p className="mt-2 text-muted-foreground">Loading forms...</p>
             </div>
           ) : forms.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-12">
               <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No forms available at the moment.</p>
+              <p className="text-muted-foreground">
+                No forms available at the moment.
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -274,46 +335,114 @@ export default function FormsCenter() {
                   key={form.id}
                   className="rounded-lg border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 >
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">
-                        {formatFormName(form.name)}
-                      </h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold">{formatFormName(form.name)}</h3>
                       <Badge variant="default">Available</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {form.description || "No description"}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground mt-1">
                       For: {form.forRoles.join(", ")} • Updated:{" "}
                       {new Date(form.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
 
-                  <Button
-                    className="w-full sm:w-auto"
-                    variant="outline"
-                    onClick={() => handleDownloadForm(form)}
-                    disabled={downloadingId === form.id}
-                  >
-                    {downloadingId === form.id ? (
-                      <>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                      className="flex-1 sm:flex-none"
+                      variant="outline"
+                      onClick={() => handlePreviewForm(form)}
+                      disabled={previewLoading || downloadingId === form.id}
+                    >
+                      {previewLoading && previewForm?.id === form.id ? (
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Downloading...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </>
-                    )}
-                  </Button>
+                      ) : (
+                        <Eye className="h-4 w-4 mr-2" />
+                      )}
+                      Preview
+                    </Button>
+
+                    <Button
+                      className="flex-1 sm:flex-none"
+                      variant="outline"
+                      onClick={() => handleDownloadForm(form)}
+                      disabled={downloadingId === form.id || (previewLoading && previewForm?.id === form.id)}
+                    >
+                      {downloadingId === form.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Downloading...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewForm} onOpenChange={(open) => !open && closePreview()}>
+        <DialogContent className="max-w-4xl w-[90vw] h-[85vh]">
+          <DialogHeader>
+            <DialogTitle>
+              Preview: {previewForm ? formatFormName(previewForm.name) : ""}
+            </DialogTitle>
+            <DialogDescription>
+              View the form content below. You can download it using the download button if needed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 mt-4">
+            {previewLoading ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="mt-2 text-muted-foreground">Loading preview...</p>
+              </div>
+            ) : previewUrl ? (
+              <iframe
+                src={previewUrl}
+                className="w-full h-full border-0 rounded-lg"
+                title={`Preview of ${previewForm?.name}`}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full">
+                <p className="text-muted-foreground">Unable to load preview</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            {previewForm && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  closePreview();
+                  handleDownloadForm(previewForm);
+                }}
+                disabled={downloadingId === previewForm.id}
+              >
+                {downloadingId === previewForm.id ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Download
+              </Button>
+            )}
+            <Button variant="default" onClick={closePreview}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
