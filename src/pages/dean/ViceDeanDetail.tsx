@@ -19,6 +19,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
 import {
@@ -43,7 +52,10 @@ import {
   Download,
   Loader2,
   Camera,
+  Key,
+  Lock,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type Region = {
   regionCode: string;
@@ -65,6 +77,7 @@ type Woreda = {
 
 type ViceDeanDetail = {
   id: number;
+  userId?: number;
   username: string;
   firstNameAMH: string;
   firstNameENG: string;
@@ -88,7 +101,7 @@ type ViceDeanDetail = {
   hasDocument: boolean;
   role: "VICE_DEAN";
   active: boolean;
-  photo?: string | null; // Added photo field
+  photo?: string | null;
 };
 
 type UpdateRequest = {
@@ -118,9 +131,12 @@ export default function ViceDeanDetail() {
   const [originalViceDean, setOriginalViceDean] = useState<ViceDeanDetail | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null); // Changed from photoBase64 to photoPreview
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [documentBase64, setDocumentBase64] = useState<string | null>(null);
   const [documentFileName, setDocumentFileName] = useState<string>("vice_dean_document.pdf");
   const [loadingPhoto, setLoadingPhoto] = useState(false);
@@ -151,15 +167,12 @@ export default function ViceDeanDetail() {
       return null;
     }
 
-    // Check if it's already a data URL
     if (photoData.startsWith('data:')) {
       setPhotoPreview(photoData);
       return photoData;
     }
 
-    // Handle base64 string without data URL prefix
-    if (photoData.length > 100) { // Likely a base64 string
-      // Check if it looks like base64 (contains alphanumeric, +, /, =)
+    if (photoData.length > 100) {
       const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
       if (base64Regex.test(photoData.replace(/\n/g, ''))) {
         const photoUrl = `data:image/jpeg;base64,${photoData}`;
@@ -168,7 +181,6 @@ export default function ViceDeanDetail() {
       }
     }
 
-    // If it's a URL or other format
     setPhotoPreview(photoData);
     return photoData;
   };
@@ -186,7 +198,6 @@ export default function ViceDeanDetail() {
         responseType: 'arraybuffer'
       });
       
-      // Convert array buffer to base64
       const base64 = btoa(
         new Uint8Array(response.data).reduce(
           (data, byte) => data + String.fromCharCode(byte),
@@ -216,12 +227,10 @@ export default function ViceDeanDetail() {
         responseType: 'arraybuffer'
       });
       
-      // Check content type from response headers
       const contentType = response.headers['content-type'] || 'application/pdf';
       const isPDF = contentType.includes('pdf');
       const isImage = contentType.includes('image');
       
-      // Convert array buffer to base64
       const base64 = btoa(
         new Uint8Array(response.data).reduce(
           (data, byte) => data + String.fromCharCode(byte),
@@ -247,6 +256,58 @@ export default function ViceDeanDetail() {
     }
   }, [id, viceDean?.hasDocument]);
 
+  // Reset password function
+  const handleResetPassword = async () => {
+    if (!id || !viceDean) return;
+
+    if (!newPassword) {
+      toast.error("Please enter a new password");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      setResetPasswordLoading(true);
+      
+      const userId = viceDean.userId || viceDean.id;
+      
+      const response = await apiClient.post(
+        endPoints.resetViceDeanPassword(userId),
+        { newPassword: newPassword }
+      );
+
+      toast.success(response.data?.message || "Vice-Dean password reset successfully!");
+      
+      setPasswordDialogOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      
+    } catch (err: any) {
+      console.error("Password reset error:", err);
+      
+      if (err.response?.status === 403) {
+        toast.error("Insufficient privileges to reset vice-dean password");
+      } else if (err.response?.status === 404) {
+        toast.error("User not found");
+      } else if (err.response?.status === 400) {
+        toast.error(err.response.data?.message || "Invalid password");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to reset password. Please try again.");
+      }
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
   // Fetch vice dean details
   const fetchViceDean = useCallback(async () => {
     if (!id) {
@@ -260,7 +321,6 @@ export default function ViceDeanDetail() {
     try {
       const res = await apiClient.get(`${endPoints.getViceDeanById}/${id}`);
       
-      // Process photo data if it exists in the response
       const processedData = {
         ...res.data,
         hasPhoto: res.data.hasPhoto || !!res.data.photo,
@@ -271,12 +331,10 @@ export default function ViceDeanDetail() {
       setOriginalViceDean(structuredClone(processedData));
       console.log("Vice Dean data:", processedData);
       
-      // If photo data wasn't in the response but hasPhoto is true, fetch separately
       if (!processedData.photo && processedData.hasPhoto) {
         await fetchPhoto();
       }
       
-      // Fetch document if needed
       if (processedData.hasDocument) {
         await fetchDocument();
       }
@@ -361,12 +419,10 @@ export default function ViceDeanDetail() {
     if (editMode && viceDean) {
       fetchRegions();
       
-      // Load zones if region exists
       if (viceDean.residenceRegionCode) {
         fetchZones(viceDean.residenceRegionCode);
       }
       
-      // Load woredas if zone exists
       if (viceDean.residenceZoneCode) {
         fetchWoredas(viceDean.residenceZoneCode);
       }
@@ -386,155 +442,148 @@ export default function ViceDeanDetail() {
     return `${data.firstNameAMH} ${data.fatherNameAMH} ${data.grandfatherNameAMH}`;
   };
 
-const hasChanges = () => {
-  if (!viceDean || !originalViceDean) return false;
-  
-  const changed = 
-    viceDean.firstNameAMH !== originalViceDean.firstNameAMH ||
-    viceDean.firstNameENG !== originalViceDean.firstNameENG ||
-    viceDean.fatherNameAMH !== originalViceDean.fatherNameAMH ||
-    viceDean.fatherNameENG !== originalViceDean.fatherNameENG ||
-    viceDean.grandfatherNameAMH !== originalViceDean.grandfatherNameAMH ||
-    viceDean.grandfatherNameENG !== originalViceDean.grandfatherNameENG ||
-    viceDean.gender !== originalViceDean.gender ||
-    viceDean.email !== originalViceDean.email ||
-    viceDean.phoneNumber !== originalViceDean.phoneNumber ||
-    viceDean.residenceRegionCode !== originalViceDean.residenceRegionCode ||
-    viceDean.residenceZoneCode !== originalViceDean.residenceZoneCode ||
-    viceDean.residenceWoredaCode !== originalViceDean.residenceWoredaCode ||
-    viceDean.hiredDateGC !== originalViceDean.hiredDateGC ||
-    viceDean.title !== originalViceDean.title ||
-    viceDean.remarks !== originalViceDean.remarks ||
-    newPassword.trim() !== "" ||
-    selectedPhoto !== null ||  // Photo change detected
-    selectedDocument !== null;  // Document change detected
-  
-  return changed;
-};
-
-const handleSave = async () => {
-  if (!viceDean || !originalViceDean || !id) {
-    setEditMode(false);
-    return;
-  }
-
-  if (!hasChanges()) {
-    setEditMode(false);
-    setSuccess("No changes detected.");
-    return;
-  }
-
-  setSaving(true);
-  setError(null);
-  setSuccess(null);
-
-  try {
-    const formData = new FormData();
-    const payload: UpdateRequest = {};
-
-    // Build payload with only changed fields
-    if (viceDean.firstNameAMH !== originalViceDean.firstNameAMH) {
-      payload.firstNameAMH = viceDean.firstNameAMH;
-    }
-    if (viceDean.firstNameENG !== originalViceDean.firstNameENG) {
-      payload.firstNameENG = viceDean.firstNameENG;
-    }
-    if (viceDean.fatherNameAMH !== originalViceDean.fatherNameAMH) {
-      payload.fatherNameAMH = viceDean.fatherNameAMH;
-    }
-    if (viceDean.fatherNameENG !== originalViceDean.fatherNameENG) {
-      payload.fatherNameENG = viceDean.fatherNameENG;
-    }
-    if (viceDean.grandfatherNameAMH !== originalViceDean.grandfatherNameAMH) {
-      payload.grandfatherNameAMH = viceDean.grandfatherNameAMH;
-    }
-    if (viceDean.grandfatherNameENG !== originalViceDean.grandfatherNameENG) {
-      payload.grandfatherNameENG = viceDean.grandfatherNameENG;
-    }
-    if (viceDean.gender !== originalViceDean.gender) {
-      payload.gender = viceDean.gender;
-    }
-    if (viceDean.email !== originalViceDean.email) {
-      payload.email = viceDean.email;
-    }
-    if (viceDean.phoneNumber !== originalViceDean.phoneNumber) {
-      payload.phoneNumber = viceDean.phoneNumber;
-    }
-    if (viceDean.residenceRegionCode !== originalViceDean.residenceRegionCode) {
-      payload.residenceRegionCode = viceDean.residenceRegionCode;
-    }
-    if (viceDean.residenceZoneCode !== originalViceDean.residenceZoneCode) {
-      payload.residenceZoneCode = viceDean.residenceZoneCode;
-    }
-    if (viceDean.residenceWoredaCode !== originalViceDean.residenceWoredaCode) {
-      payload.residenceWoredaCode = viceDean.residenceWoredaCode;
-    }
-    if (viceDean.hiredDateGC !== originalViceDean.hiredDateGC) {
-      payload.hiredDateGC = viceDean.hiredDateGC;
-    }
-    if (viceDean.title !== originalViceDean.title) {
-      payload.title = viceDean.title;
-    }
-    if (viceDean.remarks !== originalViceDean.remarks) {
-      payload.remarks = viceDean.remarks;
-    }
-    if (newPassword.trim() !== "") {
-      payload.password = newPassword;
-    }
-
-    // ALWAYS include the data field, even if payload is empty
-    // This is required by the backend
-    const jsonBlob = new Blob([JSON.stringify(payload)], {
-      type: "application/json",
-    });
-    formData.append("data", jsonBlob, "data.json");
-
-    // Add files if selected
-    if (selectedPhoto) {
-      formData.append("photograph", selectedPhoto);
-    }
-
-    if (selectedDocument) {
-      formData.append("document", selectedDocument);
-    }
-
-    // Send update request
-    const res = await apiClient.put(
-      `${endPoints.updateViceDean}/${id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+  const hasChanges = () => {
+    if (!viceDean || !originalViceDean) return false;
     
-    setSuccess("Vice dean updated successfully!");
-    await fetchViceDean();
-    setEditMode(false);
-    setNewPassword("");
-    setSelectedPhoto(null);
-    setSelectedDocument(null);
+    const changed = 
+      viceDean.firstNameAMH !== originalViceDean.firstNameAMH ||
+      viceDean.firstNameENG !== originalViceDean.firstNameENG ||
+      viceDean.fatherNameAMH !== originalViceDean.fatherNameAMH ||
+      viceDean.fatherNameENG !== originalViceDean.fatherNameENG ||
+      viceDean.grandfatherNameAMH !== originalViceDean.grandfatherNameAMH ||
+      viceDean.grandfatherNameENG !== originalViceDean.grandfatherNameENG ||
+      viceDean.gender !== originalViceDean.gender ||
+      viceDean.email !== originalViceDean.email ||
+      viceDean.phoneNumber !== originalViceDean.phoneNumber ||
+      viceDean.residenceRegionCode !== originalViceDean.residenceRegionCode ||
+      viceDean.residenceZoneCode !== originalViceDean.residenceZoneCode ||
+      viceDean.residenceWoredaCode !== originalViceDean.residenceWoredaCode ||
+      viceDean.hiredDateGC !== originalViceDean.hiredDateGC ||
+      viceDean.title !== originalViceDean.title ||
+      viceDean.remarks !== originalViceDean.remarks ||
+      newPassword.trim() !== "" ||
+      selectedPhoto !== null ||
+      selectedDocument !== null;
+    
+    return changed;
+  };
 
-    // Reset file inputs
-    if (photoInputRef.current) photoInputRef.current.value = "";
-    if (documentInputRef.current) documentInputRef.current.value = "";
-  } catch (err: any) {
-    console.error("Update failed:", err);
-    setError(
-      err.response?.data?.error ||
-      err.response?.data?.message ||
-      "Failed to update vice dean profile."
-    );
-  } finally {
-    setSaving(false);
-  }
-};
+  const handleSave = async () => {
+    if (!viceDean || !originalViceDean || !id) {
+      setEditMode(false);
+      return;
+    }
+
+    if (!hasChanges()) {
+      setEditMode(false);
+      setSuccess("No changes detected.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const formData = new FormData();
+      const payload: UpdateRequest = {};
+
+      if (viceDean.firstNameAMH !== originalViceDean.firstNameAMH) {
+        payload.firstNameAMH = viceDean.firstNameAMH;
+      }
+      if (viceDean.firstNameENG !== originalViceDean.firstNameENG) {
+        payload.firstNameENG = viceDean.firstNameENG;
+      }
+      if (viceDean.fatherNameAMH !== originalViceDean.fatherNameAMH) {
+        payload.fatherNameAMH = viceDean.fatherNameAMH;
+      }
+      if (viceDean.fatherNameENG !== originalViceDean.fatherNameENG) {
+        payload.fatherNameENG = viceDean.fatherNameENG;
+      }
+      if (viceDean.grandfatherNameAMH !== originalViceDean.grandfatherNameAMH) {
+        payload.grandfatherNameAMH = viceDean.grandfatherNameAMH;
+      }
+      if (viceDean.grandfatherNameENG !== originalViceDean.grandfatherNameENG) {
+        payload.grandfatherNameENG = viceDean.grandfatherNameENG;
+      }
+      if (viceDean.gender !== originalViceDean.gender) {
+        payload.gender = viceDean.gender;
+      }
+      if (viceDean.email !== originalViceDean.email) {
+        payload.email = viceDean.email;
+      }
+      if (viceDean.phoneNumber !== originalViceDean.phoneNumber) {
+        payload.phoneNumber = viceDean.phoneNumber;
+      }
+      if (viceDean.residenceRegionCode !== originalViceDean.residenceRegionCode) {
+        payload.residenceRegionCode = viceDean.residenceRegionCode;
+      }
+      if (viceDean.residenceZoneCode !== originalViceDean.residenceZoneCode) {
+        payload.residenceZoneCode = viceDean.residenceZoneCode;
+      }
+      if (viceDean.residenceWoredaCode !== originalViceDean.residenceWoredaCode) {
+        payload.residenceWoredaCode = viceDean.residenceWoredaCode;
+      }
+      if (viceDean.hiredDateGC !== originalViceDean.hiredDateGC) {
+        payload.hiredDateGC = viceDean.hiredDateGC;
+      }
+      if (viceDean.title !== originalViceDean.title) {
+        payload.title = viceDean.title;
+      }
+      if (viceDean.remarks !== originalViceDean.remarks) {
+        payload.remarks = viceDean.remarks;
+      }
+      if (newPassword.trim() !== "") {
+        payload.password = newPassword;
+      }
+
+      const jsonBlob = new Blob([JSON.stringify(payload)], {
+        type: "application/json",
+      });
+      formData.append("data", jsonBlob, "data.json");
+
+      if (selectedPhoto) {
+        formData.append("photograph", selectedPhoto);
+      }
+
+      if (selectedDocument) {
+        formData.append("document", selectedDocument);
+      }
+
+      await apiClient.put(
+        `${endPoints.updateViceDean}/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      
+      setSuccess("Vice dean updated successfully!");
+      await fetchViceDean();
+      setEditMode(false);
+      setNewPassword("");
+      setSelectedPhoto(null);
+      setSelectedDocument(null);
+
+      if (photoInputRef.current) photoInputRef.current.value = "";
+      if (documentInputRef.current) documentInputRef.current.value = "";
+    } catch (err: any) {
+      console.error("Update failed:", err);
+      setError(
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Failed to update vice dean profile."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCancel = () => {
     if (originalViceDean) {
       setViceDean(structuredClone(originalViceDean));
-      // Reset photo preview to original
       setPhotoPreview(originalViceDean.photo || null);
     }
     setEditMode(false);
@@ -544,7 +593,6 @@ const handleSave = async () => {
     setSelectedPhoto(null);
     setSelectedDocument(null);
     
-    // Reset cascading selects
     setZones([]);
     setWoredas([]);
     
@@ -589,20 +637,17 @@ const handleSave = async () => {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image file size must be less than 5MB");
         return;
       }
       
-      // Check file type
       if (!file.type.startsWith('image/')) {
         setError("Please select an image file");
         return;
       }
       
       setSelectedPhoto(file);
-      // Create preview for the new photo
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
@@ -614,7 +659,6 @@ const handleSave = async () => {
   const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         setError("Document file size must be less than 10MB");
         return;
@@ -721,35 +765,117 @@ const handleSave = async () => {
             </p>
           </div>
 
-          {!editMode ? (
-            <Button
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={() => setEditMode(true)}
-            >
-              <Edit3 className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
-          ) : (
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={saving}
-                className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
+          <div className="flex gap-3">
+            {/* Reset Password Button */}
+            <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20"
+                >
+                  <Key className="h-4 w-4 mr-2" />
+                  Reset Password
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-yellow-600" />
+                    Reset Password
+                  </DialogTitle>
+                  <DialogDescription>
+                    Reset password for {viceDean.firstNameENG} {viceDean.fatherNameENG}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      New Password
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500">Password must be at least 6 characters long</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Confirm Password
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setPasswordDialogOpen(false);
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleResetPassword}
+                    disabled={resetPasswordLoading}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    {resetPasswordLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Resetting...
+                      </>
+                    ) : (
+                      <>
+                        <Key className="h-4 w-4 mr-2" />
+                        Reset Password
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {!editMode ? (
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleSave}
-                disabled={saving || !hasChanges()}
+                onClick={() => setEditMode(true)}
               >
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? "Saving..." : "Save Changes"}
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit Profile
               </Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleSave}
+                  disabled={saving || !hasChanges()}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {success && (
@@ -913,7 +1039,6 @@ const handleSave = async () => {
                           size="sm"
                           onClick={() => {
                             setSelectedPhoto(null);
-                            // Reset to original photo
                             setPhotoPreview(viceDean.photo || null);
                           }}
                           className="text-red-600 hover:text-red-800"
@@ -942,48 +1067,6 @@ const handleSave = async () => {
                         </Button>
                       </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Password Change Card (Edit Mode) */}
-            {editMode && (
-              <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-4 text-gray-900 dark:text-white">
-                    Change Password (Optional)
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword" className="text-gray-700 dark:text-gray-300">New Password</Label>
-                      <div className="relative">
-                        <Input
-                          id="newPassword"
-                          type={showPassword ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Leave empty to keep current password"
-                          className="pr-10 bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-600"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-0 top-0 h-full px-3 text-gray-500"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-500">
-                        Must be at least 4 characters long
-                      </p>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1027,6 +1110,17 @@ const handleSave = async () => {
                   <User className="h-5 w-5 text-blue-600" />
                   Personal Information
                 </h3>
+                
+                {/* Username Display (Read-only) */}
+                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Username
+                  </label>
+                  <p className="text-gray-900 dark:text-white mt-1 pl-[1.5rem] font-mono">
+                    {viceDean.username}
+                  </p>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* English Names */}
