@@ -206,7 +206,7 @@ export default function ManagerLayout() {
             />
             <div className="text-white">
               <div className="text-sm font-bold">DHMC COLLEGE</div>
-              <div className="text-xs opacity-75">Registrar Portal</div>
+              <div className="text-xs opacity-75">Manager Portal</div>
             </div>
           </div>
           <button
