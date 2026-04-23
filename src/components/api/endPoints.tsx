@@ -64,6 +64,8 @@ const endPoints = {
   getTeacherCourses: "/teachers/my-courses",
   getCourseStudents: "/teachers/courses/:teacherCourseAssignmentId/students",
   updateDepartment: (id: number | string) => `/departments/${id}`,
+  resetTeacherPassword: (userId: string | number) => 
+  `/auth/head/teachers/${userId}/reset-password`,
 
   /* =======================     Students  ======================== */
   students: "/students",
