@@ -46,6 +46,7 @@ import {
   Key,
   Lock,
   User,
+  CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -133,6 +134,10 @@ export default function TeacherProfileDetail() {
   const [classYearBatch, setClassYearBatch] = useState<any[]>([]);
   const [selectedBcysId, setSelectedBcysId] = useState<string>("");
   const [loadingBcys, setLoadingBcys] = useState(false);
+  
+  // Assignment notification states
+  const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(null);
+  const [assignmentError, setAssignmentError] = useState<string | null>(null);
 
   // Password reset function
   const handleResetPassword = async () => {
@@ -156,7 +161,7 @@ export default function TeacherProfileDetail() {
     try {
       setResetPasswordLoading(true);
       
-      const userId = teacher.userId || id;
+      const userId = teacher.userId || parseInt(id);
       
       const response = await apiClient.post(
         endPoints.resetTeacherPassword(userId),
@@ -187,11 +192,14 @@ export default function TeacherProfileDetail() {
   };
 
   const handleAssignCourse = async () => {
-    if (!teacher?.userId || !selectedCourseId || !selectedBcysId) return;
+    if (!id || !selectedCourseId || !selectedBcysId) {
+      toast.error("Please select both a course and a batch/class/year/semester");
+      return;
+    }
 
     setSaving(true);
-    setError(null);
-    setSuccess(null);
+    setAssignmentError(null);
+    setAssignmentSuccess(null);
 
     const payload = [
       {
@@ -201,46 +209,63 @@ export default function TeacherProfileDetail() {
     ];
 
     try {
-      await apiClient.post(
-        endPoints.teacherCourseAssignments(teacher.userId),
+      // Use the ID from URL params - this is the correct teacher ID
+      const teacherId = parseInt(id);
+      
+      console.log("Assigning course with teacher ID:", teacherId);
+      console.log("Payload:", payload);
+      
+      const response = await apiClient.post(
+        endPoints.teacherCourseAssignments(teacherId),
         payload
       );
 
-      setSuccess("Course assigned successfully!");
+      setAssignmentSuccess("Course assigned successfully!");
+      toast.success("Course assigned successfully!");
+      
+      // Refresh teacher data
       await fetchTeacher();
 
       // Reset selection
       setSelectedCourseId("");
       setSelectedBcysId("");
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setAssignmentSuccess(null);
+      }, 3000);
+      
     } catch (err: any) {
       console.error("Assign failed:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to assign course (may already exist or invalid IDs)"
-      );
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || "Failed to assign course";
+      setAssignmentError(errorMsg);
+      toast.error(errorMsg);
+      
+      // Clear error message after 3 seconds
+      setTimeout(() => {
+        setAssignmentError(null);
+      }, 3000);
     } finally {
       setSaving(false);
     }
   };
   
   const handleRevokeCourse = async (assignmentId: number) => {
-    if (!teacher?.userId) return;
+    if (!id) return;
 
     try {
       setDeletingAssignmentId(assignmentId);
+      const teacherId = parseInt(id);
+      
       await apiClient.delete(
-        endPoints.teacherCourseAssignmentDeletion(teacher.userId, assignmentId)
+        endPoints.teacherCourseAssignmentDeletion(teacherId, assignmentId)
       );
-      setSuccess("Course assignment removed successfully");
+      
+      toast.success("Course assignment removed successfully");
       await fetchTeacher();
     } catch (err: any) {
       console.error("Revoke failed:", err);
-      setError(
-        err.response?.data?.message ||
-          (err.response?.status === 404
-            ? "Assignment not found"
-            : "Failed to remove assignment")
-      );
+      toast.error(err.response?.data?.message || "Failed to remove assignment");
     } finally {
       setDeletingAssignmentId(null);
       setConfirmDeleteId(null);
@@ -347,9 +372,7 @@ export default function TeacherProfileDetail() {
     } catch (err: any) {
       console.error("Failed to load department courses", err);
       if (err.response?.status === 404) {
-        alert(
-          "No department profile found. Please set up your department first."
-        );
+        toast.error("No department profile found. Please set up your department first.");
       }
       setDepartmentCourses([]);
     } finally {
@@ -426,30 +449,27 @@ export default function TeacherProfileDetail() {
     fetchTeacher();
   };
 
-  const hasChanges = () => {
-    if (!teacher || !originalTeacher) return false;
-    return (
-      teacher.firstNameAmharic !== originalTeacher.firstNameAmharic ||
-      teacher.lastNameAmharic !== originalTeacher.lastNameAmharic ||
-      teacher.firstNameEnglish !== originalTeacher.firstNameEnglish ||
-      teacher.lastNameEnglish !== originalTeacher.lastNameEnglish ||
-      teacher.gender !== originalTeacher.gender ||
-      teacher.dateOfBirthGC !== originalTeacher.dateOfBirthGC ||
-      teacher.phoneNumber !== originalTeacher.phoneNumber ||
-      teacher.email !== originalTeacher.email ||
-      teacher.title !== originalTeacher.title ||
-      teacher.yearsOfExperience !== originalTeacher.yearsOfExperience ||
-      teacher.maritalStatus !== originalTeacher.maritalStatus ||
-      teacher.currentAddressRegionCode !==
-        originalTeacher.currentAddressRegionCode ||
-      teacher.currentAddressZoneCode !==
-        originalTeacher.currentAddressZoneCode ||
-      teacher.currentAddressWoredaCode !==
-        originalTeacher.currentAddressWoredaCode ||
-      photoInputRef.current?.files?.length === 1 ||
-      documentInputRef.current?.files?.length === 1
-    );
-  };
+const hasChanges = () => {
+  if (!teacher || !originalTeacher) return false;
+  return (
+    teacher.firstNameAmharic !== originalTeacher.firstNameAmharic ||
+    teacher.lastNameAmharic !== originalTeacher.lastNameAmharic ||
+    teacher.firstNameEnglish !== originalTeacher.firstNameEnglish ||
+    teacher.lastNameEnglish !== originalTeacher.lastNameEnglish ||
+    teacher.gender !== originalTeacher.gender ||
+    teacher.dateOfBirthGC !== originalTeacher.dateOfBirthGC ||
+    teacher.phoneNumber !== originalTeacher.phoneNumber ||
+    teacher.email !== originalTeacher.email ||
+    teacher.title !== originalTeacher.title ||
+    teacher.yearsOfExperience !== originalTeacher.yearsOfExperience ||
+    teacher.maritalStatus !== originalTeacher.maritalStatus ||
+    teacher.currentAddressRegionCode !== originalTeacher.currentAddressRegionCode ||
+    teacher.currentAddressZoneCode !== originalTeacher.currentAddressZoneCode ||
+    teacher.currentAddressWoredaCode !== originalTeacher.currentAddressWoredaCode ||
+    photoInputRef.current?.files?.length === 1 ||
+    documentInputRef.current?.files?.length === 1
+  );
+};
 
   const handleSave = async () => {
     if (!teacher || !originalTeacher || !hasChanges()) {
@@ -550,17 +570,16 @@ export default function TeacherProfileDetail() {
       setTeacher(res.data);
       setOriginalTeacher(structuredClone(res.data));
       setSuccess("Teacher profile updated successfully!");
+      toast.success("Teacher profile updated successfully!");
       setEditMode(false);
 
       if (photoInputRef.current) photoInputRef.current.value = "";
       if (documentInputRef.current) documentInputRef.current.value = "";
     } catch (err: any) {
       console.error("Update failed:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to update teacher profile. Check console / Network tab."
-      );
+      const errorMsg = err.response?.data?.message || "Failed to update teacher profile";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -579,7 +598,7 @@ export default function TeacherProfileDetail() {
 
   if (error && !teacher) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <div className="text-center space-y-6">
           <AlertCircle className="h-20 w-20 text-destructive mx-auto" />
           <h2 className="text-3xl font-bold text-foreground">
@@ -741,6 +760,7 @@ export default function TeacherProfileDetail() {
 
         {success && (
           <Alert className="mb-6 border-green-500/30 bg-green-500/10 text-foreground">
+            <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription>{success}</AlertDescription>
           </Alert>
         )}
@@ -821,7 +841,7 @@ export default function TeacherProfileDetail() {
               </div>
 
               <div className="text-center md:text-left">
-                {/* Username display in edit mode */}
+                {/* Username display */}
                 <div className="mb-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center md:justify-start gap-2">
                     <User className="h-4 w-4" />
@@ -1271,8 +1291,9 @@ export default function TeacherProfileDetail() {
               </div>
 
               <div className="lg:col-span-1">
-                <div className="bg-card rounded-xl border shadow-sm p-6 sticky top-6">
-                  <div className=" items-center justify-between mb-6">
+                {/* Course Assignments Section */}
+                <div className="bg-card rounded-xl border shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold flex items-center gap-3">
                       <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                       Course Assignments (
@@ -1296,6 +1317,21 @@ export default function TeacherProfileDetail() {
                     </Button>
                   </div>
 
+                  {/* Assignment Success/Error Notifications */}
+                  {assignmentSuccess && (
+                    <Alert className="mb-4 border-green-500/30 bg-green-500/10">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription>{assignmentSuccess}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {assignmentError && (
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{assignmentError}</AlertDescription>
+                    </Alert>
+                  )}
+
                   {(!teacher?.assignedCourses ||
                     teacher.assignedCourses.length === 0) && (
                     <div className="text-center py-10 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
@@ -1308,7 +1344,7 @@ export default function TeacherProfileDetail() {
                   )}
 
                   {teacher?.assignedCourses?.length > 0 && (
-                    <div className="space-y-3 mb-8 max-h-[380px] overflow-y-auto pr-2">
+                    <div className="space-y-3 mb-8 max-h-[300px] overflow-y-auto pr-2">
                       {teacher.assignedCourses.map((course) => (
                         <div
                           key={course.id}
@@ -1332,7 +1368,7 @@ export default function TeacherProfileDetail() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
                                 onClick={() =>
                                   setConfirmDeleteId(
                                     course.teacherCourseAssigmentId
@@ -1358,7 +1394,7 @@ export default function TeacherProfileDetail() {
                   )}
 
                   {assignmentMode && (
-                    <div className="pt-6 border-t border-border">
+                    <div className="pt-4 border-t border-border">
                       <h4 className="text-base font-semibold mb-4">
                         Assign New Course
                       </h4>
@@ -1368,6 +1404,7 @@ export default function TeacherProfileDetail() {
                           <Label>Course</Label>
                           {loadingDeptCourses ? (
                             <div className="h-10 flex items-center text-sm text-muted-foreground">
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                               Loading courses...
                             </div>
                           ) : departmentCourses.length === 0 ? (
@@ -1413,7 +1450,12 @@ export default function TeacherProfileDetail() {
                           <Label>Batch / Class / Year / Semester</Label>
                           {loadingBcys ? (
                             <div className="h-10 flex items-center text-sm text-muted-foreground">
-                              Loading...
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Loading periods...
+                            </div>
+                          ) : classYearBatch.length === 0 ? (
+                            <div className="text-sm text-amber-600 dark:text-amber-400">
+                              No batch/class/year/semester options available
                             </div>
                           ) : (
                             <Select
@@ -1465,6 +1507,7 @@ export default function TeacherProfileDetail() {
                   )}
                 </div>
 
+                {/* Delete Confirmation Modal */}
                 {confirmDeleteId && (
                   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <Card className="max-w-md w-full border-destructive/30">
@@ -1514,7 +1557,7 @@ export default function TeacherProfileDetail() {
 
 function LoadingSkeleton() {
   return (
-    <div className="min-h-screen bg-transparent py-8 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
       <div className="max-w-5xl mx-auto space-y-8">
         <Skeleton className="h-12 w-64 bg-muted" />
         <Card className="bg-card border-border">
