@@ -339,14 +339,6 @@ export default function ViceDeansList() {
                           >
                             View Profile
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="default"
-                            className="flex-1 bg-blue-600 hover:bg-blue-700"
-                            onClick={() => handleNavigateToDetail(viceDean.id)}
-                          >
-                            Manage
-                          </Button>
                         </div>
                       </div>
                     </div>
