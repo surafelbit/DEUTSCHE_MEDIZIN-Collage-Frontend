@@ -17,6 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
@@ -34,7 +43,11 @@ import {
   Phone,
   Calendar,
   RefreshCw,
+  Key,
+  Lock,
+  User,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type AssignedCourse = {
   id: number;
@@ -76,49 +89,103 @@ type TeacherDetail = {
 export default function TeacherProfileDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
   // ── New states for course assignment ────────────────────────────────────────
   const [departmentCourses, setDepartmentCourses] = useState<any[]>([]);
-
   const [loadingDeptCourses, setLoadingDeptCourses] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  // You may also want to fetch BCYS options — for now we assume user knows/pastes ID
-  // (in real app you'd probably fetch batch/class/year/semester combos too)
-  const [teacher, setTeacher] = useState<TeacherDetail | null>(null);
-  const [originalTeacher, setOriginalTeacher] = useState<TeacherDetail | null>(
-    null
-  );
-  const [documentFileSelected, setDocumentFileSelected] = useState(false);
+  
+  // Password reset states
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
   // Address cascading states
-  const [regions, setRegions] = useState<{ value: string; label: string }[]>(
-    []
-  );
+  const [regions, setRegions] = useState<{ value: string; label: string }[]>([]);
   const [zones, setZones] = useState<{ value: string; label: string }[]>([]);
-  const [woredas, setWoredas] = useState<{ value: string; label: string }[]>(
-    []
-  );
+  const [woredas, setWoredas] = useState<{ value: string; label: string }[]>([]);
 
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [loadingZones, setLoadingZones] = useState(false);
   const [loadingWoredas, setLoadingWoredas] = useState(false);
+  
   // Add these new states
   const [assignmentMode, setAssignmentMode] = useState(false);
-
-  const [deletingAssignmentId, setDeletingAssignmentId] = useState<
-    number | null
-  >(null);
+  const [deletingAssignmentId, setDeletingAssignmentId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  
   // Optional but strongly recommended – show the selected filename to the user
-  const [selectedDocumentName, setSelectedDocumentName] = useState<
-    string | null
-  >(null);
+  const [selectedDocumentName, setSelectedDocumentName] = useState<string | null>(null);
+  const [documentFileSelected, setDocumentFileSelected] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [teacher, setTeacher] = useState<TeacherDetail | null>(null);
+  const [originalTeacher, setOriginalTeacher] = useState<TeacherDetail | null>(null);
 
   const photoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+  
+  // BCYS states
+  const [classYearBatch, setClassYearBatch] = useState<any[]>([]);
+  const [selectedBcysId, setSelectedBcysId] = useState<string>("");
+  const [loadingBcys, setLoadingBcys] = useState(false);
+
+  // Password reset function
+  const handleResetPassword = async () => {
+    if (!id || !teacher) return;
+
+    if (!newPassword) {
+      toast.error("Please enter a new password");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      setResetPasswordLoading(true);
+      
+      const userId = teacher.userId || id;
+      
+      const response = await apiClient.post(
+        endPoints.resetTeacherPassword(userId),
+        { newPassword: newPassword }
+      );
+
+      toast.success(response.data?.message || "Teacher password reset successfully!");
+      
+      setPasswordDialogOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      
+    } catch (err: any) {
+      console.error("Password reset error:", err);
+      
+      if (err.response?.status === 403) {
+        toast.error("Insufficient privileges to reset teacher password");
+      } else if (err.response?.status === 404) {
+        toast.error("User not found");
+      } else if (err.response?.status === 400) {
+        toast.error(err.response.data?.message || "Invalid password");
+      } else {
+        toast.error(err.response?.data?.message || "Failed to reset password. Please try again.");
+      }
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
   const handleAssignCourse = async () => {
     if (!teacher?.userId || !selectedCourseId || !selectedBcysId) return;
 
@@ -135,9 +202,6 @@ export default function TeacherProfileDetail() {
 
     try {
       await apiClient.post(
-        // `/teachers/${teacher.userId}/course-assignments`,
-        // payload
-
         endPoints.teacherCourseAssignments(teacher.userId),
         payload
       );
@@ -158,6 +222,7 @@ export default function TeacherProfileDetail() {
       setSaving(false);
     }
   };
+  
   const handleRevokeCourse = async (assignmentId: number) => {
     if (!teacher?.userId) return;
 
@@ -165,7 +230,6 @@ export default function TeacherProfileDetail() {
       setDeletingAssignmentId(assignmentId);
       await apiClient.delete(
         endPoints.teacherCourseAssignmentDeletion(teacher.userId, assignmentId)
-        // `/teachers/${teacher.userId}/course-assignments/${assignmentId}`
       );
       setSuccess("Course assignment removed successfully");
       await fetchTeacher();
@@ -182,13 +246,12 @@ export default function TeacherProfileDetail() {
       setConfirmDeleteId(null);
     }
   };
+  
   const handleRegionChange = async (regionCode: string) => {
-    // Update teacher state
     setTeacher((prev) =>
       prev ? { ...prev, currentAddressRegionCode: regionCode || "" } : null
     );
 
-    // Reset dependent fields
     setTeacher((prev) =>
       prev
         ? { ...prev, currentAddressZoneCode: "", currentAddressWoredaCode: "" }
@@ -210,7 +273,6 @@ export default function TeacherProfileDetail() {
           label: z.zone || z.zoneName || z.name,
         }))
         .filter((z: any) => z.value && z.label);
-      console.log(formatted, res, "runaway");
       setZones(formatted);
     } catch (err) {
       console.error("Failed to load zones", err);
@@ -221,12 +283,10 @@ export default function TeacherProfileDetail() {
   };
 
   const handleZoneChange = async (zoneCode: string) => {
-    // Update teacher state
     setTeacher((prev) =>
       prev ? { ...prev, currentAddressZoneCode: zoneCode || "" } : null
     );
 
-    // Reset woreda
     setTeacher((prev) =>
       prev ? { ...prev, currentAddressWoredaCode: "" } : null
     );
@@ -243,7 +303,6 @@ export default function TeacherProfileDetail() {
           label: w.woreda || w.woredaName || w.name,
         }))
         .filter((w: any) => w.value && w.label);
-      console.log(res, formatted, "woredas");
       setWoredas(formatted);
     } catch (err) {
       console.error("Failed to load woredas", err);
@@ -252,12 +311,8 @@ export default function TeacherProfileDetail() {
       setLoadingWoredas(false);
     }
   };
-  // Add this state (for better UX)
-  // States (should already be there)
-  const [classYearBatch, setClassYearBatch] = useState<any[]>([]);
-  const [selectedBcysId, setSelectedBcysId] = useState<string>("");
-  const [loadingBcys, setLoadingBcys] = useState(false);
-  // Fetch — improve it a bit for safety
+
+  // Fetch drop downs
   useEffect(() => {
     const fetchDropDowns = async () => {
       setLoadingBcys(true);
@@ -269,7 +324,6 @@ export default function TeacherProfileDetail() {
           : [];
 
         setClassYearBatch(batches);
-        console.log("Loaded BCYS options:", batches.length, "items");
       } catch (err) {
         console.error("Failed to load batch/class/year/semester options:", err);
         setClassYearBatch([]);
@@ -278,21 +332,17 @@ export default function TeacherProfileDetail() {
       }
     };
 
-    fetchDropDowns(); // always fetch on mount
-    // OR: if (editMode) fetchDropDowns();   // only when editing
-  }, []); // or [editMode] if you prefer lazy loading// ← or [editMode] if you want to load only when editing
+    fetchDropDowns();
+  }, []);
+
   const fetchDepartmentCourses = async () => {
     setLoadingDeptCourses(true);
     try {
       const res = await apiClient.get(endPoints.myDepartmentCourses);
-      // assuming response is array like your example
       if (Array.isArray(res.data)) {
         setDepartmentCourses(res.data);
-        console.log(res, "you found me");
       } else {
-        console.log(res, "you found me");
         setDepartmentCourses([]);
-        console.warn("Unexpected courses format", res.data);
       }
     } catch (err: any) {
       console.error("Failed to load department courses", err);
@@ -306,6 +356,7 @@ export default function TeacherProfileDetail() {
       setLoadingDeptCourses(false);
     }
   };
+  
   const fetchTeacher = useCallback(async () => {
     if (!id) {
       setError("No teacher ID provided.");
@@ -318,7 +369,6 @@ export default function TeacherProfileDetail() {
     try {
       const res = await apiClient.get(`/teachers/${id}`);
       setTeacher(res.data);
-      console.log(res, "look at ya");
       setOriginalTeacher(structuredClone(res.data));
     } catch (err: any) {
       setError(
@@ -330,6 +380,7 @@ export default function TeacherProfileDetail() {
       setLoading(false);
     }
   }, [id]);
+
   useEffect(() => {
     const fetchRegions = async () => {
       setLoadingRegions(true);
@@ -341,9 +392,7 @@ export default function TeacherProfileDetail() {
             label: r.name || r.regionName || r.region,
           }))
           .filter((r: any) => r.value && r.label);
-        console.log(res, "regions");
         setRegions(formatted);
-        console.log(formatted);
       } catch (err) {
         console.error("Failed to load regions", err);
         setError("Failed to load regions list");
@@ -353,15 +402,15 @@ export default function TeacherProfileDetail() {
     };
 
     if (editMode) {
-      // only fetch when entering edit mode (optional optimization)
       fetchRegions();
       fetchDepartmentCourses();
     }
   }, [editMode]);
+  
   useEffect(() => {
     fetchTeacher();
   }, [fetchTeacher]);
-  // Add this useEffect
+  
   useEffect(() => {
     if (
       assignmentMode &&
@@ -371,16 +420,12 @@ export default function TeacherProfileDetail() {
       fetchDepartmentCourses();
     }
   }, [assignmentMode]);
+
   const handleRetry = () => {
     setError(null);
     fetchTeacher();
   };
-  let departementId;
-  useEffect(() => {
-    const token = sessionStorage.getItem("Userdata");
-    departementId = JSON.parse(token);
-    console.log(JSON.parse(token).departmentId);
-  }, []);
+
   const hasChanges = () => {
     if (!teacher || !originalTeacher) return false;
     return (
@@ -406,58 +451,6 @@ export default function TeacherProfileDetail() {
     );
   };
 
-  // const handleSave = async () => {
-  //   if (!teacher || !originalTeacher || !hasChanges()) {
-  //     setEditMode(false);
-  //     return;
-  //   }
-
-  //   setSaving(true);
-  //   setError(null);
-  //   setSuccess(null);
-
-  //   const formData = new FormData();
-  //   const payload: Record<string, any> = {};
-
-  //   // ... (payload building logic remains unchanged) ...
-
-  //   if (Object.keys(payload).length > 0) {
-  //     formData.append(
-  //       "data",
-  //       // JSON.stringify(payload)
-  //       new Blob([JSON.stringify(payload)])
-  //     );
-  //   }
-
-  //   const newPhoto = photoInputRef.current?.files?.[0];
-  //   const newDoc = documentInputRef.current?.files?.[0];
-
-  //   if (newPhoto) formData.append("photograph", newPhoto);
-  //   if (newDoc) formData.append("document", newDoc);
-
-  //   try {
-  //     const res = await apiClient.put(`/teachers/${id}`, formData, {
-  //       //headers: { "Content-Type": "multipart/form-data" },
-  //       // headers: { "Content-Type": "application/json" },
-  //     });
-
-  //     setTeacher(res.data);
-  //     setOriginalTeacher(structuredClone(res.data));
-  //     setSuccess("Teacher profile updated successfully!");
-  //     setEditMode(false);
-
-  //     if (photoInputRef.current) photoInputRef.current.value = "";
-  //     if (documentInputRef.current) documentInputRef.current.value = "";
-  //   } catch (err: any) {
-  //     console.log(err, "update failed");
-  //     setError(
-  //       err.response?.data?.message ||
-  //         "Failed to update teacher profile. Please try again."
-  //     );
-  //   } finally {
-  //     setSaving(false);
-  //   }
-  // };
   const handleSave = async () => {
     if (!teacher || !originalTeacher || !hasChanges()) {
       setEditMode(false);
@@ -473,7 +466,6 @@ export default function TeacherProfileDetail() {
 
       const payload: Partial<TeacherDetail> = {};
 
-      // ── Only include fields that actually changed ───────────────────────────────
       if (teacher.firstNameEnglish !== originalTeacher.firstNameEnglish) {
         payload.firstNameEnglish = teacher.firstNameEnglish.trim() || undefined;
       }
@@ -510,7 +502,6 @@ export default function TeacherProfileDetail() {
         payload.maritalStatus = teacher.maritalStatus || null;
       }
 
-      // Address – send empty string to clear, undefined to leave unchanged
       if (
         teacher.currentAddressRegionCode !==
         originalTeacher.currentAddressRegionCode
@@ -532,12 +523,11 @@ export default function TeacherProfileDetail() {
           teacher.currentAddressWoredaCode || "";
       }
 
-      // ── Append JSON as Blob ──────────────────────────────────────────────────────
       if (Object.keys(payload).length > 0) {
         const jsonBlob = new Blob([JSON.stringify(payload)], {
           type: "application/json",
         });
-        formData.append("data", jsonBlob, "data.json"); // filename is optional
+        formData.append("data", jsonBlob, "data.json");
       } else {
         const jsonBlob = new Blob([JSON.stringify({})], {
           type: "application/json",
@@ -545,7 +535,6 @@ export default function TeacherProfileDetail() {
         formData.append("data", jsonBlob, "data.json");
       }
 
-      // ── Files ────────────────────────────────────────────────────────────────────
       const newPhoto = photoInputRef.current?.files?.[0];
       if (newPhoto) {
         formData.append("photograph", newPhoto);
@@ -556,7 +545,6 @@ export default function TeacherProfileDetail() {
         formData.append("document", newDoc);
       }
 
-      // ── Send request – NO headers! Let axios add multipart boundary ─────────────
       const res = await apiClient.put(`/teachers/${id}`, formData);
 
       setTeacher(res.data);
@@ -564,7 +552,6 @@ export default function TeacherProfileDetail() {
       setSuccess("Teacher profile updated successfully!");
       setEditMode(false);
 
-      // Reset file inputs
       if (photoInputRef.current) photoInputRef.current.value = "";
       if (documentInputRef.current) documentInputRef.current.value = "";
     } catch (err: any) {
@@ -640,34 +627,116 @@ export default function TeacherProfileDetail() {
             </h1>
           </div>
 
-          {!editMode ? (
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => setEditMode(true)}
-            >
-              <Edit3 className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
-          ) : (
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                disabled={saving}
-              >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
+          <div className="flex gap-3">
+            {/* Reset Password Button */}
+            <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20"
+                >
+                  <Key className="h-4 w-4 mr-2" />
+                  Reset Password
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-yellow-600" />
+                    Reset Password
+                  </DialogTitle>
+                  <DialogDescription>
+                    Reset password for {teacher.firstNameEnglish} {teacher.lastNameEnglish}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      New Password
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500">Password must be at least 6 characters long</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Confirm Password
+                    </label>
+                    <Input
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setPasswordDialogOpen(false);
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleResetPassword}
+                    disabled={resetPasswordLoading}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    {resetPasswordLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Resetting...
+                      </>
+                    ) : (
+                      <>
+                        <Key className="h-4 w-4 mr-2" />
+                        Reset Password
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {!editMode ? (
               <Button
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                onClick={handleSave}
-                disabled={saving || !hasChanges()}
+                onClick={() => setEditMode(true)}
               >
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? "Saving..." : "Save Changes"}
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit Profile
               </Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={handleSave}
+                  disabled={saving || !hasChanges()}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {success && (
@@ -752,9 +821,19 @@ export default function TeacherProfileDetail() {
               </div>
 
               <div className="text-center md:text-left">
+                {/* Username display in edit mode */}
+                <div className="mb-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center justify-center md:justify-start gap-2">
+                    <User className="h-4 w-4" />
+                    Username: <span className="font-mono font-bold text-foreground">{teacher.username}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Username cannot be changed. Use the "Reset Password" button to change password.
+                  </p>
+                </div>
+
                 {editMode ? (
                   <div className="space-y-5 w-full max-w-lg">
-                    {/* name fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label>First Name (English)</Label>
@@ -1027,83 +1106,6 @@ export default function TeacherProfileDetail() {
                   teacher.regionName ||
                   teacher.zoneName ||
                   teacher.woredaName) && (
-                  // <section>
-                  //   <h3 className="text-xl font-semibold mb-6 flex items-center gap-3 text-foreground">
-                  //     <MapPin className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  //     Current Address
-                  //   </h3>
-
-                  //   {editMode ? (
-                  //     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  //       <div>
-                  //         <Label>Region Code</Label>
-                  //         <Input
-                  //           value={teacher.currentAddressRegionCode || ""}
-                  //           onChange={(e) =>
-                  //             setTeacher((p) =>
-                  //               p
-                  //                 ? {
-                  //                     ...p,
-                  //                     currentAddressRegionCode: e.target.value,
-                  //                   }
-                  //                 : null
-                  //             )
-                  //           }
-                  //           placeholder="e.g. AA"
-                  //         />
-                  //       </div>
-                  //       <div>
-                  //         <Label>Zone Code</Label>
-                  //         <Input
-                  //           value={teacher.currentAddressZoneCode || ""}
-                  //           onChange={(e) =>
-                  //             setTeacher((p) =>
-                  //               p
-                  //                 ? {
-                  //                     ...p,
-                  //                     currentAddressZoneCode: e.target.value,
-                  //                   }
-                  //                 : null
-                  //             )
-                  //           }
-                  //           placeholder="e.g. Gulele"
-                  //         />
-                  //       </div>
-                  //       <div>
-                  //         <Label>Woreda Code</Label>
-                  //         <Input
-                  //           value={teacher.currentAddressWoredaCode || ""}
-                  //           onChange={(e) =>
-                  //             setTeacher((p) =>
-                  //               p
-                  //                 ? {
-                  //                     ...p,
-                  //                     currentAddressWoredaCode: e.target.value,
-                  //                   }
-                  //                 : null
-                  //             )
-                  //           }
-                  //           placeholder="e.g. W01"
-                  //         />
-                  //       </div>
-                  //     </div>
-                  //   ) : (
-                  //     <div className="space-y-1 text-muted-foreground">
-                  //       {teacher.woredaName && (
-                  //         <p className="font-medium text-foreground">
-                  //           {teacher.woredaName}
-                  //         </p>
-                  //       )}
-                  //       {teacher.zoneName && <p>{teacher.zoneName}</p>}
-                  //       {teacher.regionName && <p>{teacher.regionName}</p>}
-                  //       {!teacher.woredaName &&
-                  //         !teacher.zoneName &&
-                  //         !teacher.regionName && (
-                  //           <p className="italic">No address set</p>
-                  //         )}
-                  //     </div>
-                  //   )}
-                  // </section>
                   <section>
                     <h3 className="text-xl font-semibold mb-6 flex items-center gap-3 text-foreground">
                       <MapPin className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -1112,7 +1114,6 @@ export default function TeacherProfileDetail() {
 
                     {editMode ? (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        {/* Region */}
                         <div className="space-y-2">
                           <Label>Region</Label>
                           <Select
@@ -1141,7 +1142,6 @@ export default function TeacherProfileDetail() {
                           </Select>
                         </div>
 
-                        {/* Zone */}
                         <div className="space-y-2">
                           <Label>Zone</Label>
                           <Select
@@ -1176,7 +1176,6 @@ export default function TeacherProfileDetail() {
                           </Select>
                         </div>
 
-                        {/* Woreda */}
                         <div className="space-y-2">
                           <Label>Woreda</Label>
                           <Select
@@ -1240,18 +1239,6 @@ export default function TeacherProfileDetail() {
                   </section>
                 )}
 
-                {/* {editMode && (
-                  <section>
-                    <Label>
-                      Update Supporting Document (PDF – replaces existing)
-                    </Label>
-                    <Input
-                      type="file"
-                      accept="application/pdf"
-                      ref={documentInputRef}
-                    />
-                  </section>
-                )} */}
                 {editMode && (
                   <section>
                     <Label>
@@ -1283,145 +1270,8 @@ export default function TeacherProfileDetail() {
                 )}
               </div>
 
-              {/* <div>
-                <h3 className="text-xl font-semibold mb-6 flex items-center gap-3 text-foreground">
-                  <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  Assigned Courses ({teacher.assignedCourses.length})
-                </h3>
-
-                {teacher.assignedCourses.length === 0 ? (
-                  <p className="text-muted-foreground italic">
-                    No courses assigned yet.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {teacher.assignedCourses.map((course) => (
-                      <Card
-                        key={course.id}
-                        className="p-4 bg-card border-border"
-                      >
-                        <div className="flex justify-between items-start gap-4">
-                          <div>
-                            <p className="font-semibold text-foreground">
-                              {course.courseCode}
-                            </p>
-                            <p className="text-sm mt-1 text-foreground">
-                              {course.courseTitle}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {course.batchClassYearSemesterName}
-                            </p>
-                          </div>
-                          <Badge
-                            variant="secondary"
-                            className="shrink-0 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                          >
-                            {course.totalCrHrs} Cr.Hrs
-                          </Badge>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-                {editMode && (
-                  <div className="mt-8 pt-6 border-t border-border">
-                    <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <BookOpen className="h-5 w-5" />
-                      Assign New Course
-                    </h4>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      <div className="space-y-2">
-                        <Label>Course</Label>
-                        {loadingDeptCourses ? (
-                          <div className="text-sm text-muted-foreground">
-                            Loading courses...
-                          </div>
-                        ) : departmentCourses.length === 0 ? (
-                          <div className="text-sm text-destructive">
-                            No courses available in your department
-                          </div>
-                        ) : (
-                          <Select
-                            value={selectedCourseId}
-                            onValueChange={setSelectedCourseId}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a course" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {departmentCourses.map((c) => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                  {c.code} – {c.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Batch / Year / Semester</Label>
-
-                        {loadingBcys ? (
-                          <div className="h-10 flex items-center text-sm text-muted-foreground">
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Loading options...
-                          </div>
-                        ) : classYearBatch.length === 0 ? (
-                          <div className="h-10 flex items-center text-sm text-muted-foreground italic">
-                            No batch/year/semester options available
-                          </div>
-                        ) : (
-                          <Select
-                            value={selectedBcysId}
-                            onValueChange={setSelectedBcysId}
-                            disabled={saving}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select batch / year / semester" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {classYearBatch.map((item: any) => (
-                                <SelectItem
-                                  key={item.id}
-                                  value={String(item.id)}
-                                >
-                                  {item.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleAssignCourse}
-                      // disabled={
-                      //   !selectedCourseId ||
-                      //   !selectedBcysId ||
-                      //   loadingDeptCourses ||
-                      //   saving
-                      // }
-                      disabled={
-                        !selectedCourseId ||
-                        !selectedBcysId ||
-                        loadingDeptCourses ||
-                        loadingBcys || // ← added
-                        saving ||
-                        classYearBatch.length === 0
-                      }
-                      className="w-full sm:w-auto"
-                    >
-                      Assign Course
-                    </Button>
-                  </div>
-                )}
-              </div> */}
               <div className="lg:col-span-1">
                 <div className="bg-card rounded-xl border shadow-sm p-6 sticky top-6">
-                  {/* Header */}
                   <div className=" items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold flex items-center gap-3">
                       <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -1446,7 +1296,6 @@ export default function TeacherProfileDetail() {
                     </Button>
                   </div>
 
-                  {/* No courses yet */}
                   {(!teacher?.assignedCourses ||
                     teacher.assignedCourses.length === 0) && (
                     <div className="text-center py-10 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
@@ -1458,7 +1307,6 @@ export default function TeacherProfileDetail() {
                     </div>
                   )}
 
-                  {/* List of assigned courses */}
                   {teacher?.assignedCourses?.length > 0 && (
                     <div className="space-y-3 mb-8 max-h-[380px] overflow-y-auto pr-2">
                       {teacher.assignedCourses.map((course) => (
@@ -1509,7 +1357,6 @@ export default function TeacherProfileDetail() {
                     </div>
                   )}
 
-                  {/* Assign new course form – visible only in assignmentMode */}
                   {assignmentMode && (
                     <div className="pt-6 border-t border-border">
                       <h4 className="text-base font-semibold mb-4">
@@ -1517,7 +1364,6 @@ export default function TeacherProfileDetail() {
                       </h4>
 
                       <div className="space-y-4">
-                        {/* Course selector */}
                         <div>
                           <Label>Course</Label>
                           {loadingDeptCourses ? (
@@ -1541,7 +1387,7 @@ export default function TeacherProfileDetail() {
                                 {departmentCourses.map((c: any) => {
                                   const isAlreadyAssigned =
                                     teacher.assignedCourses.some(
-                                      (ac) => ac.id === c.id // or compare courseId if you have it
+                                      (ac) => ac.id === c.id
                                     );
                                   return (
                                     <SelectItem
@@ -1563,7 +1409,6 @@ export default function TeacherProfileDetail() {
                           )}
                         </div>
 
-                        {/* BCYS selector */}
                         <div>
                           <Label>Batch / Class / Year / Semester</Label>
                           {loadingBcys ? (
@@ -1620,7 +1465,6 @@ export default function TeacherProfileDetail() {
                   )}
                 </div>
 
-                {/* Delete confirmation modal */}
                 {confirmDeleteId && (
                   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <Card className="max-w-md w-full border-destructive/30">
