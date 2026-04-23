@@ -134,7 +134,7 @@ export default function LandingPage() {
     },
     {
       title: "Nursing",
-      icon: "https://seattlemedium.com/wp-content/uploads/2023/06/Black-Nurses-iStock-748-x-486px.jpg",
+      icon: "https://ethiopiannurses.org/wp/wp-content/uploads/2024/07/nursing3-removebg-preview-1.png",
       description:
         "Learn the normal functions of the human body in health and disease.",
     },
@@ -452,7 +452,7 @@ export default function LandingPage() {
                     DEUTSCHE College at a Glance
                   </h2>
                   <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 font-poppins leading-relaxed mb-6">
-                    For nearly five years, people have come to DEUTSCHE in the
+                    For over five years, people have come to DEUTSCHE in the
                     pursuit of truth, knowledge, and the betterment of society.
                   </p>
                 </div>
@@ -475,7 +475,7 @@ export default function LandingPage() {
                 <div className="bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl shadow-lg">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-6">
                     <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      2020
+                      2019
                     </span>
                   </div>
                   {/* <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-serif mb-3">
@@ -491,11 +491,11 @@ export default function LandingPage() {
                 <div className="bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl shadow-lg">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-6">
                     <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      500+
+                      300+
                     </span>
                   </div>
                   <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-serif mb-3">
-                    Active Community
+                    Active Community Members
                   </h3>
                   <p className="text-gray-700 dark:text-gray-300 font-mono text-lg">
                     As a leading private medical college in Ethiopia, we strive
