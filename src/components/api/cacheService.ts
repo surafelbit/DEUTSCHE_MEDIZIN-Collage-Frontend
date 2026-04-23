@@ -42,6 +42,20 @@ export const CACHE_CONFIG: Record<string, CacheConfig> = {
   [endPoints.courseLists]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
   [endPoints.studentUserNames]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
   [endPoints.studentsSlip]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+
+  // Student Information (can be cached but with shorter TTL due to potential updates)
+  [endPoints.getAllStudentsCGPA_VD]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.getAllStudentsCGPA_DN]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.getAllStudentsCGPA]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.departmentStudents]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+
+  // DashBoards (cache for 1 day to balance freshness with performance)
+  [endPoints.departmentHeadDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
+  [endPoints.studentDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
+  [endPoints.teacherDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
+  [endPoints.deanDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
+  [endPoints.getGeneralManagerDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
+  [endPoints.viceDeanDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
 };
 
 const CACHE_STORE_NAME = "api-response-cache";
