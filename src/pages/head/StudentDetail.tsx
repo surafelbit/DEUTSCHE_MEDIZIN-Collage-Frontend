@@ -916,12 +916,32 @@ export default function StudentDetail() {
             currentBatchClassYearSemester={
               academicProgression?.currentBatchClassYearSemester
             }
-            takenCourses={academicProgression?.takenCourses || []}
+            // ⭐ FIX: Map takenCourses to convert 'released' to 'isReleased'
+            takenCourses={
+              academicProgression?.takenCourses?.map((course: any) => ({
+                courseId: course.courseId,
+                courseCode: course.courseCode,
+                courseTitle: course.courseTitle,
+                creditHours: course.creditHours,
+                courseSource: course.courseSource,
+                takenIn: course.takenIn,
+                isReleased: course.released, // ⭐ KEY FIX: Map released to isReleased
+              })) || []
+            }
             totalTakenCourses={academicProgression?.totalTakenCourses || 0}
             totalTakenCreditHours={
               academicProgression?.totalTakenCreditHours || 0
             }
-            remainingCourses={academicProgression?.remainingCourses || []}
+            // Map remaining courses (no mapping needed for these)
+            remainingCourses={
+              academicProgression?.remainingCourses?.map((course: any) => ({
+                courseId: course.courseId,
+                courseCode: course.courseCode,
+                courseTitle: course.courseTitle,
+                creditHours: course.creditHours,
+                expectedIn: course.expectedIn,
+              })) || []
+            }
             totalRemainingCourses={
               academicProgression?.totalRemainingCourses || 0
             }

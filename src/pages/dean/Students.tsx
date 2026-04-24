@@ -941,12 +941,32 @@ export default function DeanStudents() {
                     currentBatchClassYearSemester={
                       academicProgress.currentBatchClassYearSemester
                     }
-                    takenCourses={academicProgress.takenCourses}
+                    // ⭐ FIX: Map takenCourses to convert 'released' to 'isReleased'
+                    takenCourses={
+                      academicProgress.takenCourses?.map((course: any) => ({
+                        courseId: course.courseId,
+                        courseCode: course.courseCode,
+                        courseTitle: course.courseTitle,
+                        creditHours: course.creditHours,
+                        courseSource: course.courseSource,
+                        takenIn: course.takenIn,
+                        isReleased: course.released, // ⭐ Map released to isReleased
+                      })) || []
+                    }
                     totalTakenCourses={academicProgress.totalTakenCourses}
                     totalTakenCreditHours={
                       academicProgress.totalTakenCreditHours
                     }
-                    remainingCourses={academicProgress.remainingCourses}
+                    // Map remaining courses (no mapping needed for these)
+                    remainingCourses={
+                      academicProgress.remainingCourses?.map((course: any) => ({
+                        courseId: course.courseId,
+                        courseCode: course.courseCode,
+                        courseTitle: course.courseTitle,
+                        creditHours: course.creditHours,
+                        expectedIn: course.expectedIn,
+                      })) || []
+                    }
                     totalRemainingCourses={
                       academicProgress.totalRemainingCourses
                     }
