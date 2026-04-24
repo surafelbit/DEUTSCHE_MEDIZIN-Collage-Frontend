@@ -2578,63 +2578,60 @@ export default function RegistrationSlips() {
                               </p>
                             </div>
                           ) : (
-                            filteredCourses.map((course) => {
-                              // Use the correct property names from the API
-                              const courseId = course?.id || 0;
-                              const courseCode = course?.ccode || "N/A";
-                              const courseTitle =
-                                course?.ctitle || "Unknown Course";
-                              const lectureHours = course?.theoryHrs || 0;
-                              const labHours = course?.labHrs || 0;
-                              const creditHours = lectureHours + labHours;
+                            [...filteredCourses]
+                              .sort((a, b) => {
+                                // Sort by title (ctitle) in ascending order
+                                const titleA = (a.ctitle || "").toLowerCase();
+                                const titleB = (b.ctitle || "").toLowerCase();
+                                return titleA.localeCompare(titleB);
+                              })
+                              .map((course) => {
+                                // Use the correct property names from the API
+                                const courseId = course?.id || 0;
+                                const courseCode = course?.ccode || "N/A";
+                                const courseTitle = course?.ctitle || "Unknown Course";
+                                const lectureHours = course?.theoryHrs || 0;
+                                const labHours = course?.labHrs || 0;
+                                const creditHours = lectureHours + labHours;
 
-                              return (
-                                <div
-                                  key={courseId}
-                                  className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                    selectedCourseIds.includes(
-                                      courseId.toString(),
-                                    )
-                                      ? "bg-blue-50 dark:bg-blue-900/30"
-                                      : ""
-                                  }`}
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Prevent dropdown from closing
-                                    handleCourseSelectionChange(
-                                      courseId.toString(),
-                                    );
-                                  }}
-                                >
+                                return (
                                   <div
-                                    className={`w-5 h-5 flex items-center justify-center rounded border mr-3 ${
-                                      selectedCourseIds.includes(
-                                        courseId.toString(),
-                                      )
-                                        ? "bg-blue-500 border-blue-500 dark:bg-blue-600 dark:border-blue-600"
-                                        : "border-gray-300 dark:border-gray-600"
+                                    key={courseId}
+                                    className={`flex items-center p-2 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                                      selectedCourseIds.includes(courseId.toString())
+                                        ? "bg-blue-50 dark:bg-blue-900/30"
+                                        : ""
                                     }`}
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent dropdown from closing
+                                      handleCourseSelectionChange(courseId.toString());
+                                    }}
                                   >
-                                    {selectedCourseIds.includes(
-                                      courseId.toString(),
-                                    ) && (
-                                      <Check className="h-3 w-3 text-white" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                                      <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                        {courseCode}
-                                      </span>{" "}
-                                      - {courseTitle}
+                                    <div
+                                      className={`w-5 h-5 flex items-center justify-center rounded border mr-3 ${
+                                        selectedCourseIds.includes(courseId.toString())
+                                          ? "bg-blue-500 border-blue-500 dark:bg-blue-600 dark:border-blue-600"
+                                          : "border-gray-300 dark:border-gray-600"
+                                      }`}
+                                    >
+                                      {selectedCourseIds.includes(courseId.toString()) && (
+                                        <Check className="h-3 w-3 text-white" />
+                                      )}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                      Lecture: {lectureHours}h | Lab: {labHours}
-                                      h | Total: {creditHours} CH
+                                    <div className="flex-1">
+                                      <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                          {courseCode}
+                                        </span>{" "}
+                                        - {courseTitle}
+                                      </div>
+                                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                                        Lecture: {lectureHours}h | Lab: {labHours}h | Total: {creditHours} CH
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              );
-                            })
+                                );
+                              })
                           )}
                         </div>
 
