@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Building, Layers, GraduationCap, Loader2 } from "lucide-react";
+import { ArrowLeft, Building, Layers, GraduationCap, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import apiService from "@/components/api/apiService";
@@ -27,13 +27,24 @@ interface Department {
   };
 }
 
-interface Course {
-  id: string;
-  name: string;
+interface RawCourse {
+  id: number;
+  ccode: string;
+  ctitle: string;
+  theoryHrs: number;
+  labHrs: number;
+  prerequisites: string[];
+}
+
+interface DisplayCourse {
+  id: number;
   code: string;
+  name: string;
   creditHours: number;
   prerequisites: string[];
-  teacher: string;
+  teacher?: string;
+  classYear: string;
+  semester: string;
 }
 
 export default function DeanDepartmentDetails() {
@@ -45,26 +56,54 @@ export default function DeanDepartmentDetails() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
-  interface RawCourse {
-    id: number;
-    ccode: string;
-    ctitle: string;
-    theoryHrs: number;
-    labHrs: number;
-    prerequisites: string[]; // or number[] if they are IDs
-  }
-  interface DisplayCourse {
-    id: number;
-    code: string;
-    name: string;
-    creditHours: number;
-    prerequisites: string[];
-    teacher?: string; // optional - you don't have this yet
-    classYear: string;
-    semester: string;
-  }
   const [courses, setCourses] = useState<DisplayCourse[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  // Define the custom order for class years
+  const getClassYearOrder = (classYear: string): number => {
+    const orderMap: { [key: string]: number } = {
+      "1": 1,
+      "Year 1": 1,
+      "Pre-Medicine": 1,
+      "Pre Medicine": 1,
+      "PC1": 2,
+      "Pre clinical year 1": 2,
+      "Year 2": 2,
+      "PC2": 3,
+      "Pre clinical year 2": 3,
+      "Year 3": 3,
+      "C1": 4,
+      "Clinical year 1": 4,
+      "Year 4": 4,
+      "C2": 5,
+      "Clinical year 2": 5,
+      "Year 5": 5,
+      "C3": 6,
+      "Clinical year 3": 6,
+      "Year 6": 6,
+    };
+    
+    // Extract year number from classYear string if it contains "Year X"
+    const yearMatch = classYear.match(/Year (\d+)/);
+    if (yearMatch) {
+      const yearNum = parseInt(yearMatch[1]);
+      if (yearNum >= 1 && yearNum <= 6) {
+        return yearNum;
+      }
+    }
+    
+    return orderMap[classYear] || 999;
+  };
+
+  // Sort semester order
+  const getSemesterOrder = (semester: string): number => {
+    if (semester.includes("First") || semester === "Semester 1") return 1;
+    if (semester.includes("Second") || semester === "Semester 2") return 2;
+    if (semester.includes("Full Year")) return 3;
+    return 4;
+  };
+
   useEffect(() => {
     const fetchCourses = async () => {
       setLoadingCourses(true);
@@ -74,25 +113,22 @@ export default function DeanDepartmentDetails() {
       try {
         const params = { departmentId: id ? Number(id) : undefined };
         const res = await apiService.get(endPoints.allCourses, params);
-        //    or if apiService returns axios-like → res.data
-        //    if it's raw fetch → await (await fetch(url)).json()
 
         console.log("Raw response data:", res);
         let courseArray;
         if (Array.isArray(res)) {
-          courseArray = res; // ← raw fetch style / direct json
+          courseArray = res;
         } else if (res && Array.isArray(res.data)) {
-          courseArray = res.data; // ← fallback for axios-like
+          courseArray = res.data;
         } else if (res?.courses && Array.isArray(res.courses)) {
-          courseArray = res.courses; // rare – some APIs wrap in {courses: [...]}
+          courseArray = res.courses;
         } else {
           throw new Error("Response is not in expected array format");
         }
 
-        // ── Transform backend → frontend shape ───────────────────────
         const mappedCourses: DisplayCourse[] = courseArray.map((raw: any) => {
           const credit = raw.theoryHrs || 0;
-          const labCredit = raw.labHrs ? Math.floor(raw.labHrs / 2) : 0; // ← adjust formula as needed
+          const labCredit = raw.labHrs ? Math.floor(raw.labHrs / 2) : 0;
 
           return {
             id: raw.id,
@@ -109,6 +145,14 @@ export default function DeanDepartmentDetails() {
         });
 
         setCourses(mappedCourses);
+        
+        // Initialize expanded groups - expand all by default
+        const groups = mappedCourses.reduce((acc, course) => {
+          const key = `${course.classYear} - ${course.semester}`;
+          acc.add(key);
+          return acc;
+        }, new Set<string>());
+        setExpandedGroups(groups);
 
         if (mappedCourses.length === 0) {
           setCourseError("No courses found");
@@ -125,7 +169,7 @@ export default function DeanDepartmentDetails() {
       }
     };
     fetchCourses();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     if (id) {
@@ -137,16 +181,10 @@ export default function DeanDepartmentDetails() {
     try {
       setLoading(true);
       setError(null);
-
-      // Fetch department details
       const deptResponse = await apiService.get(
         endPoints.getDepartmentById(id!)
       );
       setDepartment(deptResponse);
-
-      // Note: The API doesn't provide courses by department in the current structure
-      // For now, we'll show a placeholder message
-      // In a real app, you would fetch courses for this department from another endpoint
     } catch (err: any) {
       console.error("Error fetching department details:", err);
       setError(err.response?.data?.error || "Department not found");
@@ -158,6 +196,56 @@ export default function DeanDepartmentDetails() {
   const handleRetry = () => {
     fetchDepartmentDetails();
   };
+
+  const toggleGroup = (groupKey: string) => {
+    const newExpanded = new Set(expandedGroups);
+    if (newExpanded.has(groupKey)) {
+      newExpanded.delete(groupKey);
+    } else {
+      newExpanded.add(groupKey);
+    }
+    setExpandedGroups(newExpanded);
+  };
+
+  const expandAll = () => {
+    const allGroups = new Set(Object.keys(groupedCourses));
+    setExpandedGroups(allGroups);
+  };
+
+  const collapseAll = () => {
+    setExpandedGroups(new Set());
+  };
+
+  // Group courses by class year and semester
+  const groupedCourses = courses.reduce((acc, course) => {
+    const key = `${course.classYear} - ${course.semester}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(course);
+    return acc;
+  }, {} as Record<string, DisplayCourse[]>);
+
+  // Sort groups based on custom order
+  const sortedGroupKeys = Object.keys(groupedCourses).sort((a, b) => {
+    const classYearA = a.split(" - ")[0];
+    const classYearB = b.split(" - ")[0];
+    const semesterA = a.split(" - ")[1];
+    const semesterB = b.split(" - ")[1];
+    
+    const yearOrderA = getClassYearOrder(classYearA);
+    const yearOrderB = getClassYearOrder(classYearB);
+    
+    if (yearOrderA !== yearOrderB) {
+      return yearOrderA - yearOrderB;
+    }
+    
+    const semesterOrderA = getSemesterOrder(semesterA);
+    const semesterOrderB = getSemesterOrder(semesterB);
+    
+    return semesterOrderA - semesterOrderB;
+  });
+
+  // Get unique teachers across all courses for the filter
+  const allTeachers = Array.from(new Set(courses.map((c) => c.teacher))).sort();
 
   if (loading) {
     return (
@@ -183,7 +271,6 @@ export default function DeanDepartmentDetails() {
               <GraduationCap className="h-10 w-10 text-blue-600 dark:text-blue-400" />
             </motion.div>
           </div>
-
           <div className="text-center space-y-2">
             <motion.h2
               initial={{ opacity: 0 }}
@@ -236,16 +323,23 @@ export default function DeanDepartmentDetails() {
     );
   }
 
-  // Group courses by class year and semester
-  const groupedCourses = courses.reduce((acc, course) => {
-    const key = `${course.classYear} - ${course.semester}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(course);
-    return acc;
-  }, {} as Record<string, DisplayCourse[]>);
+  // Filter courses based on search and teacher
+  const getFilteredCoursesForGroup = (groupCourses: DisplayCourse[]) => {
+    return groupCourses.filter((course) => {
+      const matchesSearch =
+        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.code.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTeacher =
+        selectedTeacher === "" || course.teacher === selectedTeacher;
+      return matchesSearch && matchesTeacher;
+    });
+  };
 
-  // Get unique teachers across all courses for the filter
-  const allTeachers = Array.from(new Set(courses.map((c) => c.teacher))).sort();
+  // Calculate total filtered courses count
+  const totalFilteredCourses = Object.values(groupedCourses).reduce(
+    (total, groupCourses) => total + getFilteredCoursesForGroup(groupCourses).length,
+    0
+  );
 
   return (
     <div className="p-10 space-y-10">
@@ -318,9 +412,33 @@ export default function DeanDepartmentDetails() {
 
       {/* Courses Section */}
       <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
-        <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400 mb-4">
-          Courses
-        </h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400">
+            Courses
+          </h2>
+          {Object.keys(groupedCourses).length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={expandAll}
+                className="text-sm"
+              >
+                <ChevronDown className="h-4 w-4 mr-1" />
+                Expand All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={collapseAll}
+                className="text-sm"
+              >
+                <ChevronRight className="h-4 w-4 mr-1" />
+                Collapse All
+              </Button>
+            </div>
+          )}
+        </div>
 
         {loadingCourses ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -336,84 +454,96 @@ export default function DeanDepartmentDetails() {
               No Course Data Available
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Course information for this department is not available in the
-              current API.
+              Course information for this department is not available.
             </p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-              Note: The department API endpoint provides basic department
-              information but not course details. Course data would need to be
-              fetched from a separate endpoint if available.
+          </div>
+        ) : totalFilteredCourses === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 dark:text-gray-400">
+              No courses match your search criteria
             </p>
           </div>
         ) : (
-          <div className="space-y-12">
-            {Object.entries(groupedCourses).map(([groupKey, groupCourses]) => (
-              <div
-                key={groupKey}
-                className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-6 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Layers className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-                    {groupKey}
-                  </h3>
-                </div>
+          <div className="space-y-6">
+            {sortedGroupKeys.map((groupKey) => {
+              const groupCourses = groupedCourses[groupKey];
+              const filteredGroupCourses = getFilteredCoursesForGroup(groupCourses);
+              const isExpanded = expandedGroups.has(groupKey);
+              
+              if (filteredGroupCourses.length === 0) return null;
 
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-gray-800 dark:text-gray-200">
-                    <thead>
-                      <tr className="bg-gray-100 dark:bg-gray-800 text-left">
-                        <th className="p-3 border">Course Code</th>
-                        <th className="p-3 border">Course Name</th>
-                        <th className="p-3 border">Credit Hours</th>
-                        <th className="p-3 border">Prerequisites</th>
-                        <th className="p-3 border">Teacher</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {groupCourses
-                        .filter((course) => {
-                          const matchesSearch =
-                            course.name
-                              .toLowerCase()
-                              .includes(searchTerm.toLowerCase()) ||
-                            course.code
-                              .toLowerCase()
-                              .includes(searchTerm.toLowerCase());
-                          const matchesTeacher =
-                            selectedTeacher === "" ||
-                            course.teacher === selectedTeacher;
-                          return matchesSearch && matchesTeacher;
-                        })
-                        .map((course) => (
-                          <tr
-                            key={course.id}
-                            className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <td className="p-3 border font-mono">
-                              {course.code}
-                            </td>
-                            <td className="p-3 border font-medium">
-                              {course.name}
-                            </td>
-                            <td className="p-3 border text-center">
-                              {course.creditHours}
-                            </td>
-                            <td className="p-3 border text-sm">
-                              {course.prerequisites.length > 0
-                                ? course.prerequisites.join(", ")
-                                : "None"}
-                            </td>
-                            <td className="p-3 border">{course.teacher}</td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
+              return (
+                <div
+                  key={groupKey}
+                  className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+                >
+                  {/* Clickable Header */}
+                  <div
+                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                    onClick={() => toggleGroup(groupKey)}
+                  >
+                    <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        {isExpanded ? (
+                          <ChevronDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                          {groupKey}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {filteredGroupCourses.length} course{filteredGroupCourses.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expandable Content */}
+                  {isExpanded && (
+                    <div className="overflow-x-auto p-4">
+                      <table className="w-full border-collapse text-gray-800 dark:text-gray-200">
+                        <thead>
+                          <tr className="bg-gray-100 dark:bg-gray-800 text-left">
+                            <th className="p-3 border">Course Code</th>
+                            <th className="p-3 border">Course Name</th>
+                            <th className="p-3 border">Credit Hours</th>
+                            <th className="p-3 border">Prerequisites</th>
+                            <th className="p-3 border">Teacher</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                          {filteredGroupCourses.map((course) => (
+                            <tr
+                              key={course.id}
+                              className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            >
+                              <td className="p-3 border font-mono">
+                                {course.code}
+                               </td>
+                              <td className="p-3 border font-medium">
+                                {course.name}
+                               </td>
+                              <td className="p-3 border text-center">
+                                {course.creditHours}
+                               </td>
+                              <td className="p-3 border text-sm">
+                                {course.prerequisites.length > 0
+                                  ? course.prerequisites.join(", ")
+                                  : "None"}
+                               </td>
+                              <td className="p-3 border">{course.teacher}</td>
+                             </tr>
+                          ))}
+                        </tbody>
+                       </table>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -492,10 +622,11 @@ export default function DeanDepartmentDetails() {
                 Program Active:
               </span>
               <span
-                className={`font-medium ${department.programLevel?.active
-                  ? "text-green-600"
-                  : "text-red-600"
-                  }`}
+                className={`font-medium ${
+                  department.programLevel?.active
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
               >
                 {department.programLevel?.active ? "Yes" : "No"}
               </span>
