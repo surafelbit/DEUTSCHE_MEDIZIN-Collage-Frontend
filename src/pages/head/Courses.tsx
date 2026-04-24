@@ -11,20 +11,34 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   BookOpen,
   Search,
   Clock,
   CalendarDays,
-  Users,
   Hash,
   ChevronDown,
   ChevronRight,
   GraduationCap,
+  User,
+  Users as UsersIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
+
+interface Teacher {
+  name: string;
+  bcysName: string;
+}
 
 interface Course {
   id: number;
@@ -33,10 +47,13 @@ interface Course {
   totalCrHrs: number;
   classYearName: string;
   semesterName: string;
+  teachers: Teacher[];
 }
 
-interface GroupedCourses {
-  [key: string]: Course[];
+interface GroupedByYearAndSemester {
+  [year: string]: {
+    [semester: string]: Course[];
+  };
 }
 
 export default function Courses() {
@@ -46,68 +63,52 @@ export default function Courses() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
+  const [expandedSemesters, setExpandedSemesters] = useState<Set<string>>(
+    new Set(),
+  );
 
-  // Define the order for class years
-  const yearOrder: { [key: string]: number } = {
-    "Pre-Medicine": 1,
-    "Pre Medicine": 1,
-    "Pre-medicine": 1,
-    "Pre clinical year 1": 2,
-    "PC1": 2,
-    "Pre clinical year 2": 3,
-    "PC2": 3,
-    "Clinical year 1": 4,
-    "C1": 4,
-    "Clinical year 2": 5,
-    "C2": 5,
+  // Define semester order
+  const semesterOrder: { [key: string]: number } = {
+    "First Semester": 1,
+    "Semester 1": 1,
+    Fall: 1,
+    "Fall Semester": 1,
     "1": 1,
+    "Second Semester": 2,
+    "Semester 2": 2,
+    Spring: 2,
+    "Spring Semester": 2,
     "2": 2,
+    "Third Semester": 3,
+    "Semester 3": 3,
+    Summer: 3,
+    "Summer Semester": 3,
     "3": 3,
-    "4": 4,
-    "5": 5,
   };
 
-  // Map classYearName to display name
-  const getDisplayName = (year: string): string => {
-    const yearLower = year.toLowerCase();
-    if (yearLower === "pre-medicine" || yearLower === "pre medicine" || yearLower === "1") {
-      return "Year 1 (Pre-Medicine)";
-    }
-    if (yearLower === "pc1" || yearLower === "pre clinical year 1" || yearLower === "2") {
-      return "Year 2 (PC1)";
-    }
-    if (yearLower === "pc2" || yearLower === "pre clinical year 2" || yearLower === "3") {
-      return "Year 3 (PC2)";
-    }
-    if (yearLower === "c1" || yearLower === "clinical year 1" || yearLower === "4") {
-      return "Year 4 (C1)";
-    }
-    if (yearLower === "c2" || yearLower === "clinical year 2" || yearLower === "5") {
-      return "Year 5 (C2)";
-    }
-    return year;
-  };
-
-  // Get sort order for a year
-  const getYearOrder = (year: string): number => {
-    const yearLower = year.toLowerCase();
-    if (yearOrder[year]) return yearOrder[year];
-    if (yearOrder[yearLower]) return yearOrder[yearLower];
-    return 999; // Put unknown years at the end
+  // Get sort order for a semester
+  const getSemesterOrder = (semester: string): number => {
+    const semesterLower = semester.toLowerCase();
+    if (semesterOrder[semester]) return semesterOrder[semester];
+    if (semesterOrder[semesterLower]) return semesterOrder[semesterLower];
+    return 999;
   };
 
   useEffect(() => {
     const loadCourses = async () => {
       try {
         const response = await apiService.get<Course[]>(
-          endPoints.myDepartmentCourses
+          endPoints.myDepartmentCourses,
         );
         setCourses(response);
         setFilteredCourses(response);
-        
-        // Initially expand all sections
-        const years = [...new Set(response.map(c => c.classYearName || "Uncategorized"))];
+
+        // Initially expand all years but not semesters
+        const years = [
+          ...new Set(response.map((c) => c.classYearName || "Uncategorized")),
+        ];
         setExpandedYears(new Set(years));
+        setExpandedSemesters(new Set());
       } catch (error) {
         console.error("Error loading department courses:", error);
       } finally {
@@ -124,31 +125,57 @@ export default function Courses() {
       (course) =>
         course.code.toLowerCase().includes(lowerSearch) ||
         course.title.toLowerCase().includes(lowerSearch) ||
-        (course.classYearName && course.classYearName.toLowerCase().includes(lowerSearch)) ||
-        course.semesterName.toLowerCase().includes(lowerSearch)
+        (course.classYearName &&
+          course.classYearName.toLowerCase().includes(lowerSearch)) ||
+        course.semesterName.toLowerCase().includes(lowerSearch) ||
+        course.teachers.some(
+          (teacher) =>
+            teacher.name.toLowerCase().includes(lowerSearch) ||
+            teacher.bcysName.toLowerCase().includes(lowerSearch),
+        ),
     );
     setFilteredCourses(filtered);
   }, [searchTerm, courses]);
 
-  // Group courses by classYearName
+  // Group courses by classYearName and then by semesterName
   const groupedCourses = filteredCourses.reduce((groups, course) => {
     const year = course.classYearName || "Uncategorized";
-    if (!groups[year]) groups[year] = [];
-    groups[year].push(course);
-    return groups;
-  }, {} as GroupedCourses);
+    const semester = course.semesterName || "Uncategorized";
 
-  // Sort years based on custom order
+    if (!groups[year]) groups[year] = {};
+    if (!groups[year][semester]) groups[year][semester] = [];
+
+    groups[year][semester].push(course);
+    return groups;
+  }, {} as GroupedByYearAndSemester);
+
+  // Sort years (display as is from backend)
   const sortedYears = Object.keys(groupedCourses).sort((a, b) => {
-    // Handle Uncategorized
     if (a === "Uncategorized") return 1;
     if (b === "Uncategorized") return -1;
-    
-    const orderA = getYearOrder(a);
-    const orderB = getYearOrder(b);
-    if (orderA !== orderB) return orderA - orderB;
+
+    // Try to sort numerically if they're numbers
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return numA - numB;
+    }
     return a.localeCompare(b);
   });
+
+  // Sort semesters within each year
+  const getSortedSemesters = (year: string): string[] => {
+    const semesters = Object.keys(groupedCourses[year]);
+    return semesters.sort((a, b) => {
+      if (a === "Uncategorized") return 1;
+      if (b === "Uncategorized") return -1;
+
+      const orderA = getSemesterOrder(a);
+      const orderB = getSemesterOrder(b);
+      if (orderA !== orderB) return orderA - orderB;
+      return a.localeCompare(b);
+    });
+  };
 
   const toggleYear = (year: string) => {
     const newExpanded = new Set(expandedYears);
@@ -160,12 +187,32 @@ export default function Courses() {
     setExpandedYears(newExpanded);
   };
 
+  const toggleSemester = (semesterKey: string) => {
+    const newExpanded = new Set(expandedSemesters);
+    if (newExpanded.has(semesterKey)) {
+      newExpanded.delete(semesterKey);
+    } else {
+      newExpanded.add(semesterKey);
+    }
+    setExpandedSemesters(newExpanded);
+  };
+
   const expandAll = () => {
     setExpandedYears(new Set(sortedYears));
+    // Optionally expand all semesters too
+    const allSemesterKeys: string[] = [];
+    sortedYears.forEach((year) => {
+      const semesters = getSortedSemesters(year);
+      semesters.forEach((semester) => {
+        allSemesterKeys.push(`${year}-${semester}`);
+      });
+    });
+    setExpandedSemesters(new Set(allSemesterKeys));
   };
 
   const collapseAll = () => {
     setExpandedYears(new Set());
+    setExpandedSemesters(new Set());
   };
 
   if (loading) {
@@ -206,7 +253,7 @@ export default function Courses() {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
             <Input
-              placeholder="Search by code, title, year, or semester..."
+              placeholder="Search by code, title, year, semester, or teacher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -241,13 +288,18 @@ export default function Courses() {
         </CardHeader>
       </Card>
 
-      {/* Grouped Course Sections with Collapsible */}
+      {/* Grouped Course Sections with Nested Dropdowns */}
       <div className="space-y-4">
         {sortedYears.map((year) => {
-          const yearCourses = groupedCourses[year];
-          const isExpanded = expandedYears.has(year);
-          const displayName = getDisplayName(year);
-          const totalCredits = yearCourses.reduce((sum, c) => sum + c.totalCrHrs, 0);
+          const semesters = getSortedSemesters(year);
+          const isYearExpanded = expandedYears.has(year);
+          const totalYearCredits = semesters.reduce((sum, semester) => {
+            const semesterCourses = groupedCourses[year][semester];
+            return sum + semesterCourses.reduce((s, c) => s + c.totalCrHrs, 0);
+          }, 0);
+          const totalYearCourses = semesters.reduce((sum, semester) => {
+            return sum + groupedCourses[year][semester].length;
+          }, 0);
 
           return (
             <Card key={year} className="overflow-hidden">
@@ -267,7 +319,7 @@ export default function Courses() {
                           toggleYear(year);
                         }}
                       >
-                        {isExpanded ? (
+                        {isYearExpanded ? (
                           <ChevronDown className="h-5 w-5" />
                         ) : (
                           <ChevronRight className="h-5 w-5" />
@@ -276,9 +328,7 @@ export default function Courses() {
                       <div>
                         <div className="flex items-center gap-2">
                           <GraduationCap className="h-5 w-5 text-blue-600" />
-                          <CardTitle className="text-xl">
-                            {displayName}
-                          </CardTitle>
+                          <CardTitle className="text-xl">Year {year}</CardTitle>
                           {year === "Uncategorized" && (
                             <Badge variant="outline" className="ml-2">
                               Unclassified
@@ -286,63 +336,157 @@ export default function Courses() {
                           )}
                         </div>
                         <CardDescription className="mt-1">
-                          {yearCourses.length} course
-                          {yearCourses.length !== 1 ? "s" : ""} • Total {totalCredits} Credit Hours
+                          {totalYearCourses} course
+                          {totalYearCourses !== 1 ? "s" : ""} • Total{" "}
+                          {totalYearCredits} Credit Hours
                         </CardDescription>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="text-sm">
-                        {yearCourses.length}
+                        {totalYearCourses}
                       </Badge>
                     </div>
                   </div>
                 </CardHeader>
               </div>
 
-              {isExpanded && (
+              {isYearExpanded && (
                 <CardContent className="pt-0">
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {yearCourses.map((course) => (
-                      <Card
-                        key={course.id}
-                        className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500"
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <Hash className="h-4 w-4 text-muted-foreground" />
-                                <CardTitle className="text-lg">
-                                  {course.code}
-                                </CardTitle>
+                  <div className="space-y-3 ml-6">
+                    {semesters.map((semester) => {
+                      const semesterCourses = groupedCourses[year][semester];
+                      const semesterKey = `${year}-${semester}`;
+                      const isSemesterExpanded =
+                        expandedSemesters.has(semesterKey);
+                      const totalSemesterCredits = semesterCourses.reduce(
+                        (sum, c) => sum + c.totalCrHrs,
+                        0,
+                      );
+
+                      return (
+                        <div
+                          key={semester}
+                          className="border rounded-lg overflow-hidden"
+                        >
+                          <div
+                            className="cursor-pointer hover:bg-muted/30 transition-colors bg-muted/10"
+                            onClick={() => toggleSemester(semesterKey)}
+                          >
+                            <div className="p-3 flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleSemester(semesterKey);
+                                  }}
+                                >
+                                  {isSemesterExpanded ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4" />
+                                  )}
+                                </Button>
+                                <div className="flex items-center gap-2">
+                                  <CalendarDays className="h-4 w-4 text-green-600" />
+                                  <span className="font-semibold">
+                                    {semester}
+                                  </span>
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs ml-2"
+                                  >
+                                    {semesterCourses.length} courses
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {totalSemesterCredits} credits
+                                  </Badge>
+                                </div>
                               </div>
-                              <CardDescription className="text-base font-medium">
-                                {course.title}
-                              </CardDescription>
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-wrap gap-3 text-sm">
-                            <Badge
-                              variant="secondary"
-                              className="flex items-center gap-1"
-                            >
-                              <Clock className="h-3.5 w-3.5" />
-                              {course.totalCrHrs} CrHrs
-                            </Badge>
-                            <Badge
-                              variant="outline"
-                              className="flex items-center gap-1"
-                            >
-                              <CalendarDays className="h-3.5 w-3.5" />
-                              {course.semesterName}
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                          {isSemesterExpanded && (
+                            <div className="p-3 pt-0">
+                              <div className="rounded-md border">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead className="w-[120px]">
+                                        Course Code
+                                      </TableHead>
+                                      <TableHead>Course Title</TableHead>
+                                      <TableHead className="w-[100px] text-center">
+                                        Credit Hours
+                                      </TableHead>
+                                      <TableHead>Teachers</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {semesterCourses.map((course) => (
+                                      <TableRow key={course.id}>
+                                        <TableCell className="font-medium">
+                                          <div className="flex items-center gap-2">
+                                            <Hash className="h-4 w-4 text-muted-foreground" />
+                                            {course.code}
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>{course.title}</TableCell>
+                                        <TableCell className="text-center">
+                                          <Badge
+                                            variant="secondary"
+                                            className="flex items-center gap-1 w-fit mx-auto"
+                                          >
+                                            <Clock className="h-3.5 w-3.5" />
+                                            {course.totalCrHrs}
+                                          </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                          {course.teachers &&
+                                          course.teachers.length > 0 ? (
+                                            <div className="space-y-2">
+                                              {course.teachers.map(
+                                                (teacher, idx) => (
+                                                  <div
+                                                    key={idx}
+                                                    className="flex flex-col gap-1"
+                                                  >
+                                                    <div className="flex items-center gap-2">
+                                                      <User className="h-3.5 w-3.5 text-muted-foreground" />
+                                                      <span className="text-sm font-medium">
+                                                        {teacher.name}
+                                                      </span>
+                                                    </div>
+                                                    <Badge
+                                                      variant="outline"
+                                                      className="text-xs w-fit"
+                                                    >
+                                                      <UsersIcon className="h-3 w-3 mr-1" />
+                                                      {teacher.bcysName}
+                                                    </Badge>
+                                                  </div>
+                                                ),
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <span className="text-sm text-muted-foreground">
+                                              No teacher assigned
+                                            </span>
+                                          )}
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               )}
