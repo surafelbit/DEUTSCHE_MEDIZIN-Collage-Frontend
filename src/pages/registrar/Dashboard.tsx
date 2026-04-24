@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Bar, Pie, Line, Doughnut } from "react-chartjs-2";
-import Carousel from "@/components/Extra/Carousel";
+import { Bar, Line, Doughnut } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,13 +28,9 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  PieChart,
-  UsersRound,
-  User,
-  User2,
-  Mars, // Add this - male symbol
-  Venus, // Add this - female symbol
-} from "lucide-react";
+  ChevronDown, 
+  ChevronUp,
+ } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import apiClient from "@/components/api/apiClient";
@@ -96,7 +91,8 @@ export default function RegistrarDashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false); // Track refresh state
+  const [isRefreshing, setIsRefreshing] = useState(false); 
+  const [showAllStudents, setShowAllStudents] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -755,8 +751,9 @@ export default function RegistrarDashboard() {
                 </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {dashboardData.lowScoreAlerts.map(
-                  (alert: any, index: number) => (
+                {dashboardData.lowScoreAlerts
+                  .slice(0, showAllStudents ? dashboardData.lowScoreAlerts.length : 3)
+                  .map((alert: any, index: number) => (
                     <div
                       key={index}
                       className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800"
@@ -778,9 +775,31 @@ export default function RegistrarDashboard() {
                         Below average performance - Needs academic support
                       </p>
                     </div>
-                  ),
-                )}
+                  ))}
               </div>
+              
+              {/* See More / Show Less Button */}
+              {dashboardData.lowScoreAlerts.length > 3 && (
+                <div className="flex justify-center mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAllStudents(!showAllStudents)}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-900/20"
+                  >
+                    {showAllStudents ? (
+                      <>
+                        <ChevronUp className="h-4 w-4 mr-2" />
+                        Show Less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4 mr-2" />
+                        See More ({dashboardData.lowScoreAlerts.length - 3} more)
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
