@@ -4,58 +4,80 @@ import endPoints from "./endPoints";
 // ================= CACHE CONFIGURATION =================
 interface CacheConfig {
   ttl: number; // Time to live in milliseconds
+  isPattern?: boolean; // Whether this endpoint supports query parameters
 }
 
 export const CACHE_CONFIG: Record<string, CacheConfig> = {
-  [endPoints.lookupsDropdown]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.lookupsDropdown]: { ttl: 7 * 24 * 60 * 60 * 1000 },
 
   // 🌍 Geographic / Location data (rarely changes)
-  "/region": { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  "/zone": { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  "/woreda": { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  "/zone/region": { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  "/woreda/zone": { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+  "/region": { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
+  "/zone": { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
+  "/woreda": { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
+  "/zone/region": { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
+  "/woreda/zone": { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
 
   // MOE datasets (infrequently updated)
-  [endPoints.impairments]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.schoolBackgrounds]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.enrollmentTypes]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.attritionCauses]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.semesters]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.programLevels]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.programModalities]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.academicYears]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+  [endPoints.impairments]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.schoolBackgrounds]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.enrollmentTypes]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.attritionCauses]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.semesters]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.programLevels]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.programModalities]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.academicYears]: { ttl: 30 * 24 * 60 * 60 * 1000 },
 
   // 🎓 Academic dropdowns (updated at start of each semester, but generally stable)
-  [endPoints.departments]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.classYears]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.courseSources]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.courseCategory]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.batchClassSemsterYear]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.batches]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.classYears]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.studentStatus]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
-  [endPoints.gradingSystem]: { ttl: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+  [endPoints.departments]: { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
+  [endPoints.classYears]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.courseSources]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.courseCategory]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.batchClassSemsterYear]: {
+    ttl: 30 * 24 * 60 * 60 * 1000,
+    isPattern: true,
+  },
+  [endPoints.batches]: { ttl: 30 * 24 * 60 * 60 * 1000, isPattern: true },
+  [endPoints.studentStatus]: { ttl: 30 * 24 * 60 * 60 * 1000 },
+  [endPoints.gradingSystem]: { ttl: 30 * 24 * 60 * 60 * 1000 },
 
   // DropDown options (change infrequently)
-  [endPoints.allCourses]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.courseLists]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.studentUserNames]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.studentsSlip]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.allCourses]: { ttl: 7 * 24 * 60 * 60 * 1000, isPattern: true },
+  [endPoints.courseLists]: { ttl: 7 * 24 * 60 * 60 * 1000, isPattern: true },
+  [endPoints.studentUserNames]: {
+    ttl: 7 * 24 * 60 * 60 * 1000,
+    isPattern: true,
+  },
+  [endPoints.studentsSlip]: { ttl: 7 * 24 * 60 * 60 * 1000 },
 
   // Student Information (can be cached but with shorter TTL due to potential updates)
-  [endPoints.getAllStudentsCGPA_VD]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.getAllStudentsCGPA_DN]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.getAllStudentsCGPA]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
-  [endPoints.departmentStudents]: { ttl: 7 * 24 * 60 * 60 * 1000 }, // 7 days
+  [endPoints.getAllStudentsCGPA_VD]: {
+    ttl: 7 * 24 * 60 * 60 * 1000,
+    isPattern: true,
+  },
+  [endPoints.getAllStudentsCGPA_DN]: {
+    ttl: 7 * 24 * 60 * 60 * 1000,
+    isPattern: true,
+  },
+  [endPoints.getAllStudentsCGPA]: {
+    ttl: 7 * 24 * 60 * 60 * 1000,
+    isPattern: true,
+  },
+  [endPoints.departmentStudents]: {
+    ttl: 7 * 24 * 60 * 60 * 1000,
+    isPattern: true,
+  },
 
   // DashBoards (cache for 1 day to balance freshness with performance)
-  [endPoints.departmentHeadDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
-  [endPoints.studentDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
-  [endPoints.teacherDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
-  [endPoints.deanDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
-  [endPoints.getGeneralManagerDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
-  [endPoints.viceDeanDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 }, // 1 day
+  [endPoints.departmentHeadDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 },
+  [endPoints.studentDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 },
+  [endPoints.teacherDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 },
+  [endPoints.deanDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 },
+  [endPoints.getGeneralManagerDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 },
+  [endPoints.viceDeanDashboard]: { ttl: 1 * 24 * 60 * 60 * 1000 },
+
+  // Path parameter endpoints (with IDs)
+  "/courses": { ttl: 7 * 24 * 60 * 60 * 1000, isPattern: true },
+  "/students": { ttl: 7 * 24 * 60 * 60 * 1000, isPattern: true },
 };
 
 const CACHE_STORE_NAME = "api-response-cache";
@@ -85,25 +107,45 @@ const getBasePath = (url: string | undefined): string => {
   return url.split("?")[0];
 };
 
+// MODIFIED: Now uses FULL URL including query parameters
 const generateCacheKey = (url: string | undefined): string => {
-  const basePath = getBasePath(url);
-  // Encode to safely handle special characters in URLs
-  const encoded = encodeURIComponent(basePath);
+  if (!url) return "";
+  // Use the full URL (with query params) for cache key
+  const encoded = encodeURIComponent(url);
   return `https://app-cache.local/${encoded}`;
+};
+
+// Helper function to find matching cache config
+const findCacheConfig = (url: string): CacheConfig | null => {
+  const basePath = getBasePath(url);
+
+  // First try exact match
+  if (CACHE_CONFIG[basePath]) {
+    return CACHE_CONFIG[basePath];
+  }
+
+  // Then try pattern matching for endpoints that support query params
+  for (const [pattern, config] of Object.entries(CACHE_CONFIG)) {
+    if (config.isPattern && basePath.startsWith(pattern)) {
+      return config;
+    }
+  }
+
+  return null;
 };
 
 export const getCachedResponse = async <T = any>(
   url: string,
   fetchFn: () => Promise<T>,
 ): Promise<T> => {
-  const basePath = getBasePath(url);
-  const config = CACHE_CONFIG[basePath];
+  const config = findCacheConfig(url);
 
   // If not configured for caching or Cache API unavailable, fetch normally
   if (!config || typeof caches === "undefined") {
     return fetchFn();
   }
 
+  // Use FULL URL as cache key (includes query parameters)
   const dataKey = generateCacheKey(url);
   const metaKey = `${dataKey}/meta`;
 
@@ -132,7 +174,7 @@ export const getCachedResponse = async <T = any>(
     console.log(`🔄 [CACHE MISS/EXPIRED] Fetching ${url}...`);
     const data = await fetchFn();
 
-    // 4️⃣ Save to cache (now with valid https:// keys)
+    // 4️⃣ Save to cache
     await cache.put(
       metaKey,
       new Response(JSON.stringify({ timestamp: Date.now() }), {
@@ -155,9 +197,7 @@ export const getCachedResponse = async <T = any>(
   }
 };
 
-/**
- * Manually clear cache for a specific endpoint
- */
+// MODIFIED: Clear cache for specific URL (including query params)
 export const clearCacheForUrl = async (url: string): Promise<void> => {
   if (typeof caches === "undefined") return;
 
@@ -170,7 +210,7 @@ export const clearCacheForUrl = async (url: string): Promise<void> => {
     await cache.delete(dataKey);
     await cache.delete(metaKey);
 
-    // Keep lookupsDropdown in sync when one of its dependency endpoints is invalidated.
+    // Keep lookupsDropdown in sync when one of its dependency endpoints is invalidated
     if (LOOKUPS_DROPDOWN_DEPENDENCIES.has(basePath)) {
       const lookupsDataKey = generateCacheKey(endPoints.lookupsDropdown);
       const lookupsMetaKey = `${lookupsDataKey}/meta`;
@@ -184,6 +224,37 @@ export const clearCacheForUrl = async (url: string): Promise<void> => {
     console.log(`🗑️ Cache cleared for ${url}`);
   } catch (error) {
     console.warn(`Failed to clear cache for ${url}:`, error);
+  }
+};
+
+// NEW: Clear all cached responses for a specific base path (useful for clearing all variations)
+export const clearCacheByBasePath = async (basePath: string): Promise<void> => {
+  if (typeof caches === "undefined") return;
+
+  try {
+    const cache = await caches.open(CACHE_STORE_NAME);
+    const keys = await cache.keys();
+    let deletedCount = 0;
+
+    for (const request of keys) {
+      const cacheUrl = request.url;
+      // Decode to get the original URL
+      const decodedUrl = decodeURIComponent(
+        cacheUrl.replace("https://app-cache.local/", ""),
+      );
+      const decodedBasePath = getBasePath(decodedUrl);
+
+      if (decodedBasePath === basePath) {
+        await cache.delete(request);
+        deletedCount++;
+      }
+    }
+
+    console.log(
+      `🗑️ Cleared ${deletedCount} cache entries for base path: ${basePath}`,
+    );
+  } catch (error) {
+    console.warn(`Failed to clear cache by base path ${basePath}:`, error);
   }
 };
 

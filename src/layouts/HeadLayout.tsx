@@ -19,7 +19,7 @@ import {
   Bell,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSignOut } from "@/hooks/useSignOut";
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,7 @@ import apiClient from "../components/api/apiClient";
 import endPoints from "../components/api/endPoints";
 
 export default function HeadLayout() {
-  const navigate = useNavigate();
+  const signOut = useSignOut();
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(
@@ -80,11 +80,6 @@ export default function HeadLayout() {
     }
     return userData.fullName[0].toUpperCase();
   };
-
-  function logout() {
-    localStorage.removeItem("xy9a7b");
-    navigate("/");
-  }
 
   const handleChangePassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -404,7 +399,7 @@ export default function HeadLayout() {
 
                     <button
                       onClick={() => {
-                        logout();
+                        signOut();
                         setUserDropdownOpen(false);
                       }}
                       className="w-full flex items-center px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors mt-1"

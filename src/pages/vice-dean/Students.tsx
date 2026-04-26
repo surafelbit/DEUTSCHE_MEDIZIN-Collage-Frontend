@@ -11,12 +11,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { X, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import apiService from "../../components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "../../components/api/endPoints";
 import { AcademicProgression } from "@/components/Extra/AcademicProgression"; // Adjust path as needed
-
-// Cache configuration - adjust this value to change how long data stays cached (in hours)
-const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
-const CACHE_KEY = "vice_dean_students_data";
 
 type Student = {
   studentId: number;
@@ -29,11 +26,6 @@ type Student = {
   studentStatus: string;
   cgpa: number;
 };
-
-interface CachedStudentsData {
-  students: Student[];
-  timestamp: number;
-}
 
 // Interface for academic progress data
 interface AcademicProgressData {
@@ -74,77 +66,16 @@ export default function ViceDeanStudents() {
     fetchStudents();
   }, []);
 
-  const isCacheValid = (cachedData: CachedStudentsData | null): boolean => {
-    if (!cachedData) return false;
-
-    const now = Date.now();
-    const cacheAge = now - cachedData.timestamp;
-    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
-
-    return cacheAge < cacheDurationMs;
-  };
-
-  const saveToCache = (studentsData: Student[]) => {
-    try {
-      const cacheData: CachedStudentsData = {
-        students: studentsData,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error("Failed to save to session storage:", err);
-    }
-  };
-
-  const loadFromCache = (): Student[] | null => {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
-
-      const cachedData: CachedStudentsData = JSON.parse(cached);
-
-      if (isCacheValid(cachedData)) {
-        setLastUpdated(new Date(cachedData.timestamp));
-        return cachedData.students;
-      }
-
-      // Cache expired, remove it
-      sessionStorage.removeItem(CACHE_KEY);
-      return null;
-    } catch (err) {
-      console.error("Failed to load from session storage:", err);
-      return null;
-    }
-  };
-
   const fetchStudents = async (forceRefresh: boolean = false) => {
     try {
-      if (!forceRefresh) {
-        // Try to load from cache first
-        const cachedData = loadFromCache();
-        if (cachedData) {
-          setStudents(cachedData);
-          setLoading(false);
-          return;
-        }
-      }
-
       setLoading(true);
       setError(null);
       const data = await apiService.get(endPoints.getAllStudentsCGPA_VD);
       setStudents(data);
-      saveToCache(data);
+      setLastUpdated(new Date());
     } catch (err: any) {
       console.error("Error fetching students:", err);
       setError(err.response?.data?.error || "Failed to load students data");
-
-      // If API fails but we have expired cache, use it as fallback
-      const expiredCache = loadFromCache();
-      if (expiredCache) {
-        setStudents(expiredCache);
-        setError(null); // Clear error since we have fallback data
-      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -153,6 +84,7 @@ export default function ViceDeanStudents() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    await clearCacheForUrl(endPoints.getAllStudentsCGPA_VD);
     await fetchStudents(true);
   };
 

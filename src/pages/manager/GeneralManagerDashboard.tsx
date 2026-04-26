@@ -22,7 +22,8 @@ import {
   BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import apiClient from "@/components/api/apiClient";
+import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "@/components/api/endPoints";
 
 // Interfaces (based on your API response)
@@ -68,10 +69,10 @@ export default function GeneralManagerDashboard() {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiClient.get<DashboardData>(
+      const response = await apiService.get<DashboardData>(
         endPoints.getGeneralManagerDashboard
       );
-      setData(response.data);
+      setData(response);
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.message || "Failed to load dashboard");
@@ -83,6 +84,11 @@ export default function GeneralManagerDashboard() {
   useEffect(() => {
     fetchDashboard();
   }, []);
+
+  const handleRefresh = async () => {
+    await clearCacheForUrl(endPoints.getGeneralManagerDashboard);
+    await fetchDashboard();
+  };
 
   if (loading) {
     return (
@@ -103,7 +109,7 @@ export default function GeneralManagerDashboard() {
           {error || "Unable to load dashboard data"}
         </p>
         <Button
-          onClick={fetchDashboard}
+          onClick={handleRefresh}
           variant="outline"
           size="lg"
           className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
@@ -132,7 +138,7 @@ export default function GeneralManagerDashboard() {
           General Manager Dashboard
         </h1>
         <Button
-          onClick={fetchDashboard}
+          onClick={handleRefresh}
           variant="outline"
           size="sm"
           className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"

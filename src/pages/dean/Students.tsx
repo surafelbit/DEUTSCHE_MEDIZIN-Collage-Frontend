@@ -10,7 +10,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMemo, useState, useEffect } from "react";
-import apiClient from "@/components/api/apiClient";
+import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "@/components/api/endPoints";
 import {
   Loader2,
@@ -28,10 +29,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { AcademicProgression } from "@/components/Extra/AcademicProgression";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Cache configuration
-const CACHE_DURATION_HOURS = 7 * 24; // Adjust cache duration in hours
-const CACHE_KEY = "dean_students_data";
 
 interface Student {
   studentId: number;
@@ -96,12 +93,6 @@ interface AcademicProgressData {
   totalRemainingCreditHours: number;
 }
 
-interface CachedStudentsData {
-  students: Student[];
-  statistics: Statistics;
-  timestamp: number;
-}
-
 export default function DeanStudents() {
   const [query, setQuery] = useState("");
   const [selectedBcys, setSelectedBcys] = useState<string>("All");
@@ -131,54 +122,6 @@ export default function DeanStudents() {
     useState<AcademicProgressData | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
-
-  const isCacheValid = (cachedData: CachedStudentsData | null): boolean => {
-    if (!cachedData) return false;
-    const now = Date.now();
-    const cacheAge = now - cachedData.timestamp;
-    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
-    return cacheAge < cacheDurationMs;
-  };
-
-  const saveToCache = (studentsData: Student[], statsData: Statistics) => {
-    try {
-      const cacheData: CachedStudentsData = {
-        students: studentsData,
-        statistics: statsData,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error("Failed to save to session storage:", err);
-    }
-  };
-
-  const loadFromCache = (): {
-    students: Student[];
-    statistics: Statistics;
-  } | null => {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
-
-      const cachedData: CachedStudentsData = JSON.parse(cached);
-
-      if (isCacheValid(cachedData)) {
-        setLastUpdated(new Date(cachedData.timestamp));
-        return {
-          students: cachedData.students,
-          statistics: cachedData.statistics,
-        };
-      }
-
-      sessionStorage.removeItem(CACHE_KEY);
-      return null;
-    } catch (err) {
-      console.error("Failed to load from session storage:", err);
-      return null;
-    }
-  };
 
   useEffect(() => {
     fetchStudents();
@@ -221,33 +164,19 @@ export default function DeanStudents() {
 
   const fetchStudents = async (forceRefresh: boolean = false) => {
     try {
-      if (!forceRefresh) {
-        // Try to load from cache first
-        const cachedData = loadFromCache();
-        if (cachedData) {
-          setStudents(cachedData.students);
-          setStatistics(cachedData.statistics);
-          setLoading(false);
-          return;
-        }
-      }
-
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.get(endPoints.getAllStudentsCGPA_DN);
+      const response = await apiService.get(endPoints.getAllStudentsCGPA_DN);
 
       let studentData: Student[] = [];
 
-      if (Array.isArray(response.data)) {
+      if (Array.isArray(response)) {
+        studentData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
         studentData = response.data;
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        studentData = response.data.data;
-      } else if (
-        response.data?.students &&
-        Array.isArray(response.data.students)
-      ) {
-        studentData = response.data.students;
+      } else if (response?.students && Array.isArray(response.students)) {
+        studentData = response.students;
       }
 
       if (!Array.isArray(studentData)) {
@@ -260,9 +189,7 @@ export default function DeanStudents() {
       // Calculate statistics
       const stats = calculateStatisticsFromData(studentData);
       setStatistics(stats);
-
-      // Save to cache
-      saveToCache(studentData, stats);
+      setLastUpdated(new Date());
     } catch (err: any) {
       console.error("Failed to load students:", err);
       setError(
@@ -278,37 +205,7 @@ export default function DeanStudents() {
   };
 
   const calculateStatistics = (studentList: Student[]) => {
-    if (!Array.isArray(studentList)) {
-      studentList = [];
-    }
-
-    const activeCount = studentList.filter((s) =>
-      s?.studentStatus?.toLowerCase().includes("active"),
-    ).length;
-
-    // Note: Gender information is not provided in the API response
-    // You may need to update this if gender is added to the API
-    const maleCount = 0; // Placeholder - update when gender data is available
-    const femaleCount = 0; // Placeholder - update when gender data is available
-
-    // Calculate average CGPA
-    const totalCGPA = studentList.reduce(
-      (sum, student) => sum + (student.cgpa || 0),
-      0,
-    );
-    const averageCGPA =
-      studentList.length > 0 ? totalCGPA / studentList.length : 0;
-
-    const stats: Statistics = {
-      totalStudentsInCollege: studentList.length,
-      maleCount: maleCount,
-      femaleCount: femaleCount,
-      activeStudentsCount: activeCount,
-      inactiveStudentsCount: studentList.length - activeCount,
-      averageCGPA: parseFloat(averageCGPA.toFixed(2)),
-    };
-
-    setStatistics(stats);
+    setStatistics(calculateStatisticsFromData(studentList));
   };
 
   // New function to calculate statistics from filtered students
@@ -338,10 +235,10 @@ export default function DeanStudents() {
   const fetchLookups = async () => {
     try {
       setLoadingLookups(true);
-      const response = await apiClient.get<LookupsResponse>(
+      const response = await apiService.get<LookupsResponse>(
         endPoints.lookupsDropdown,
       );
-      setLookups(response.data);
+      setLookups(response);
     } catch (err: any) {
       console.error("Failed to load lookups:", err);
     } finally {
@@ -359,9 +256,9 @@ export default function DeanStudents() {
         ":userId",
         studentUserId.toString(),
       );
-      const response = await apiClient.get(endpoint);
-      console.log("Academic Progress Response:", response.data);
-      setAcademicProgress(response.data);
+      const response = await apiService.get(endpoint);
+      console.log("Academic Progress Response:", response);
+      setAcademicProgress(response);
     } catch (err: any) {
       console.error("Failed to load academic progress:", err);
       setProgressError(
@@ -384,7 +281,10 @@ export default function DeanStudents() {
   // Handle refresh button click
   const handleRefresh = async () => {
     setRefreshing(true);
+    await clearCacheForUrl(endPoints.getAllStudentsCGPA_DN);
+    await clearCacheForUrl(endPoints.lookupsDropdown);
     await fetchStudents(true);
+    await fetchLookups();
   };
 
   // Close modal

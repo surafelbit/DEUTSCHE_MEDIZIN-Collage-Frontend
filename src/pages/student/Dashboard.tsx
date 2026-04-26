@@ -25,10 +25,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import endPoints from "@/components/api/endPoints";
 import apiService from "@/components/api/apiService";
-
-// Cache configuration - adjust this value to change how long data stays cached (in hours)
-const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
-const CACHE_KEY = "student_dashboard_data";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 
 interface DashboardResponse {
   profileSummary: {
@@ -65,11 +62,6 @@ interface DashboardResponse {
   };
 }
 
-interface CachedData {
-  data: DashboardResponse;
-  timestamp: number;
-}
-
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { t } = useTranslation(["student", "common"]);
@@ -83,79 +75,18 @@ export default function StudentDashboard() {
     loadDashboard();
   }, []);
 
-  const isCacheValid = (cachedData: CachedData | null): boolean => {
-    if (!cachedData) return false;
-
-    const now = Date.now();
-    const cacheAge = now - cachedData.timestamp;
-    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
-
-    return cacheAge < cacheDurationMs;
-  };
-
-  const saveToCache = (dashboardData: DashboardResponse) => {
+  const loadDashboard = async () => {
     try {
-      const cacheData: CachedData = {
-        data: dashboardData,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error("Failed to save to session storage:", err);
-    }
-  };
-
-  const loadFromCache = (): DashboardResponse | null => {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
-
-      const cachedData: CachedData = JSON.parse(cached);
-
-      if (isCacheValid(cachedData)) {
-        setLastUpdated(new Date(cachedData.timestamp));
-        return cachedData.data;
-      }
-
-      // Cache expired, remove it
-      sessionStorage.removeItem(CACHE_KEY);
-      return null;
-    } catch (err) {
-      console.error("Failed to load from session storage:", err);
-      return null;
-    }
-  };
-
-  const loadDashboard = async (forceRefresh: boolean = false) => {
-    try {
-      if (!forceRefresh) {
-        // Try to load from cache first
-        const cachedData = loadFromCache();
-        if (cachedData) {
-          setData(cachedData);
-          setLoading(false);
-          return;
-        }
-      }
-
       setLoading(true);
       setError(null);
       const response = await apiService.get<DashboardResponse>(
         endPoints.studentDashboard,
       );
       setData(response);
-      saveToCache(response);
+      setLastUpdated(new Date());
     } catch (error: any) {
       console.error("Error loading dashboard data:", error);
       setError(error.response?.data?.error || "Failed to load dashboard data");
-
-      // If API fails but we have expired cache, use it as fallback
-      const expiredCache = loadFromCache();
-      if (expiredCache) {
-        setData(expiredCache);
-        setError(null); // Clear error since we have fallback data
-      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -164,7 +95,8 @@ export default function StudentDashboard() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadDashboard(true);
+    await clearCacheForUrl(endPoints.studentDashboard);
+    await loadDashboard();
   };
 
   if (loading) {
@@ -183,7 +115,7 @@ export default function StudentDashboard() {
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <AlertTriangle className="h-12 w-12 text-red-600" />
         <div className="text-lg text-red-600">{error}</div>
-        <Button onClick={() => loadDashboard(true)} variant="outline">
+        <Button onClick={handleRefresh} variant="outline">
           Retry
         </Button>
       </div>

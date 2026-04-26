@@ -3,6 +3,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useSignOut } from "@/hooks/useSignOut";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
 import {
   LayoutDashboard,
@@ -16,7 +17,6 @@ import {
   Bell,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -32,8 +32,8 @@ import apiClient from "../components/api/apiClient";
 import endPoints from "../components/api/endPoints";
 
 export default function ViceDeanLayout() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const logout = useSignOut();
 
   const [sidebarOpen, setSidebarOpen] = useState(
     () => window.innerWidth >= 1024
@@ -68,11 +68,6 @@ export default function ViceDeanLayout() {
     }
     return userData.fullName[0].toUpperCase();
   };
-
-  function logout() {
-    localStorage.removeItem("xy9a7b");
-    navigate("/");
-  }
 
   const handleChangePassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {

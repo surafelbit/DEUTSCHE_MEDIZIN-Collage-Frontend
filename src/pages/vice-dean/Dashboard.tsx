@@ -25,6 +25,7 @@ import {
 } from "chart.js";
 import { useState, useEffect } from "react";
 import apiService from "../../components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "../../components/api/endPoints";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -39,15 +40,6 @@ ChartJS.register(
   Legend,
   ArcElement,
 );
-
-// Cache configuration - adjust this value to change how long data stays cached (in hours)
-const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
-const CACHE_KEY = "vice_dean_dashboard_data";
-
-interface CachedData {
-  data: any;
-  timestamp: number;
-}
 
 const getAlertIcon = (type: string) => {
   switch (type) {
@@ -73,78 +65,16 @@ export default function ViceDeanDashboard() {
     fetchDashboardData();
   }, []);
 
-  const isCacheValid = (cachedData: CachedData | null): boolean => {
-    if (!cachedData) return false;
-
-    const now = Date.now();
-    const cacheAge = now - cachedData.timestamp;
-    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
-
-    return cacheAge < cacheDurationMs;
-  };
-
-  const saveToCache = (data: any) => {
-    try {
-      const cacheData: CachedData = {
-        data,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error("Failed to save to session storage:", err);
-    }
-  };
-
-  const loadFromCache = (): any | null => {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
-
-      const cachedData: CachedData = JSON.parse(cached);
-
-      if (isCacheValid(cachedData)) {
-        setLastUpdated(new Date(cachedData.timestamp));
-        return cachedData.data;
-      }
-
-      // Cache expired, remove it
-      sessionStorage.removeItem(CACHE_KEY);
-      return null;
-    } catch (err) {
-      console.error("Failed to load from session storage:", err);
-      return null;
-    }
-  };
-
   const fetchDashboardData = async (forceRefresh: boolean = false) => {
     try {
-      if (!forceRefresh) {
-        // Try to load from cache first
-        const cachedData = loadFromCache();
-        if (cachedData) {
-          setDashboardData(cachedData);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Fetch from API if no cache or force refresh
       setLoading(true);
       setError(null);
       const data = await apiService.get(endPoints.viceDeanDashboard);
       setDashboardData(data);
-      saveToCache(data);
+      setLastUpdated(new Date());
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
       setError(err.response?.data?.error || "Failed to load dashboard data");
-
-      // If API fails but we have expired cache, use it as fallback
-      const expiredCache = loadFromCache();
-      if (expiredCache) {
-        setDashboardData(expiredCache);
-        setError(null); // Clear error since we have fallback data
-      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -153,6 +83,7 @@ export default function ViceDeanDashboard() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    await clearCacheForUrl(endPoints.viceDeanDashboard);
     await fetchDashboardData(true);
   };
 
