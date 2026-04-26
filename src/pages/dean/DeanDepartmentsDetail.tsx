@@ -1,8 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Building, Layers, GraduationCap, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Building,
+  GraduationCap,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  BookOpen,
+  Search,
+  Clock,
+  CalendarDays,
+  Hash,
+  Layers,
+  BookMarked,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
 
@@ -27,87 +58,89 @@ interface Department {
   };
 }
 
+interface Prerequisite {
+  id: number;
+  name: string;
+  ccode: string;
+}
+
+interface CourseCategory {
+  id: number;
+  name: string;
+}
+
 interface RawCourse {
   id: number;
   ccode: string;
   ctitle: string;
   theoryHrs: number;
   labHrs: number;
-  prerequisites: string[];
+  isPassFail: boolean;
+  courseCategory: CourseCategory;
+  department: {
+    id: number;
+    name: string;
+  };
+  classYear: {
+    id: number;
+    name: string;
+  };
+  semester: {
+    code: string;
+    name: string;
+  };
+  prerequisites: Prerequisite[];
 }
 
 interface DisplayCourse {
   id: number;
   code: string;
   name: string;
-  creditHours: number;
-  prerequisites: string[];
-  teacher?: string;
+  theoryHrs: number;
+  labHrs: number;
+  totalCrHrs: number;
+  courseCategory: string;
   classYear: string;
   semester: string;
+  prerequisites: Prerequisite[];
+}
+
+interface GroupedByYearAndSemester {
+  [year: string]: {
+    [semester: string]: DisplayCourse[];
+  };
 }
 
 export default function DeanDepartmentDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [department, setDepartment] = useState<Department | null>(null);
-  const [courseError, setCourseError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTeacher, setSelectedTeacher] = useState("");
   const [courses, setCourses] = useState<DisplayCourse[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
+  const [expandedSemesters, setExpandedSemesters] = useState<Set<string>>(
+    new Set(),
+  );
 
-  // Define the custom order for class years
-  const getClassYearOrder = (classYear: string): number => {
-    const orderMap: { [key: string]: number } = {
-      "1": 1,
-      "Year 1": 1,
-      "Pre-Medicine": 1,
-      "Pre Medicine": 1,
-      "PC1": 2,
-      "Pre clinical year 1": 2,
-      "Year 2": 2,
-      "PC2": 3,
-      "Pre clinical year 2": 3,
-      "Year 3": 3,
-      "C1": 4,
-      "Clinical year 1": 4,
-      "Year 4": 4,
-      "C2": 5,
-      "Clinical year 2": 5,
-      "Year 5": 5,
-      "C3": 6,
-      "Clinical year 3": 6,
-      "Year 6": 6,
-    };
-    
-    // Extract year number from classYear string if it contains "Year X"
-    const yearMatch = classYear.match(/Year (\d+)/);
-    if (yearMatch) {
-      const yearNum = parseInt(yearMatch[1]);
-      if (yearNum >= 1 && yearNum <= 6) {
-        return yearNum;
-      }
-    }
-    
-    return orderMap[classYear] || 999;
-  };
-
-  // Sort semester order
+  // Define semester order
   const getSemesterOrder = (semester: string): number => {
-    if (semester.includes("First") || semester === "Semester 1") return 1;
-    if (semester.includes("Second") || semester === "Semester 2") return 2;
-    if (semester.includes("Full Year")) return 3;
-    return 4;
+    const semesterLower = semester.toLowerCase();
+    if (semesterLower.includes("first") || semesterLower === "semester 1")
+      return 1;
+    if (semesterLower.includes("second") || semesterLower === "semester 2")
+      return 2;
+    if (semesterLower.includes("third") || semesterLower === "semester 3")
+      return 3;
+    if (semesterLower.includes("summer")) return 4;
+    return 999;
   };
 
   useEffect(() => {
     const fetchCourses = async () => {
       setLoadingCourses(true);
-      setCourseError(null);
       setCourses([]);
 
       try {
@@ -126,44 +159,31 @@ export default function DeanDepartmentDetails() {
           throw new Error("Response is not in expected array format");
         }
 
-        const mappedCourses: DisplayCourse[] = courseArray.map((raw: any) => {
-          const credit = raw.theoryHrs || 0;
-          const labCredit = raw.labHrs ? Math.floor(raw.labHrs / 2) : 0;
-
-          return {
+        const mappedCourses: DisplayCourse[] = courseArray.map(
+          (raw: RawCourse) => ({
             id: raw.id,
-            code: raw.ccode || raw.code || "—",
-            name: raw.ctitle || raw.name || "Unnamed",
-            creditHours: credit + labCredit,
-            prerequisites: Array.isArray(raw.prerequisites)
-              ? raw.prerequisites
-              : [],
-            teacher: raw.teacher || raw.instructor || "Not Assigned",
-            classYear: raw.classYear?.name || "Year " + (raw.classYear?.id || "N/A"),
-            semester: raw.semester?.name || "Semester " + (raw.semester?.code || "N/A"),
-          };
-        });
+            code: raw.ccode || "—",
+            name: raw.ctitle || "Unnamed",
+            theoryHrs: raw.theoryHrs || 0,
+            labHrs: raw.labHrs || 0,
+            totalCrHrs: (raw.theoryHrs || 0) + (raw.labHrs || 0),
+            courseCategory: raw.courseCategory?.name || "Uncategorized",
+            classYear: raw.classYear?.name || "N/A",
+            semester: raw.semester?.name || "N/A",
+            prerequisites: raw.prerequisites || [],
+          }),
+        );
 
         setCourses(mappedCourses);
-        
-        // Initialize expanded groups - expand all by default
-        const groups = mappedCourses.reduce((acc, course) => {
-          const key = `${course.classYear} - ${course.semester}`;
-          acc.add(key);
-          return acc;
-        }, new Set<string>());
-        setExpandedGroups(groups);
 
-        if (mappedCourses.length === 0) {
-          setCourseError("No courses found");
-        }
+        // Initially expand all years but not semesters
+        const years = [
+          ...new Set(mappedCourses.map((c) => `Year ${c.classYear}`)),
+        ];
+        setExpandedYears(new Set(years));
+        setExpandedSemesters(new Set());
       } catch (err: any) {
         console.error("Courses fetch failed:", err);
-        const msg =
-          err.response?.data?.message ||
-          err.message ||
-          "Failed to load courses";
-        setCourseError(msg);
       } finally {
         setLoadingCourses(false);
       }
@@ -182,7 +202,7 @@ export default function DeanDepartmentDetails() {
       setLoading(true);
       setError(null);
       const deptResponse = await apiService.get(
-        endPoints.getDepartmentById(id!)
+        endPoints.getDepartmentById(id!),
       );
       setDepartment(deptResponse);
     } catch (err: any) {
@@ -197,55 +217,124 @@ export default function DeanDepartmentDetails() {
     fetchDepartmentDetails();
   };
 
-  const toggleGroup = (groupKey: string) => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupKey)) {
-      newExpanded.delete(groupKey);
+  const toggleYear = (year: string) => {
+    const newExpanded = new Set(expandedYears);
+    if (newExpanded.has(year)) {
+      newExpanded.delete(year);
     } else {
-      newExpanded.add(groupKey);
+      newExpanded.add(year);
     }
-    setExpandedGroups(newExpanded);
+    setExpandedYears(newExpanded);
+  };
+
+  const toggleSemester = (semesterKey: string) => {
+    const newExpanded = new Set(expandedSemesters);
+    if (newExpanded.has(semesterKey)) {
+      newExpanded.delete(semesterKey);
+    } else {
+      newExpanded.add(semesterKey);
+    }
+    setExpandedSemesters(newExpanded);
   };
 
   const expandAll = () => {
-    const allGroups = new Set(Object.keys(groupedCourses));
-    setExpandedGroups(allGroups);
+    setExpandedYears(new Set(sortedYears));
+    // Expand all semesters
+    const allSemesterKeys: string[] = [];
+    sortedYears.forEach((year) => {
+      const semesters = getSortedSemesters(year);
+      semesters.forEach((semester) => {
+        allSemesterKeys.push(`${year}-${semester}`);
+      });
+    });
+    setExpandedSemesters(new Set(allSemesterKeys));
   };
 
   const collapseAll = () => {
-    setExpandedGroups(new Set());
+    setExpandedYears(new Set());
+    setExpandedSemesters(new Set());
   };
 
-  // Group courses by class year and semester
-  const groupedCourses = courses.reduce((acc, course) => {
-    const key = `${course.classYear} - ${course.semester}`;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(course);
-    return acc;
-  }, {} as Record<string, DisplayCourse[]>);
+  // Filter courses based on search
+  const getFilteredCourses = (courseList: DisplayCourse[]) => {
+    return courseList.filter((course) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.classYear.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.semester.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        course.courseCategory
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        course.prerequisites.some(
+          (pre) =>
+            pre.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            pre.ccode.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      return matchesSearch;
+    });
+  };
 
-  // Sort groups based on custom order
-  const sortedGroupKeys = Object.keys(groupedCourses).sort((a, b) => {
-    const classYearA = a.split(" - ")[0];
-    const classYearB = b.split(" - ")[0];
-    const semesterA = a.split(" - ")[1];
-    const semesterB = b.split(" - ")[1];
-    
-    const yearOrderA = getClassYearOrder(classYearA);
-    const yearOrderB = getClassYearOrder(classYearB);
-    
-    if (yearOrderA !== yearOrderB) {
-      return yearOrderA - yearOrderB;
-    }
-    
-    const semesterOrderA = getSemesterOrder(semesterA);
-    const semesterOrderB = getSemesterOrder(semesterB);
-    
-    return semesterOrderA - semesterOrderB;
+  // Group courses by classYear and then by semester
+  const groupedCourses = courses.reduce((groups, course) => {
+    const year = `Year ${course.classYear}`;
+    const semester = course.semester;
+
+    if (!groups[year]) groups[year] = {};
+    if (!groups[year][semester]) groups[year][semester] = [];
+
+    groups[year][semester].push(course);
+    return groups;
+  }, {} as GroupedByYearAndSemester);
+
+  // Sort years
+  const sortedYears = Object.keys(groupedCourses).sort((a, b) => {
+    if (a === "Uncategorized") return 1;
+    if (b === "Uncategorized") return -1;
+
+    // Extract year number
+    const yearNumA = parseInt(a.replace("Year ", "")) || 999;
+    const yearNumB = parseInt(b.replace("Year ", "")) || 999;
+    return yearNumA - yearNumB;
   });
 
-  // Get unique teachers across all courses for the filter
-  const allTeachers = Array.from(new Set(courses.map((c) => c.teacher))).sort();
+  // Sort semesters within each year
+  const getSortedSemesters = (year: string): string[] => {
+    const semesters = Object.keys(groupedCourses[year]);
+    return semesters.sort((a, b) => {
+      if (a === "Uncategorized") return 1;
+      if (b === "Uncategorized") return -1;
+
+      const orderA = getSemesterOrder(a);
+      const orderB = getSemesterOrder(b);
+      if (orderA !== orderB) return orderA - orderB;
+      return a.localeCompare(b);
+    });
+  };
+
+  // Calculate total filtered courses count
+  const getFilteredGroupedCourses = () => {
+    const filtered: GroupedByYearAndSemester = {};
+    let totalCount = 0;
+
+    sortedYears.forEach((year) => {
+      const semesters = getSortedSemesters(year);
+      semesters.forEach((semester) => {
+        const semesterCourses = groupedCourses[year][semester];
+        const filteredCourses = getFilteredCourses(semesterCourses);
+        if (filteredCourses.length > 0) {
+          if (!filtered[year]) filtered[year] = {};
+          filtered[year][semester] = filteredCourses;
+          totalCount += filteredCourses.length;
+        }
+      });
+    });
+
+    return { filteredGroups: filtered, totalCount };
+  };
+
+  const { filteredGroups, totalCount } = getFilteredGroupedCourses();
 
   if (loading) {
     return (
@@ -323,24 +412,6 @@ export default function DeanDepartmentDetails() {
     );
   }
 
-  // Filter courses based on search and teacher
-  const getFilteredCoursesForGroup = (groupCourses: DisplayCourse[]) => {
-    return groupCourses.filter((course) => {
-      const matchesSearch =
-        course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        course.code.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTeacher =
-        selectedTeacher === "" || course.teacher === selectedTeacher;
-      return matchesSearch && matchesTeacher;
-    });
-  };
-
-  // Calculate total filtered courses count
-  const totalFilteredCourses = Object.values(groupedCourses).reduce(
-    (total, groupCourses) => total + getFilteredCoursesForGroup(groupCourses).length,
-    0
-  );
-
   return (
     <div className="p-10 space-y-10">
       {/* Go Back Button */}
@@ -357,9 +428,12 @@ export default function DeanDepartmentDetails() {
       </div>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-700 p-8 rounded-2xl shadow-lg text-white">
-        <h1 className="text-4xl font-bold">{department.deptName}</h1>
-        <p className="mt-2 text-lg">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg p-6 text-white">
+        <div className="flex items-center gap-3 mb-4">
+          <Building className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">{department.deptName}</h1>
+        </div>
+        <p className="text-blue-100">
           Department Code: {department.departmentCode}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -384,39 +458,22 @@ export default function DeanDepartmentDetails() {
         </div>
       </div>
 
-      {/* Filters Section */}
-      <div className="space-y-4 max-w-md">
-        <input
-          type="text"
-          placeholder="Search courses..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-        />
-
-        {allTeachers.length > 0 && (
-          <select
-            value={selectedTeacher}
-            onChange={(e) => setSelectedTeacher(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-700"
-          >
-            <option value="">All Teachers</option>
-            {allTeachers.map((teacher) => (
-              <option key={teacher} value={teacher}>
-                {teacher}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      {/* Courses Section */}
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-blue-700 dark:text-blue-400">
-            Courses
-          </h2>
-          {Object.keys(groupedCourses).length > 0 && (
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+            <Input
+              placeholder="Search by code, title, year, semester, category, or prerequisites..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex justify-between items-center mt-4">
+            <CardDescription>
+              {totalCount} course{totalCount !== 1 ? "s" : ""} shown
+            </CardDescription>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -437,116 +494,278 @@ export default function DeanDepartmentDetails() {
                 Collapse All
               </Button>
             </div>
-          )}
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Courses Section with Nested Structure */}
+      {loadingCourses ? (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-sm text-gray-500 animate-pulse">
+            Fetching courses...
+          </p>
         </div>
+      ) : courses.length === 0 ? (
+        <div className="text-center py-12">
+          <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300">
+            No Course Data Available
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">
+            Course information for this department is not available.
+          </p>
+        </div>
+      ) : totalCount === 0 ? (
+        <Card>
+          <CardContent className="text-center py-12 text-muted-foreground">
+            No courses match your search criteria
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {sortedYears.map((year) => {
+            if (
+              !filteredGroups[year] ||
+              Object.keys(filteredGroups[year]).length === 0
+            )
+              return null;
 
-        {loadingCourses ? (
-          <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="text-sm text-gray-500 animate-pulse">
-              Fetching courses...
-            </p>
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="text-center py-12">
-            <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-300">
-              No Course Data Available
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
-              Course information for this department is not available.
-            </p>
-          </div>
-        ) : totalFilteredCourses === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
-              No courses match your search criteria
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {sortedGroupKeys.map((groupKey) => {
-              const groupCourses = groupedCourses[groupKey];
-              const filteredGroupCourses = getFilteredCoursesForGroup(groupCourses);
-              const isExpanded = expandedGroups.has(groupKey);
-              
-              if (filteredGroupCourses.length === 0) return null;
+            const semesters = getSortedSemesters(year);
+            const isYearExpanded = expandedYears.has(year);
 
-              return (
-                <div
-                  key={groupKey}
-                  className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
-                >
-                  {/* Clickable Header */}
-                  <div
-                    className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-                    onClick={() => toggleGroup(groupKey)}
-                  >
-                    <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                        {isExpanded ? (
-                          <ChevronDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                          {groupKey}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {filteredGroupCourses.length} course{filteredGroupCourses.length !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Expandable Content */}
-                  {isExpanded && (
-                    <div className="overflow-x-auto p-4">
-                      <table className="w-full border-collapse text-gray-800 dark:text-gray-200">
-                        <thead>
-                          <tr className="bg-gray-100 dark:bg-gray-800 text-left">
-                            <th className="p-3 border">Course Code</th>
-                            <th className="p-3 border">Course Name</th>
-                            <th className="p-3 border">Credit Hours</th>
-                            <th className="p-3 border">Prerequisites</th>
-                            <th className="p-3 border">Teacher</th>
-                           </tr>
-                        </thead>
-                        <tbody>
-                          {filteredGroupCourses.map((course) => (
-                            <tr
-                              key={course.id}
-                              className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                            >
-                              <td className="p-3 border font-mono">
-                                {course.code}
-                               </td>
-                              <td className="p-3 border font-medium">
-                                {course.name}
-                               </td>
-                              <td className="p-3 border text-center">
-                                {course.creditHours}
-                               </td>
-                              <td className="p-3 border text-sm">
-                                {course.prerequisites.length > 0
-                                  ? course.prerequisites.join(", ")
-                                  : "None"}
-                               </td>
-                              <td className="p-3 border">{course.teacher}</td>
-                             </tr>
-                          ))}
-                        </tbody>
-                       </table>
-                    </div>
-                  )}
-                </div>
+            // Calculate totals for this year from filtered courses
+            let totalYearCourses = 0;
+            let totalYearCredits = 0;
+            semesters.forEach((semester) => {
+              const semesterCourses = filteredGroups[year]?.[semester] || [];
+              totalYearCourses += semesterCourses.length;
+              totalYearCredits += semesterCourses.reduce(
+                (sum, c) => sum + c.totalCrHrs,
+                0,
               );
-            })}
-          </div>
-        )}
-      </div>
+            });
+
+            return (
+              <Card key={year} className="overflow-hidden">
+                <div
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => toggleYear(year)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleYear(year);
+                          }}
+                        >
+                          {isYearExpanded ? (
+                            <ChevronDown className="h-5 w-5" />
+                          ) : (
+                            <ChevronRight className="h-5 w-5" />
+                          )}
+                        </Button>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <GraduationCap className="h-5 w-5 text-blue-600" />
+                            <CardTitle className="text-xl">{year}</CardTitle>
+                          </div>
+                          <CardDescription className="mt-1">
+                            {totalYearCourses} course
+                            {totalYearCourses !== 1 ? "s" : ""} • Total{" "}
+                            {totalYearCredits} Credit Hours
+                          </CardDescription>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-sm">
+                          {totalYearCourses}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </div>
+
+                {isYearExpanded && (
+                  <CardContent className="pt-0">
+                    <div className="space-y-3 ml-6">
+                      {semesters.map((semester) => {
+                        const semesterCourses =
+                          filteredGroups[year]?.[semester];
+                        if (!semesterCourses || semesterCourses.length === 0)
+                          return null;
+
+                        const semesterKey = `${year}-${semester}`;
+                        const isSemesterExpanded =
+                          expandedSemesters.has(semesterKey);
+                        const totalSemesterCredits = semesterCourses.reduce(
+                          (sum, c) => sum + c.totalCrHrs,
+                          0,
+                        );
+
+                        return (
+                          <div
+                            key={semester}
+                            className="border rounded-lg overflow-hidden"
+                          >
+                            <div
+                              className="cursor-pointer hover:bg-muted/30 transition-colors bg-muted/10"
+                              onClick={() => toggleSemester(semesterKey)}
+                            >
+                              <div className="p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleSemester(semesterKey);
+                                    }}
+                                  >
+                                    {isSemesterExpanded ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <CalendarDays className="h-4 w-4 text-green-600" />
+                                    <span className="font-semibold">
+                                      {semester}
+                                    </span>
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-xs ml-2"
+                                    >
+                                      {semesterCourses.length} courses
+                                    </Badge>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {totalSemesterCredits} credits
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {isSemesterExpanded && (
+                              <div className="p-3 pt-0">
+                                <div className="rounded-md border">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow>
+                                        <TableHead className="w-[120px]">
+                                          Course Code
+                                        </TableHead>
+                                        <TableHead>Course Title</TableHead>
+                                        <TableHead className="w-[100px] text-center">
+                                          Theory Hrs
+                                        </TableHead>
+                                        <TableHead className="w-[100px] text-center">
+                                          Lab Hrs
+                                        </TableHead>
+                                        <TableHead className="w-[100px] text-center">
+                                          Total Credits
+                                        </TableHead>
+                                        <TableHead className="w-[150px]">
+                                          Course Category
+                                        </TableHead>
+                                        <TableHead>Prerequisites</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {semesterCourses.map((course) => (
+                                        <TableRow key={course.id}>
+                                          <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                              <Hash className="h-4 w-4 text-muted-foreground" />
+                                              {course.code}
+                                            </div>
+                                          </TableCell>
+                                          <TableCell>{course.name}</TableCell>
+                                          <TableCell className="text-center">
+                                            <Badge
+                                              variant="secondary"
+                                              className="w-fit mx-auto"
+                                            >
+                                              <BookOpen className="h-3.5 w-3.5 mr-1" />
+                                              {course.theoryHrs}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell className="text-center">
+                                            <Badge
+                                              variant="secondary"
+                                              className="w-fit mx-auto"
+                                            >
+                                              <Layers className="h-3.5 w-3.5 mr-1" />
+                                              {course.labHrs}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell className="text-center">
+                                            <Badge
+                                              variant="default"
+                                              className="w-fit mx-auto bg-blue-600"
+                                            >
+                                              <Clock className="h-3.5 w-3.5 mr-1" />
+                                              {course.totalCrHrs}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell>
+                                            <Badge
+                                              variant="outline"
+                                              className="w-fit"
+                                            >
+                                              <BookMarked className="h-3.5 w-3.5 mr-1" />
+                                              {course.courseCategory}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell>
+                                            {course.prerequisites.length > 0 ? (
+                                              <div className="flex flex-wrap gap-1">
+                                                {course.prerequisites.map(
+                                                  (pre) => (
+                                                    <Badge
+                                                      key={pre.id}
+                                                      variant="outline"
+                                                      className="text-xs"
+                                                    >
+                                                      {pre.ccode} - {pre.name}
+                                                    </Badge>
+                                                  ),
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <span className="text-sm text-muted-foreground">
+                                                None
+                                              </span>
+                                            )}
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       {/* Department Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -23,7 +23,8 @@ import {
 import { Bar, Line, Pie, Doughnut } from "react-chartjs-2";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import apiClient from "@/components/api/apiClient";
+import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "@/components/api/endPoints";
 import {
   Chart as ChartJS,
@@ -66,37 +67,6 @@ interface DeanDashboardData {
   exitExamPassRate: number;
 }
 
-interface CachedData {
-  data: DeanDashboardData;
-  timestamp: number;
-}
-
-// Cache configuration - adjust this value to change how long data stays cached (in hours)
-const CACHE_DURATION_HOURS = 7 * 24; // Change this to your desired cache duration
-const CACHE_KEY = "dean_dashboard_data";
-
-const upcomingEvents = [
-  { id: 1, title: "Midterm Exams", date: "Oct 12", note: "All departments" },
-  {
-    id: 2,
-    title: "Grade Submission Deadline",
-    date: "Oct 25",
-    note: "Semester 1",
-  },
-  {
-    id: 3,
-    title: "Results Announcement",
-    date: "Nov 02",
-    note: "Portal + Notice",
-  },
-];
-
-const alerts = [
-  { id: 1, type: "warning", text: "12 students at academic risk (GPA < 2.0)" },
-  { id: 2, type: "danger", text: "3 disciplinary cases pending review" },
-  { id: 3, type: "info", text: "7 course change requests awaiting approval" },
-];
-
 export default function DeanDashboard() {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
@@ -111,70 +81,15 @@ export default function DeanDashboard() {
     fetchDashboardData();
   }, []);
 
-  const isCacheValid = (cachedData: CachedData | null): boolean => {
-    if (!cachedData) return false;
-
-    const now = Date.now();
-    const cacheAge = now - cachedData.timestamp;
-    const cacheDurationMs = CACHE_DURATION_HOURS * 60 * 60 * 1000;
-
-    return cacheAge < cacheDurationMs;
-  };
-
-  const saveToCache = (data: DeanDashboardData) => {
-    try {
-      const cacheData: CachedData = {
-        data,
-        timestamp: Date.now(),
-      };
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error("Failed to save to session storage:", err);
-    }
-  };
-
-  const loadFromCache = (): DeanDashboardData | null => {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (!cached) return null;
-
-      const cachedData: CachedData = JSON.parse(cached);
-
-      if (isCacheValid(cachedData)) {
-        setLastUpdated(new Date(cachedData.timestamp));
-        return cachedData.data;
-      }
-
-      // Cache expired, remove it
-      sessionStorage.removeItem(CACHE_KEY);
-      return null;
-    } catch (err) {
-      console.error("Failed to load from session storage:", err);
-      return null;
-    }
-  };
-
   const fetchDashboardData = async (forceRefresh: boolean = false) => {
     try {
-      if (!forceRefresh) {
-        // Try to load from cache first
-        const cachedData = loadFromCache();
-        if (cachedData) {
-          setDashboardData(cachedData);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Fetch from API if no cache or force refresh
       setError(null);
-      const response = await apiClient.get<DeanDashboardData>(
+      const response = await apiService.get<DeanDashboardData>(
         endPoints.deanDashboard,
       );
 
-      setDashboardData(response.data);
-      saveToCache(response.data);
+      setDashboardData(response);
+      setLastUpdated(new Date());
     } catch (err: any) {
       console.error("Failed to load dashboard data:", err);
       setError(
@@ -182,13 +97,6 @@ export default function DeanDashboard() {
           err.message ||
           "Failed to load dashboard data. Please try again later.",
       );
-
-      // If API fails but we have expired cache, use it as fallback
-      const expiredCache = loadFromCache();
-      if (expiredCache) {
-        setDashboardData(expiredCache);
-        setError(null); // Clear error since we have fallback data
-      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -197,6 +105,7 @@ export default function DeanDashboard() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    await clearCacheForUrl(endPoints.deanDashboard);
     await fetchDashboardData(true);
   };
 

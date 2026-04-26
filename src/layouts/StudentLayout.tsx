@@ -2,7 +2,7 @@
 
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useSignOut } from "@/hooks/useSignOut";
 import { ThemeToggle } from "@/components/theme-toggle";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
 import {
@@ -34,8 +34,8 @@ import apiClient from "../components/api/apiClient";
 import endPoints from "../components/api/endPoints";
 
 export default function StudentLayout() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const logout = useSignOut();
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     return window.innerWidth >= 1024;
   });
@@ -102,11 +102,6 @@ export default function StudentLayout() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  function logout() {
-    localStorage.removeItem("xy9a7b");
-    navigate("/");
-  }
 
   const handleChangePassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {

@@ -1,8 +1,8 @@
 "use client";
-import { useNavigate } from "react-router-dom";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useSignOut } from "@/hooks/useSignOut";
 import {
   GraduationCap,
   User,
@@ -36,11 +36,7 @@ import { Label } from "@/components/ui/label";
 import RefreshServerButton from "@/components/ui/RefreshServerButton";
 import NotificationDropdown from "@/components/ui/NotificationDropdown";
 export default function ManagerLayout() {
-  function logout() {
-    localStorage.removeItem("xy9a7b");
-    navigate("/");
-  }
-  const navigate = useNavigate();
+  const logout = useSignOut();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
 

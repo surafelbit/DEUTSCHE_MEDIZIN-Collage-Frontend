@@ -34,7 +34,8 @@ import {
   Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import apiClient from "@/components/api/apiClient";
+import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "@/components/api/endPoints";
 
 // Interface from your API response
@@ -59,10 +60,10 @@ export default function StudentsCGPAPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiClient.get<StudentCGPA[]>(
+      const response = await apiService.get<StudentCGPA[]>(
         endPoints.getAllStudentsCGPA
       );
-      setStudents(response.data);
+      setStudents(response);
     } catch (err: any) {
       console.error(err);
       setError(err.response?.data?.error || "Failed to load students");
@@ -74,6 +75,11 @@ export default function StudentsCGPAPage() {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  const handleRefresh = async () => {
+    await clearCacheForUrl(endPoints.getAllStudentsCGPA);
+    await fetchStudents();
+  };
 
   // Get unique departments for the filter dropdown
   const departments = [
@@ -195,7 +201,7 @@ export default function StudentsCGPAPage() {
 
           {/* Refresh */}
           <Button
-            onClick={fetchStudents}
+          onClick={handleRefresh}
             variant="outline"
             className="flex items-center gap-2 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 mt-6 sm:mt-0"
           >

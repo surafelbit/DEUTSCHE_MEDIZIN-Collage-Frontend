@@ -9,10 +9,19 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { X, AlertCircle } from "lucide-react"; // Add X and AlertCircle to existing lucide-react imports
+import { Skeleton } from "@/components/ui/skeleton"; // Add this
+import { AcademicProgression } from "@/components/Extra/AcademicProgression"; // Add this - adjust path if needed
 import { useMemo, useState, useEffect } from "react";
-import apiClient from "@/components/api/apiClient";
+import apiService from "@/components/api/apiService";
+import { clearCacheForUrl } from "@/components/api/cacheService";
 import endPoints from "@/components/api/endPoints";
-import { useNavigate } from "react-router-dom";
 import {
   Loader2,
   User,
@@ -33,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 interface Student {
   id: number;
   studentId: string;
+  userId: number; // ← This is the key field - matches backend's 'userId'
   fullName: string;
   recentBcysName: string;
   studentRecentStatusName: string;
@@ -68,49 +78,11 @@ export default function HeadStudents() {
   const [error, setError] = useState<string | null>(null);
   const [departmentData, setDepartmentData] =
     useState<DepartmentStudentsResponse | null>(null);
-  const navigate = useNavigate();
 
-  // Session storage keys
-  const STORAGE_KEY = "department_students_data";
-  const STORAGE_TIMESTAMP_KEY = "department_students_timestamp";
-
-  // Check if stored data is still valid (less than 1 hour old)
-  const isDataValid = () => {
-    const timestamp = sessionStorage.getItem(STORAGE_TIMESTAMP_KEY);
-    if (!timestamp) return false;
-
-    const storedTime = parseInt(timestamp, 10);
-    const currentTime = Date.now();
-    const oneHour = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
-
-    return currentTime - storedTime < oneHour;
-  };
-
-  // Load data from session storage if available
-  const loadFromSessionStorage = () => {
-    const storedData = sessionStorage.getItem(STORAGE_KEY);
-    if (storedData && isDataValid()) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        setDepartmentData(parsedData);
-        return true;
-      } catch (err) {
-        console.error("Failed to parse stored data:", err);
-        return false;
-      }
-    }
-    return false;
-  };
-
-  // Save data to session storage
-  const saveToSessionStorage = (data: DepartmentStudentsResponse) => {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      sessionStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString());
-    } catch (err) {
-      console.error("Failed to save to session storage:", err);
-    }
-  };
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [academicProgress, setAcademicProgress] = useState<any>(null);
+  const [loadingProgress, setLoadingProgress] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
 
   const fetchDepartmentStudents = async (showLoadingState = true) => {
     try {
@@ -121,11 +93,10 @@ export default function HeadStudents() {
       }
       setError(null);
 
-      const response = await apiClient.get<DepartmentStudentsResponse>(
+      const response = await apiService.get<DepartmentStudentsResponse>(
         endPoints.departmentStudents,
       );
-      setDepartmentData(response.data);
-      saveToSessionStorage(response.data);
+      setDepartmentData(response);
     } catch (err: any) {
       console.error("Failed to load students:", err);
       setError(
@@ -140,19 +111,12 @@ export default function HeadStudents() {
   };
 
   const handleRefresh = () => {
+    clearCacheForUrl(endPoints.departmentStudents);
     fetchDepartmentStudents(false);
   };
 
   useEffect(() => {
-    // Try to load from session storage first
-    const hasStoredData = loadFromSessionStorage();
-
-    if (!hasStoredData) {
-      // If no valid stored data, fetch from API
-      fetchDepartmentStudents(true);
-    } else {
-      setLoading(false);
-    }
+    fetchDepartmentStudents(true);
   }, []);
 
   // Get distinct BCYS values from students
@@ -255,8 +219,38 @@ export default function HeadStudents() {
     );
   };
 
-  const handleViewDetails = (studentId: number) => {
-    navigate(`/head/students/${studentId}`);
+  const fetchAcademicProgress = async (userId: number) => {
+    // ← Changed parameter name
+    try {
+      setLoadingProgress(true);
+      setProgressError(null);
+      const endpoint = endPoints.studentsAcademicProgress.replace(
+        ":userId",
+        userId.toString(), // ← Use userId parameter
+      );
+      const data = await apiService.get(endpoint);
+      setAcademicProgress(data);
+    } catch (err: any) {
+      console.error("Failed to load academic progress:", err);
+      setProgressError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to load academic progress",
+      );
+    } finally {
+      setLoadingProgress(false);
+    }
+  };
+
+  const handleViewDetails = (student: Student) => {
+    setSelectedStudent(student);
+    setAcademicProgress(null);
+    setProgressError(null);
+    if (student.userId) {
+      fetchAcademicProgress(student.userId);
+    } else {
+      setProgressError("Student user ID not available");
+    }
   };
 
   if (loading) {
@@ -539,9 +533,9 @@ export default function HeadStudents() {
                   <th className="py-3 px-4 font-medium text-gray-700 dark:text-gray-300">
                     Current Batch/ClassYear/Semester
                   </th>
-                  <th className="py-3 px-4 font-medium text-gray-700 dark:text-gray-300">
+                  {/* <th className="py-3 px-4 font-medium text-gray-700 dark:text-gray-300">
                     Phone
-                  </th>
+                  </th> */}
                   <th className="py-3 px-4 font-medium text-gray-700 dark:text-gray-300">
                     Status
                   </th>
@@ -554,7 +548,7 @@ export default function HeadStudents() {
                 {filtered.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       className="py-8 text-center text-gray-500 dark:text-gray-400"
                     >
                       No students found matching your criteria
@@ -593,9 +587,9 @@ export default function HeadStudents() {
                       <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">
                         {student.recentBcysName}
                       </td>
-                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
+                      {/* <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
                         {student.phoneNumber}
-                      </td>
+                      </td> */}
                       <td className="py-3 px-4">
                         <Badge
                           variant="outline"
@@ -608,7 +602,7 @@ export default function HeadStudents() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleViewDetails(student.id)}
+                          onClick={() => handleViewDetails(student)}
                           className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           View Details
@@ -672,6 +666,116 @@ export default function HeadStudents() {
             </div>
           </div>
         </CardContent>
+        {/* Student Detail Modal with Academic Progression */}
+        <Sheet
+          open={!!selectedStudent}
+          onOpenChange={(open) => !open && setSelectedStudent(null)}
+        >
+          <SheetContent
+            side="right"
+            className="w-[85vw] sm:max-w-3xl lg:max-w-4xl overflow-y-auto p-0"
+          >
+            {selectedStudent && (
+              <div className="h-full">
+                <SheetHeader className="sticky top-0 bg-white dark:bg-gray-900 z-10 p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <SheetTitle className="text-blue-600 dark:text-blue-400 text-xl">
+                      {selectedStudent.fullName} • {selectedStudent.studentId}
+                    </SheetTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full"
+                      onClick={() => setSelectedStudent(null)}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </SheetHeader>
+
+                <div className="p-6 pt-4">
+                  {loadingProgress ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                      <p className="mt-4 text-gray-600 dark:text-gray-400">
+                        Loading academic progress...
+                      </p>
+                    </div>
+                  ) : progressError ? (
+                    <div className="flex flex-col items-center justify-center h-64 space-y-4">
+                      <AlertCircle className="h-12 w-12 text-red-500" />
+                      <p className="text-red-600 dark:text-red-400 text-center">
+                        {progressError}
+                      </p>
+                      {selectedStudent &&
+                        selectedStudent.userId && ( // ← Changed to userId
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              fetchAcademicProgress(selectedStudent.userId)
+                            } // ← Changed to userId
+                          >
+                            Retry
+                          </Button>
+                        )}
+                    </div>
+                  ) : academicProgress ? (
+                    <AcademicProgression
+                      studentId={academicProgress.studentId}
+                      username={academicProgress.username}
+                      fullName={academicProgress.fullName}
+                      department={academicProgress.department}
+                      currentStatus={academicProgress.currentStatus}
+                      currentBatchClassYearSemester={
+                        academicProgress.currentBatchClassYearSemester
+                      }
+                      takenCourses={
+                        academicProgress.takenCourses?.map((course: any) => ({
+                          courseId: course.courseId,
+                          courseCode: course.courseCode,
+                          courseTitle: course.courseTitle,
+                          creditHours: course.creditHours,
+                          courseSource: course.courseSource,
+                          takenIn: course.takenIn,
+                          isReleased: course.released,
+                        })) || []
+                      }
+                      totalTakenCourses={academicProgress.totalTakenCourses}
+                      totalTakenCreditHours={
+                        academicProgress.totalTakenCreditHours
+                      }
+                      remainingCourses={
+                        academicProgress.remainingCourses?.map(
+                          (course: any) => ({
+                            courseId: course.courseId,
+                            courseCode: course.courseCode,
+                            courseTitle: course.courseTitle,
+                            creditHours: course.creditHours,
+                            expectedIn: course.expectedIn,
+                          }),
+                        ) || []
+                      }
+                      totalRemainingCourses={
+                        academicProgress.totalRemainingCourses
+                      }
+                      totalRemainingCreditHours={
+                        academicProgress.totalRemainingCreditHours
+                      }
+                      isLoading={false}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <AlertCircle className="h-12 w-12 text-yellow-500" />
+                      <p className="mt-4 text-gray-600 dark:text-gray-400">
+                        No academic data available
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </Card>
     </div>
   );
