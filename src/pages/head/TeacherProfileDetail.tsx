@@ -47,6 +47,7 @@ import {
   Lock,
   User,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -72,6 +73,7 @@ type TeacherDetail = {
   email: string | null;
   departmentName: string;
   hireDateGC: string;
+  resignedDate: string | null;  // ADD THIS LINE
   title: string | null;
   yearsOfExperience: number;
   impairmentCode?: string;
@@ -90,18 +92,32 @@ type TeacherDetail = {
 export default function TeacherProfileDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   // ── New states for course assignment ────────────────────────────────────────
   const [departmentCourses, setDepartmentCourses] = useState<any[]>([]);
   const [loadingDeptCourses, setLoadingDeptCourses] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
-  
+
   // Password reset states
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
+  // VALIDATION FUNCTIONS - ADD AFTER ADDRESS CASCADING STATES
+  const validatePhoneNumber = (phone: string): boolean => {
+    const phoneRegex = /^\+251[0-9]{9}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
   // Address cascading states
   const [regions, setRegions] = useState<{ value: string; label: string }[]>([]);
   const [zones, setZones] = useState<{ value: string; label: string }[]>([]);
@@ -110,12 +126,12 @@ export default function TeacherProfileDetail() {
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [loadingZones, setLoadingZones] = useState(false);
   const [loadingWoredas, setLoadingWoredas] = useState(false);
-  
+
   // Add these new states
   const [assignmentMode, setAssignmentMode] = useState(false);
   const [deletingAssignmentId, setDeletingAssignmentId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-  
+
   // Optional but strongly recommended – show the selected filename to the user
   const [selectedDocumentName, setSelectedDocumentName] = useState<string | null>(null);
   const [documentFileSelected, setDocumentFileSelected] = useState(false);
@@ -129,12 +145,12 @@ export default function TeacherProfileDetail() {
 
   const photoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
-  
+
   // BCYS states
   const [classYearBatch, setClassYearBatch] = useState<any[]>([]);
   const [selectedBcysId, setSelectedBcysId] = useState<string>("");
   const [loadingBcys, setLoadingBcys] = useState(false);
-  
+
   // Assignment notification states
   const [assignmentSuccess, setAssignmentSuccess] = useState<string | null>(null);
   const [assignmentError, setAssignmentError] = useState<string | null>(null);
@@ -160,23 +176,23 @@ export default function TeacherProfileDetail() {
 
     try {
       setResetPasswordLoading(true);
-      
+
       const userId = teacher.userId || parseInt(id);
-      
+
       const response = await apiClient.post(
         endPoints.resetTeacherPassword(userId),
         { newPassword: newPassword }
       );
 
       toast.success(response.data?.message || "Teacher password reset successfully!");
-      
+
       setPasswordDialogOpen(false);
       setNewPassword("");
       setConfirmPassword("");
-      
+
     } catch (err: any) {
       console.error("Password reset error:", err);
-      
+
       if (err.response?.status === 403) {
         toast.error("Insufficient privileges to reset teacher password");
       } else if (err.response?.status === 404) {
@@ -211,10 +227,10 @@ export default function TeacherProfileDetail() {
     try {
       // Use the ID from URL params - this is the correct teacher ID
       const teacherId = parseInt(id);
-      
+
       console.log("Assigning course with teacher ID:", teacherId);
       console.log("Payload:", payload);
-      
+
       const response = await apiClient.post(
         endPoints.teacherCourseAssignments(teacherId),
         payload
@@ -222,25 +238,25 @@ export default function TeacherProfileDetail() {
 
       setAssignmentSuccess("Course assigned successfully!");
       toast.success("Course assigned successfully!");
-      
+
       // Refresh teacher data
       await fetchTeacher();
 
       // Reset selection
       setSelectedCourseId("");
       setSelectedBcysId("");
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setAssignmentSuccess(null);
       }, 3000);
-      
+
     } catch (err: any) {
       console.error("Assign failed:", err);
       const errorMsg = err.response?.data?.error || err.response?.data?.message || "Failed to assign course";
       setAssignmentError(errorMsg);
       toast.error(errorMsg);
-      
+
       // Clear error message after 3 seconds
       setTimeout(() => {
         setAssignmentError(null);
@@ -249,18 +265,18 @@ export default function TeacherProfileDetail() {
       setSaving(false);
     }
   };
-  
+
   const handleRevokeCourse = async (assignmentId: number) => {
     if (!id) return;
 
     try {
       setDeletingAssignmentId(assignmentId);
       const teacherId = parseInt(id);
-      
+
       await apiClient.delete(
         endPoints.teacherCourseAssignmentDeletion(teacherId, assignmentId)
       );
-      
+
       toast.success("Course assignment removed successfully");
       await fetchTeacher();
     } catch (err: any) {
@@ -271,7 +287,7 @@ export default function TeacherProfileDetail() {
       setConfirmDeleteId(null);
     }
   };
-  
+
   const handleRegionChange = async (regionCode: string) => {
     setTeacher((prev) =>
       prev ? { ...prev, currentAddressRegionCode: regionCode || "" } : null
@@ -379,7 +395,7 @@ export default function TeacherProfileDetail() {
       setLoadingDeptCourses(false);
     }
   };
-  
+
   const fetchTeacher = useCallback(async () => {
     if (!id) {
       setError("No teacher ID provided.");
@@ -429,11 +445,11 @@ export default function TeacherProfileDetail() {
       fetchDepartmentCourses();
     }
   }, [editMode]);
-  
+
   useEffect(() => {
     fetchTeacher();
   }, [fetchTeacher]);
-  
+
   useEffect(() => {
     if (
       assignmentMode &&
@@ -449,29 +465,44 @@ export default function TeacherProfileDetail() {
     fetchTeacher();
   };
 
-const hasChanges = () => {
-  if (!teacher || !originalTeacher) return false;
-  return (
-    teacher.firstNameAmharic !== originalTeacher.firstNameAmharic ||
-    teacher.lastNameAmharic !== originalTeacher.lastNameAmharic ||
-    teacher.firstNameEnglish !== originalTeacher.firstNameEnglish ||
-    teacher.lastNameEnglish !== originalTeacher.lastNameEnglish ||
-    teacher.gender !== originalTeacher.gender ||
-    teacher.dateOfBirthGC !== originalTeacher.dateOfBirthGC ||
-    teacher.phoneNumber !== originalTeacher.phoneNumber ||
-    teacher.email !== originalTeacher.email ||
-    teacher.title !== originalTeacher.title ||
-    teacher.yearsOfExperience !== originalTeacher.yearsOfExperience ||
-    teacher.maritalStatus !== originalTeacher.maritalStatus ||
-    teacher.currentAddressRegionCode !== originalTeacher.currentAddressRegionCode ||
-    teacher.currentAddressZoneCode !== originalTeacher.currentAddressZoneCode ||
-    teacher.currentAddressWoredaCode !== originalTeacher.currentAddressWoredaCode ||
-    photoInputRef.current?.files?.length === 1 ||
-    documentInputRef.current?.files?.length === 1
-  );
-};
+  const hasChanges = () => {
+    if (!teacher || !originalTeacher) return false;
+    return (
+      teacher.firstNameAmharic !== originalTeacher.firstNameAmharic ||
+      teacher.lastNameAmharic !== originalTeacher.lastNameAmharic ||
+      teacher.firstNameEnglish !== originalTeacher.firstNameEnglish ||
+      teacher.lastNameEnglish !== originalTeacher.lastNameEnglish ||
+      teacher.gender !== originalTeacher.gender ||
+      teacher.dateOfBirthGC !== originalTeacher.dateOfBirthGC ||
+      teacher.phoneNumber !== originalTeacher.phoneNumber ||
+      teacher.email !== originalTeacher.email ||
+      teacher.title !== originalTeacher.title ||
+      teacher.yearsOfExperience !== originalTeacher.yearsOfExperience ||
+      teacher.maritalStatus !== originalTeacher.maritalStatus ||
+      teacher.resignedDate !== originalTeacher.resignedDate ||  // ADD THIS LINE
+
+      teacher.currentAddressRegionCode !== originalTeacher.currentAddressRegionCode ||
+      teacher.currentAddressZoneCode !== originalTeacher.currentAddressZoneCode ||
+      teacher.currentAddressWoredaCode !== originalTeacher.currentAddressWoredaCode ||
+      photoInputRef.current?.files?.length === 1 ||
+      documentInputRef.current?.files?.length === 1
+    );
+  };
 
   const handleSave = async () => {
+    if (teacher?.phoneNumber && !validatePhoneNumber(teacher.phoneNumber)) {
+      toast.error("Please enter a valid Ethiopian phone number (+251XXXXXXXXX)");
+      setPhoneError("Phone number must be +251 followed by 9 digits");
+      return;
+    }
+    setPhoneError(null);
+
+    if (teacher?.email && !validateEmail(teacher.email)) {
+      toast.error("Please enter a valid email address");
+      setEmailError("Please enter a valid email address (e.g., name@example.com)");
+      return;
+    }
+    setEmailError(null);
     if (!teacher || !originalTeacher || !hasChanges()) {
       setEditMode(false);
       return;
@@ -520,6 +551,9 @@ const hasChanges = () => {
       }
       if (teacher.maritalStatus !== originalTeacher.maritalStatus) {
         payload.maritalStatus = teacher.maritalStatus || null;
+      }
+      if (teacher.resignedDate !== originalTeacher.resignedDate) {
+        payload.resignedDate = teacher.resignedDate || null;
       }
 
       if (
@@ -792,7 +826,7 @@ const hasChanges = () => {
                   <AvatarImage
                     src={
                       teacher.photographBase64 &&
-                      teacher.photographBase64.length > 200
+                        teacher.photographBase64.length > 200
                         ? `data:image/jpeg;base64,${teacher.photographBase64}`
                         : undefined
                     }
@@ -828,9 +862,9 @@ const hasChanges = () => {
                         setTeacher((prev) =>
                           prev
                             ? {
-                                ...prev,
-                                photographBase64: reader.result as string,
-                              }
+                              ...prev,
+                              photographBase64: reader.result as string,
+                            }
                             : null
                         );
                       };
@@ -973,151 +1007,230 @@ const hasChanges = () => {
                     Professional Information
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label>Phone Number</Label>
-                      {editMode ? (
-                        <Input
-                          value={teacher.phoneNumber}
-                          onChange={(e) =>
-                            setTeacher((p) =>
-                              p ? { ...p, phoneNumber: e.target.value } : null
-                            )
-                          }
-                          placeholder="+2519..."
-                        />
-                      ) : (
-                        <div className="flex items-center gap-2 font-medium text-foreground">
-                          <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          {teacher.phoneNumber || "—"}
-                        </div>
-                      )}
-                    </div>
+                  {/* GROUP 1: Basic Info */}
+                  <div className="mb-8">
+                    <h4 className="text-md font-medium mb-4 text-muted-foreground border-b pb-2">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label>Phone Number</Label>
+                        {editMode ? (
+                          <>
+                            <Input
+                              value={teacher.phoneNumber}
+                              onChange={(e) => {
+                                setTeacher((p) =>
+                                  p ? { ...p, phoneNumber: e.target.value } : null
+                                );
+                                setPhoneError(null);
+                              }}
+                              placeholder="+2519..."
+                              className={phoneError ? "border-red-500" : ""}
+                            />
+                            {phoneError && (
+                              <p className="text-xs text-red-500 mt-1">{phoneError}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2 font-medium text-foreground">
+                            <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            {teacher.phoneNumber || "—"}
+                          </div>
+                        )}
+                      </div>
 
-                    <div>
-                      <Label>Email</Label>
-                      {editMode ? (
-                        <Input
-                          type="email"
-                          value={teacher.email || ""}
-                          onChange={(e) =>
-                            setTeacher((p) =>
-                              p ? { ...p, email: e.target.value || null } : null
-                            )
-                          }
-                        />
-                      ) : (
-                        <div className="flex items-center gap-2 font-medium break-all text-foreground">
-                          <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          {teacher.email || "—"}
-                        </div>
-                      )}
-                    </div>
+                      <div>
+                        <Label>Email</Label>
+                        {editMode ? (
+                          <>
+                            <Input
+                              type="email"
+                              value={teacher.email || ""}
+                              onChange={(e) => {
+                                setTeacher((p) =>
+                                  p ? { ...p, email: e.target.value || null } : null
+                                );
+                                setEmailError(null);
+                              }}
+                              className={emailError ? "border-red-500" : ""}
+                            />
+                            {emailError && (
+                              <p className="text-xs text-red-500 mt-1">{emailError}</p>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2 font-medium break-all text-foreground">
+                            <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            {teacher.email || "—"}
+                          </div>
+                        )}
+                      </div>
 
-                    <div>
-                      <Label>Years of Experience</Label>
-                      {editMode ? (
-                        <Input
-                          type="number"
-                          min={0}
-                          value={teacher.yearsOfExperience}
-                          onChange={(e) =>
-                            setTeacher((p) =>
-                              p
-                                ? {
+                      <div>
+                        <Label>Gender</Label>
+                        {editMode ? (
+                          <Select
+                            value={teacher.gender}
+                            onValueChange={(v) =>
+                              setTeacher((p) =>
+                                p
+                                  ? {
+                                    ...p,
+                                    gender: v as "MALE" | "FEMALE" | "OTHER",
+                                  }
+                                  : null
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="MALE">Male</SelectItem>
+                              <SelectItem value="FEMALE">Female</SelectItem>
+                              <SelectItem value="OTHER">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <p className="font-medium capitalize text-foreground">
+                            {teacher.gender.toLowerCase()}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label>Date of Birth (GC)</Label>
+                        {editMode ? (
+                          <Input
+                            type="date"
+                            value={teacher.dateOfBirthGC}
+                            onChange={(e) =>
+                              setTeacher((p) =>
+                                p ? { ...p, dateOfBirthGC: e.target.value } : null
+                              )
+                            }
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 font-medium text-foreground">
+                            <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            {teacher.dateOfBirthGC || "—"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* GROUP 2: Employment Details */}
+                  <div className="mb-8">
+                    <h4 className="text-md font-medium mb-4 text-muted-foreground border-b pb-2">Employment Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label>Academic Title</Label>
+                        {editMode ? (
+                          <Input
+                            value={teacher.title || ""}
+                            onChange={(e) =>
+                              setTeacher((p) =>
+                                p ? { ...p, title: e.target.value || null } : null
+                              )
+                            }
+                            placeholder="e.g. Lecturer, Assistant Professor"
+                          />
+                        ) : (
+                          <p className="font-medium text-foreground">
+                            {teacher.title || "—"}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label>Years of Experience</Label>
+                        {editMode ? (
+                          <Input
+                            type="number"
+                            min={0}
+                            value={teacher.yearsOfExperience}
+                            onChange={(e) =>
+                              setTeacher((p) =>
+                                p
+                                  ? {
                                     ...p,
                                     yearsOfExperience:
                                       Number(e.target.value) || 0,
                                   }
-                                : null
-                            )
-                          }
-                        />
-                      ) : (
-                        <p className="font-medium text-foreground">
-                          {teacher.yearsOfExperience} years
-                        </p>
-                      )}
-                    </div>
+                                  : null
+                              )
+                            }
+                          />
+                        ) : (
+                          <p className="font-medium text-foreground">
+                            {teacher.yearsOfExperience} years
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <Label>Marital Status</Label>
-                      {editMode ? (
-                        <Select
-                          value={teacher.maritalStatus || ""}
-                          onValueChange={(v) =>
-                            setTeacher((p) =>
-                              p ? { ...p, maritalStatus: v || null } : null
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="SINGLE">Single</SelectItem>
-                            <SelectItem value="MARRIED">Married</SelectItem>
-                            <SelectItem value="DIVORCED">Divorced</SelectItem>
-                            <SelectItem value="WIDOWED">Widowed</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="font-medium capitalize text-foreground">
-                          {teacher.maritalStatus?.toLowerCase() || "—"}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label>Gender</Label>
-                      {editMode ? (
-                        <Select
-                          value={teacher.gender}
-                          onValueChange={(v) =>
-                            setTeacher((p) =>
-                              p
-                                ? {
-                                    ...p,
-                                    gender: v as "MALE" | "FEMALE" | "OTHER",
-                                  }
-                                : null
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="MALE">Male</SelectItem>
-                            <SelectItem value="FEMALE">Female</SelectItem>
-                            <SelectItem value="OTHER">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <p className="font-medium capitalize text-foreground">
-                          {teacher.gender.toLowerCase()}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label>Date of Birth (GC)</Label>
-                      {editMode ? (
-                        <Input
-                          type="date"
-                          value={teacher.dateOfBirthGC}
-                          onChange={(e) =>
-                            setTeacher((p) =>
-                              p ? { ...p, dateOfBirthGC: e.target.value } : null
-                            )
-                          }
-                        />
-                      ) : (
+                      <div>
+                        <Label>Hire Date</Label>
                         <div className="flex items-center gap-2 font-medium text-foreground">
                           <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          {teacher.dateOfBirthGC || "—"}
+                          {teacher.hireDateGC || "—"}
                         </div>
-                      )}
+                      </div>
+
+                      <div>
+                        <Label>Resigned Date</Label>
+                        {editMode ? (
+                          <Input
+                            type="date"
+                            value={teacher.resignedDate || ""}
+                            onChange={(e) =>
+                              setTeacher((p) =>
+                                p ? { ...p, resignedDate: e.target.value || null } : null
+                              )
+                            }
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 font-medium text-foreground">
+                            <Calendar className="h-4 w-4 text-red-500 dark:text-red-400" />
+                            {teacher.resignedDate || "Still Active"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* GROUP 3: Personal Details */}
+                  <div className="mb-8">
+                    <h4 className="text-md font-medium mb-4 text-muted-foreground border-b pb-2">Personal Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label>Marital Status</Label>
+                        {editMode ? (
+                          <Select
+                            value={teacher.maritalStatus || ""}
+                            onValueChange={(v) =>
+                              setTeacher((p) =>
+                                p ? { ...p, maritalStatus: v || null } : null
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="SINGLE">Single</SelectItem>
+                              <SelectItem value="MARRIED">Married</SelectItem>
+                              <SelectItem value="DIVORCED">Divorced</SelectItem>
+                              <SelectItem value="WIDOWED">Widowed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <p className="font-medium capitalize text-foreground">
+                            {teacher.maritalStatus?.toLowerCase() || "—"}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Add other personal details here as needed */}
                     </div>
                   </div>
                 </section>
@@ -1126,138 +1239,138 @@ const hasChanges = () => {
                   teacher.regionName ||
                   teacher.zoneName ||
                   teacher.woredaName) && (
-                  <section>
-                    <h3 className="text-xl font-semibold mb-6 flex items-center gap-3 text-foreground">
-                      <MapPin className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      Current Address
-                    </h3>
+                    <section>
+                      <h3 className="text-xl font-semibold mb-6 flex items-center gap-3 text-foreground">
+                        <MapPin className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        Current Address
+                      </h3>
 
-                    {editMode ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                          <Label>Region</Label>
-                          <Select
-                            value={teacher?.currentAddressRegionCode || ""}
-                            onValueChange={handleRegionChange}
-                            disabled={loadingRegions || regions.length === 0}
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  loadingRegions
-                                    ? "Loading regions..."
-                                    : regions.length === 0
-                                    ? "No regions available"
-                                    : "Select Region"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {regions.map((r) => (
-                                <SelectItem key={r.value} value={r.value}>
-                                  {r.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      {editMode ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <Label>Region</Label>
+                            <Select
+                              value={teacher?.currentAddressRegionCode || ""}
+                              onValueChange={handleRegionChange}
+                              disabled={loadingRegions || regions.length === 0}
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    loadingRegions
+                                      ? "Loading regions..."
+                                      : regions.length === 0
+                                        ? "No regions available"
+                                        : "Select Region"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {regions.map((r) => (
+                                  <SelectItem key={r.value} value={r.value}>
+                                    {r.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label>Zone</Label>
-                          <Select
-                            value={teacher?.currentAddressZoneCode || ""}
-                            onValueChange={handleZoneChange}
-                            disabled={
-                              loadingZones ||
-                              zones.length === 0 ||
-                              !teacher?.currentAddressRegionCode
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  loadingZones
-                                    ? "Loading zones..."
-                                    : !teacher?.currentAddressRegionCode
-                                    ? "Select Region first"
-                                    : zones.length === 0
-                                    ? "No zones available"
-                                    : "Select Zone"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {zones.map((z) => (
-                                <SelectItem key={z.value} value={z.value}>
-                                  {z.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                          <div className="space-y-2">
+                            <Label>Zone</Label>
+                            <Select
+                              value={teacher?.currentAddressZoneCode || ""}
+                              onValueChange={handleZoneChange}
+                              disabled={
+                                loadingZones ||
+                                zones.length === 0 ||
+                                !teacher?.currentAddressRegionCode
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    loadingZones
+                                      ? "Loading zones..."
+                                      : !teacher?.currentAddressRegionCode
+                                        ? "Select Region first"
+                                        : zones.length === 0
+                                          ? "No zones available"
+                                          : "Select Zone"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {zones.map((z) => (
+                                  <SelectItem key={z.value} value={z.value}>
+                                    {z.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                        <div className="space-y-2">
-                          <Label>Woreda</Label>
-                          <Select
-                            value={teacher?.currentAddressWoredaCode || ""}
-                            onValueChange={(woredaCode) =>
-                              setTeacher((prev) =>
-                                prev
-                                  ? {
+                          <div className="space-y-2">
+                            <Label>Woreda</Label>
+                            <Select
+                              value={teacher?.currentAddressWoredaCode || ""}
+                              onValueChange={(woredaCode) =>
+                                setTeacher((prev) =>
+                                  prev
+                                    ? {
                                       ...prev,
                                       currentAddressWoredaCode:
                                         woredaCode || "",
                                     }
-                                  : null
-                              )
-                            }
-                            disabled={
-                              loadingWoredas ||
-                              woredas.length === 0 ||
-                              !teacher?.currentAddressZoneCode
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  loadingWoredas
-                                    ? "Loading woredas..."
-                                    : !teacher?.currentAddressZoneCode
-                                    ? "Select Zone first"
-                                    : woredas.length === 0
-                                    ? "No woredas available"
-                                    : "Select Woreda"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {woredas.map((w) => (
-                                <SelectItem key={w.value} value={w.value}>
-                                  {w.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                                    : null
+                                )
+                              }
+                              disabled={
+                                loadingWoredas ||
+                                woredas.length === 0 ||
+                                !teacher?.currentAddressZoneCode
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    loadingWoredas
+                                      ? "Loading woredas..."
+                                      : !teacher?.currentAddressZoneCode
+                                        ? "Select Zone first"
+                                        : woredas.length === 0
+                                          ? "No woredas available"
+                                          : "Select Woreda"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {woredas.map((w) => (
+                                  <SelectItem key={w.value} value={w.value}>
+                                    {w.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-1 text-muted-foreground">
-                        {teacher.woredaName && (
-                          <p className="font-medium text-foreground">
-                            {teacher.woredaName}
-                          </p>
-                        )}
-                        {teacher.zoneName && <p>{teacher.zoneName}</p>}
-                        {teacher.regionName && <p>{teacher.regionName}</p>}
-                        {!teacher.woredaName &&
-                          !teacher.zoneName &&
-                          !teacher.regionName && (
-                            <p className="italic">No address set</p>
+                      ) : (
+                        <div className="space-y-1 text-muted-foreground">
+                          {teacher.woredaName && (
+                            <p className="font-medium text-foreground">
+                              {teacher.woredaName}
+                            </p>
                           )}
-                      </div>
-                    )}
-                  </section>
-                )}
+                          {teacher.zoneName && <p>{teacher.zoneName}</p>}
+                          {teacher.regionName && <p>{teacher.regionName}</p>}
+                          {!teacher.woredaName &&
+                            !teacher.zoneName &&
+                            !teacher.regionName && (
+                              <p className="italic">No address set</p>
+                            )}
+                        </div>
+                      )}
+                    </section>
+                  )}
 
                 {editMode && (
                   <section>

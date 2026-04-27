@@ -264,9 +264,9 @@ const SemestersEditor = React.lazy(
 const ClassYearsEditor = React.lazy(
   () => import("./pages/registrar/settings/ClassYearsEditor"),
 );
-const ManagerStudents = React.lazy(
-  () => import("./pages/manager/ManagerStudents"),
-);
+// const ManagerStudents = React.lazy(
+//   () => import("./pages/manager/ManagerStudents"),
+// );
 const ManagerTeachers = React.lazy(
   () => import("./pages/manager/ManagerTeachers"),
 );
@@ -287,16 +287,20 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/learn-more" element={<LearnMore />} />
-            <Route path="/login" element={<SigningUp />} />
+            
+            {/* Guest-only auth routes */}
+            <Route element={<ProtectedRoute guestOnly />}>
+              <Route path="/login" element={<SigningUp />} />
+              <Route path="/register" element={<MultiStepRegistrationForm />} />
+            </Route>
             {/* <Route path="/some" element={<TenColumnEditableTablePage />} /> */}
-            <Route path="/register" element={<MultiStepRegistrationForm />} />
 
             {/* Testing/Development Routes - Consider removing in production */}
             <Route path="/location-test" element={<LocationEditor />} />
 
             {/* Protected Routes */}
             {/* Student Routes */}
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['STUDENT']} />}>
               <Route path="/student" element={<StudentLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<StudentDashboard />} />
@@ -312,7 +316,7 @@ function App() {
 
             {/* Teacher Routes */}
 
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['TEACHER']} />}>
               <Route path="/teacher" element={<TeacherLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<TeacherDashboard />} />
@@ -334,7 +338,7 @@ function App() {
             </Route>
 
             {/* Department Head Routes */}
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['DEPARTMENT_HEAD']} />}>
               <Route path="/head" element={<HeadLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<HeadDashboard />} />
@@ -356,7 +360,7 @@ function App() {
 
             {/* Registrar Routes */}
 
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['REGISTRAR']} />}>
               <Route path="/registrar" element={<RegistrarLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="departments" element={<RegistrarDepartments />} />
@@ -483,7 +487,7 @@ function App() {
             </Route>
 
             {/* Finance Routes */}
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['FINANCE']} />}>
               <Route path="/finance" element={<FinanceLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<FinanceDashboard />} />
@@ -494,7 +498,7 @@ function App() {
             </Route>
 
             {/* Dean Routes */}
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['DEAN']} />}>
               <Route path="/dean" element={<DeanLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<DeanDashboard />} />
@@ -538,7 +542,7 @@ function App() {
             </Route>
 
             {/* Vice Dean Routes */}
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['VICE_DEAN']} />}>
               <Route path="/vice-dean" element={<ViceDeanLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<ViceDeanDashboard />} />
@@ -561,7 +565,7 @@ function App() {
             </Route>
 
             {/* Manager Routes */}
-            <Route element={<ProtectedRoute />}>
+            <Route element={<ProtectedRoute allowedRoles={['GENERAL_MANAGER']} />}>
               <Route path="/general-manager" element={<ManagerLayout />}>
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<GeneralManagerDashboard />} />
