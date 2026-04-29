@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "@/components/api/apiClient";
+import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
 import {
   Card,
@@ -32,9 +33,12 @@ import {
   Image,
   Plus,
   Filter,
+  Power,
+  PowerOff,
 } from "lucide-react";
 
 interface DepartmentHead {
+  userId: number;
   id: number;
   username: string;
   firstNameENG: string;
@@ -59,7 +63,35 @@ interface DepartmentHead {
   active: boolean;
   hasPhoto: boolean;
   hasDocument: boolean;
+  accountStatus: string; // "Active" or "Inactive"
 }
+
+// Simple tooltip component
+const Tooltip = ({
+  children,
+  text,
+}: {
+  children: React.ReactNode;
+  text: string;
+}) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative inline-block">
+      <div
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+      >
+        {children}
+      </div>
+      {show && (
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap z-10">
+          {text}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function DepartmentHeadsList() {
   const navigate = useNavigate();
@@ -67,7 +99,9 @@ export default function DepartmentHeadsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterActive, setFilterActive] = useState<"all" | "active" | "inactive">("all");
+  const [filterActive, setFilterActive] = useState<
+    "all" | "active" | "inactive"
+  >("all");
 
   useEffect(() => {
     fetchDepartmentHeads();
@@ -78,18 +112,47 @@ export default function DepartmentHeadsList() {
       setLoading(true);
       setError(null);
       const response = await apiClient.get<DepartmentHead[]>(
-        endPoints.departmentHeads
+        endPoints.departmentHeads,
       );
       setDepartmentHeads(response.data);
     } catch (err: any) {
       console.error("Failed to load department heads:", err);
       setError(
         err.response?.data?.error ||
-        err.message ||
-        "Failed to load department heads. Please try again later."
+          err.message ||
+          "Failed to load department heads. Please try again later.",
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleAccount = async (userId: number, currentStatus: string) => {
+    // Determine new status (ENABLED or DISABLED)
+    const newStatus = currentStatus === "Active" ? "DISABLED" : "ENABLED";
+
+    try {
+      const response = await apiService.patch(
+        endPoints.updateDepartmentHeadAccount,
+        [
+          {
+            userId: userId,
+            status: newStatus,
+          },
+        ],
+      );
+
+      if (response.success > 0) {
+        // Refresh the list to get updated status
+        await fetchDepartmentHeads();
+        // Optional: Show success message
+        console.log(`Account ${newStatus.toLowerCase()}d successfully`);
+      } else {
+        console.error("Failed to update account status", response);
+      }
+    } catch (err: any) {
+      console.error("Error updating account status:", err);
+      alert(err.response?.data?.error || "Failed to update account status");
     }
   };
 
@@ -131,7 +194,7 @@ export default function DepartmentHeadsList() {
   };
 
   const getGenderIcon = (gender: string) => {
-    return gender === 'MALE' ? (
+    return gender === "MALE" ? (
       <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
         <User className="h-3 w-3" />
         <span className="text-xs">Male</span>
@@ -145,7 +208,7 @@ export default function DepartmentHeadsList() {
   };
 
   const getInitials = (firstName: string, fatherName: string) => {
-    return `${firstName?.[0] || ''}${fatherName?.[0] || ''}`.toUpperCase();
+    return `${firstName?.[0] || ""}${fatherName?.[0] || ""}`.toUpperCase();
   };
 
   if (loading) {
@@ -154,8 +217,12 @@ export default function DepartmentHeadsList() {
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
           <div className="text-center">
-            <p className="text-lg font-medium text-gray-900 dark:text-white">Loading Department Heads</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Please wait while we fetch the data</p>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">
+              Loading Department Heads
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Please wait while we fetch the data
+            </p>
           </div>
         </div>
       </div>
@@ -170,7 +237,9 @@ export default function DepartmentHeadsList() {
             <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Unable to Load Data</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Unable to Load Data
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mt-2 max-w-md">
               {error}
             </p>
@@ -220,7 +289,9 @@ export default function DepartmentHeadsList() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Heads</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total Heads
+                </p>
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {departmentHeads.length}
                 </p>
@@ -239,9 +310,11 @@ export default function DepartmentHeadsList() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Active Heads</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Active Heads
+                </p>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {departmentHeads.filter(h => h.active).length}
+                  {departmentHeads.filter((h) => h.active).length}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Currently active
@@ -258,9 +331,11 @@ export default function DepartmentHeadsList() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Inactive Heads</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Inactive Heads
+                </p>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {departmentHeads.filter(h => !h.active).length}
+                  {departmentHeads.filter((h) => !h.active).length}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Not currently active
@@ -277,9 +352,11 @@ export default function DepartmentHeadsList() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Departments</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Departments
+                </p>
                 <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {new Set(departmentHeads.map(h => h.department.name)).size}
+                  {new Set(departmentHeads.map((h) => h.department.name)).size}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Unique departments covered
@@ -298,7 +375,9 @@ export default function DepartmentHeadsList() {
         <CardHeader className="bg-gradient-to-r from-gray-50 to-transparent dark:from-gray-800/50">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-gray-900 dark:text-white text-xl">Department Heads List</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white text-xl">
+                Department Heads List
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
                 Browse and manage all department heads
               </CardDescription>
@@ -306,11 +385,15 @@ export default function DepartmentHeadsList() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>{departmentHeads.filter(h => h.active).length} Active</span>
+                <span>
+                  {departmentHeads.filter((h) => h.active).length} Active
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <XCircle className="h-4 w-4 text-red-500" />
-                <span>{departmentHeads.filter(h => !h.active).length} Inactive</span>
+                <span>
+                  {departmentHeads.filter((h) => !h.active).length} Inactive
+                </span>
               </div>
             </div>
           </div>
@@ -331,37 +414,7 @@ export default function DepartmentHeadsList() {
               </div>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-400" />
-                <div className="flex gap-1">
-                  <Button
-                    variant={filterActive === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterActive("all")}
-                    className="rounded-r-none"
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={filterActive === "active" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterActive("active")}
-                    className="rounded-none border-l-0 border-r-0"
-                  >
-                    Active
-                  </Button>
-                  <Button
-                    variant={filterActive === "inactive" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterActive("inactive")}
-                    className="rounded-l-none"
-                  >
-                    Inactive
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <div></div>
 
             <div className="flex justify-end">
               <Button
@@ -396,7 +449,7 @@ export default function DepartmentHeadsList() {
                       Appointment
                     </th>
                     <th className="py-3 px-4 text-left text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Status & Info
+                      Account Status
                     </th>
                     <th className="py-3 px-4 text-left text-sm font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                       Actions
@@ -410,16 +463,20 @@ export default function DepartmentHeadsList() {
                         <div className="flex flex-col items-center justify-center space-y-3">
                           <Users className="h-12 w-12 text-gray-300 dark:text-gray-600" />
                           <div>
-                            <p className="text-gray-500 dark:text-gray-400 font-medium">No department heads found</p>
+                            <p className="text-gray-500 dark:text-gray-400 font-medium">
+                              No department heads found
+                            </p>
                             <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                              {searchQuery || filterActive !== "all" 
-                                ? "Try adjusting your search or filters" 
+                              {searchQuery || filterActive !== "all"
+                                ? "Try adjusting your search or filters"
                                 : "No department heads have been created yet"}
                             </p>
                           </div>
-                          {(!searchQuery && filterActive === "all") && (
-                            <Button 
-                              onClick={() => navigate("/dean/create-department-head")}
+                          {!searchQuery && filterActive === "all" && (
+                            <Button
+                              onClick={() =>
+                                navigate("/dean/create-department-head")
+                              }
                               variant="outline"
                               size="sm"
                             >
@@ -432,12 +489,22 @@ export default function DepartmentHeadsList() {
                     </tr>
                   ) : (
                     filteredHeads.map((head) => (
-                      <tr key={head.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <tr
+                        key={head.id}
+                        className={`transition-colors ${
+                          head.accountStatus !== "Active"
+                            ? "bg-gray-50 dark:bg-gray-800/30 opacity-75"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                        }`}
+                      >
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 flex items-center justify-center">
                               <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                                {getInitials(head.firstNameENG, head.fatherNameENG)}
+                                {getInitials(
+                                  head.firstNameENG,
+                                  head.fatherNameENG,
+                                )}
                               </span>
                             </div>
                             <div>
@@ -459,8 +526,12 @@ export default function DepartmentHeadsList() {
                               <Building className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900 dark:text-white">{head.department.name}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">ID: {head.department.id}</p>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {head.department.name}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                ID: {head.department.id}
+                              </p>
                             </div>
                           </div>
                         </td>
@@ -468,7 +539,9 @@ export default function DepartmentHeadsList() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
                               <Phone className="h-3 w-3 text-gray-400" />
-                              <span className="text-sm text-gray-700 dark:text-gray-300">{head.phoneNumber}</span>
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {head.phoneNumber}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Mail className="h-3 w-3 text-gray-400" />
@@ -492,46 +565,62 @@ export default function DepartmentHeadsList() {
                           </div>
                         </td>
                         <td className="py-4 px-4">
-                          <div className="space-y-2">
-                            <Badge className={`${getStatusColor(head.active)}`}>
-                              {head.active ? (
-                                <span className="flex items-center gap-1">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                  Active
-                                </span>
-                              ) : (
-                                <span className="flex items-center gap-1">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                                  Inactive
-                                </span>
-                              )}
-                            </Badge>
-                            <div className="flex gap-1">
-                              {head.hasPhoto && (
-                                <Badge variant="outline" className="text-xs text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800">
-                                  <Image className="h-3 w-3 mr-1" />
-                                  Photo
-                                </Badge>
-                              )}
-                              {head.hasDocument && (
-                                <Badge variant="outline" className="text-xs text-green-600 dark:text-green-400 border-green-200 dark:border-green-800">
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  Document
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
+                          <Badge
+                            className={
+                              head.accountStatus === "Active"
+                                ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
+                                : "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
+                            }
+                          >
+                            {head.accountStatus === "Active"
+                              ? "Active"
+                              : "Disabled"}
+                          </Badge>
                         </td>
                         <td className="py-4 px-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => navigate(`/dean/department-heads/${head.id}`)}
-                            className="border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                          >
-                            <Eye className="h-3 w-3 mr-2" />
-                            View Details
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Tooltip
+                              text={
+                                head.accountStatus === "Active"
+                                  ? "Disable Account"
+                                  : "Enable Account"
+                              }
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  handleToggleAccount(
+                                    head.userId,
+                                    head.accountStatus,
+                                  )
+                                }
+                                className={
+                                  head.accountStatus === "Active"
+                                    ? "border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    : "border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                }
+                              >
+                                {head.accountStatus === "Active" ? (
+                                  <PowerOff className="h-4 w-4" />
+                                ) : (
+                                  <Power className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </Tooltip>
+                            <Tooltip text="View Details">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  navigate(`/dean/department-heads/${head.id}`)
+                                }
+                                className="border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </Tooltip>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -544,17 +633,30 @@ export default function DepartmentHeadsList() {
           {/* Summary Footer */}
           <div className="flex flex-col sm:flex-row items-center justify-between text-sm text-gray-600 dark:text-gray-400 gap-4">
             <div>
-              Showing <span className="font-medium text-gray-900 dark:text-white">{filteredHeads.length}</span> of{' '}
-              <span className="font-medium text-gray-900 dark:text-white">{departmentHeads.length}</span> department heads
+              Showing{" "}
+              <span className="font-medium text-gray-900 dark:text-white">
+                {filteredHeads.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-gray-900 dark:text-white">
+                {departmentHeads.length}
+              </span>{" "}
+              department heads
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                <span>Photo Available: {departmentHeads.filter(h => h.hasPhoto).length}</span>
+                <span>
+                  Photo Available:{" "}
+                  {departmentHeads.filter((h) => h.hasPhoto).length}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span>Document Available: {departmentHeads.filter(h => h.hasDocument).length}</span>
+                <span>
+                  Document Available:{" "}
+                  {departmentHeads.filter((h) => h.hasDocument).length}
+                </span>
               </div>
             </div>
           </div>

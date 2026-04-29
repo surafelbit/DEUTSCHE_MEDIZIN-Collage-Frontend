@@ -1,5 +1,3 @@
-import { AcademicProgression } from "../Extra/AcademicProgression";
-
 const endPoints = {
   /* =======================     Auth & Account  ======================== */
   login: "/auth/login",
@@ -46,6 +44,7 @@ const endPoints = {
 
   /* =======================     Teachers & Courses  ======================== */
   teachers: "/teachers",
+  teacherAccount: "/teachers/account",
   departments: "/departments",
   getDepartmentById: (id: string | number) => `/departments/${id}`,
   departmentTeachers: "/department-heads/teachers",
@@ -64,8 +63,8 @@ const endPoints = {
   getTeacherCourses: "/teachers/my-courses",
   getCourseStudents: "/teachers/courses/:teacherCourseAssignmentId/students",
   updateDepartment: (id: number | string) => `/departments/${id}`,
-  resetTeacherPassword: (userId: string | number) => 
-  `/auth/head/teachers/${userId}/reset-password`,
+  resetTeacherPassword: (userId: string | number) =>
+    `/auth/head/teachers/${userId}/reset-password`,
 
   /* =======================     Students  ======================== */
   students: "/students",
@@ -201,13 +200,13 @@ const endPoints = {
   updateViceDean: "/vice-deans",
   getViceDeanPhoto: "/vice-deans/get-photo",
   getViceDeanDocument: "/vice-deans/get-document",
-  resetViceDeanPassword: (userId: string | number) => 
-  `/auth/vice-deans/${userId}/reset-password`, 
+  resetViceDeanPassword: (userId: string | number) =>
+    `/auth/vice-deans/${userId}/reset-password`,
 
   /* =======================     Department Heads  ======================== */
-resetDepartmentHeadPassword: (userId: string | number) => 
-  `/auth/department-heads/${userId}/reset-password`,
-
+  resetDepartmentHeadPassword: (userId: string | number) =>
+    `/auth/department-heads/${userId}/reset-password`,
+  updateDepartmentHeadAccount: "/department-heads/account",
   /* =======================     Dean Assessment Endpoints ======================== */
   getDeanHeadApprovedScores: "/deans/head-approved-scores",
   deanBulkApproveAll:
