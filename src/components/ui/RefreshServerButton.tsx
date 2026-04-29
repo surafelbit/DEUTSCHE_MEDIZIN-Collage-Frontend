@@ -105,12 +105,22 @@ export default function RefreshServerButton() {
         type="button"
         onClick={handleRefresh}
         disabled={isLocked || isRefreshing}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-transparent px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:border-slate-600"
+        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-transparent px-2 sm:px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100 hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:border-slate-600 group relative"
+        title={
+          isLocked
+            ? `Locked for ${formatCountdown(remainingMs)}`
+            : "Refresh server cache"
+        }
       >
         <RefreshCw
           className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
         />
-        <span>{buttonText}</span>
+        <span className="refresh-button-text">{buttonText}</span>
+        {isLocked && (
+          <span className="sm:hidden text-xs ml-1">
+            {formatCountdown(remainingMs)}
+          </span>
+        )}
       </Button>
     </div>
   );

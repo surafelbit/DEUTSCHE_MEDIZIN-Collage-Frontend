@@ -253,7 +253,7 @@ export default function StudentLayout() {
 
           {/* Page title */}
           <div className="flex flex-1 items-center">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white hide-on-mobile">
               {userData?.role === "TEACHER"
                 ? "Teacher Portal"
                 : "Student Portal"}
@@ -261,7 +261,7 @@ export default function StudentLayout() {
           </div>
 
           {/* Right section */}
-          <div className="flex items-center gap-x-4 lg:gap-x-6">
+          <div className="flex items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
             <RefreshServerButton />
             <ThemeToggle />
 
@@ -288,7 +288,7 @@ export default function StudentLayout() {
                       </span>
                     </div>
                   )}
-                  <div className="text-left max-w-[120px]">
+                  <div className="text-left max-w-[120px] hide-on-mobile">
                     <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {userData?.fullName || "Loading..."}
                     </div>
