@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import apiClient from "@/components/api/apiClient";
 import apiService from "@/components/api/apiService";
 import endPoints from "@/components/api/endPoints";
@@ -95,6 +96,7 @@ const Tooltip = ({
 
 export default function DepartmentHeadsList() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [departmentHeads, setDepartmentHeads] = useState<DepartmentHead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +107,18 @@ export default function DepartmentHeadsList() {
 
   useEffect(() => {
     fetchDepartmentHeads();
+
+    // Check if coming from create page with success flag
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("created") === "success") {
+      toast({
+        title: "Department Head Created",
+        description: "The new department head has been successfully created.",
+        variant: "default",
+      });
+      // Clean up URL
+      window.history.replaceState({}, "", window.location.pathname);
+    }
   }, []);
 
   const fetchDepartmentHeads = async () => {
@@ -130,6 +144,7 @@ export default function DepartmentHeadsList() {
   const handleToggleAccount = async (userId: number, currentStatus: string) => {
     // Determine new status (ENABLED or DISABLED)
     const newStatus = currentStatus === "Active" ? "DISABLED" : "ENABLED";
+    const actionText = newStatus === "ENABLED" ? "enabled" : "disabled";
 
     try {
       const response = await apiService.patch(
@@ -142,17 +157,94 @@ export default function DepartmentHeadsList() {
         ],
       );
 
-      if (response.success > 0) {
+      // Check if the update was successful
+      if (response.success > 0 && response.results?.[0]?.success) {
         // Refresh the list to get updated status
         await fetchDepartmentHeads();
-        // Optional: Show success message
-        console.log(`Account ${newStatus.toLowerCase()}d successfully`);
+
+        // Show success toast
+        toast({
+          title: `Account ${actionText} successfully`,
+          description: `The department head account has been ${actionText}.`,
+          variant: "default",
+        });
+      } else if (response.results?.[0]?.error) {
+        // Handle specific error from the results array
+        const errorMessage = response.results[0].error;
+        toast({
+          title: "Failed to update account status",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else if (response.failed > 0) {
+        // Handle partial failure
+        toast({
+          title: "Partial failure",
+          description: `Processed ${response.processed}: ${response.success} succeeded, ${response.failed} failed.`,
+          variant: "destructive",
+        });
       } else {
-        console.error("Failed to update account status", response);
+        // Handle unexpected response structure
+        toast({
+          title: "Failed to update account status",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err: any) {
       console.error("Error updating account status:", err);
-      alert(err.response?.data?.error || "Failed to update account status");
+
+      // Handle different error scenarios based on the documentation
+      if (err.response?.status === 400) {
+        // Bad Request - validation error
+        const errorMessage =
+          err.response?.data?.error ||
+          "Invalid request. Please check the user ID and status.";
+        toast({
+          title: "Validation Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else if (err.response?.status === 500) {
+        // Internal Server Error
+        const errorMessage =
+          err.response?.data?.error ||
+          "Server error occurred. Please try again later.";
+        toast({
+          title: "Server Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else if (
+        err.code === "ECONNABORTED" ||
+        err.message?.includes("timeout")
+      ) {
+        // Network timeout
+        toast({
+          title: "Request Timeout",
+          description:
+            "The request took too long. Please check your connection and try again.",
+          variant: "destructive",
+        });
+      } else if (err.message?.includes("Network Error")) {
+        // Network error
+        toast({
+          title: "Network Error",
+          description:
+            "Unable to connect to the server. Please check your internet connection.",
+          variant: "destructive",
+        });
+      } else {
+        // Generic error
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.error ||
+            err.message ||
+            "Failed to update account status. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

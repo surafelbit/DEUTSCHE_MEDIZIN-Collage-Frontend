@@ -36,6 +36,7 @@ export default function TeacherLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     return window.innerWidth >= 1024;
   });
+  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -46,7 +47,7 @@ export default function TeacherLayout() {
     confirmPassword: "",
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
-  
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch user data
@@ -76,6 +77,7 @@ export default function TeacherLayout() {
       } else {
         setSidebarOpen(false);
       }
+      setWindowWidth(window.innerWidth);
     };
 
     window.addEventListener("resize", handleResize);
@@ -85,7 +87,10 @@ export default function TeacherLayout() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setUserDropdownOpen(false);
       }
     };
@@ -113,7 +118,7 @@ export default function TeacherLayout() {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
       });
-      
+
       alert("Password changed successfully!");
       setChangePasswordOpen(false);
       setPasswordForm({
@@ -203,7 +208,7 @@ export default function TeacherLayout() {
           <div className="px-4 space-y-2">
             {navigation.map((item) => {
               const isActive = location.pathname.startsWith(
-                item.href.split("/").slice(0, 3).join("/")
+                item.href.split("/").slice(0, 3).join("/"),
               );
               return (
                 <Link
@@ -240,22 +245,23 @@ export default function TeacherLayout() {
             variant="ghost"
             size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            className={sidebarOpen && windowWidth >= 1024 ? "hidden" : ""}
           >
             <Menu className="h-6 w-6" />
           </Button>
 
           {/* Page title */}
           <div className="flex flex-1 items-center">
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white hide-on-mobile">
               Teacher Portal
             </h1>
           </div>
 
           {/* Right section */}
-          <div className="flex items-center gap-x-4 lg:gap-x-6">
+          <div className="flex items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
             <RefreshServerButton />
             <ThemeToggle />
-            
+
             {/* Notification Dropdown - ADDED */}
             <NotificationDropdown userRole={userData?.role} />
 
@@ -279,7 +285,7 @@ export default function TeacherLayout() {
                       </span>
                     </div>
                   )}
-                  <div className="text-left">
+                  <div className="text-left hide-on-mobile">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {userData?.fullName || "Loading..."}
                     </div>
@@ -287,7 +293,9 @@ export default function TeacherLayout() {
                       {userData?.role?.toLowerCase() || "Teacher"}
                     </div>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${userDropdownOpen ? "rotate-180" : ""}`}
+                  />
                 </div>
               </button>
 
@@ -320,7 +328,7 @@ export default function TeacherLayout() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Dropdown options */}
                   <div className="p-2">
                     <button
@@ -333,7 +341,7 @@ export default function TeacherLayout() {
                       <Key className="h-4 w-4 mr-3" />
                       Change Password
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         logout();
@@ -363,14 +371,19 @@ export default function TeacherLayout() {
       <Dialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen}>
         <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 z-[60]">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white">Change Password</DialogTitle>
+            <DialogTitle className="text-gray-900 dark:text-white">
+              Change Password
+            </DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-300">
               Enter your current password and new password below.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="oldPassword" className="text-gray-700 dark:text-gray-300">
+              <Label
+                htmlFor="oldPassword"
+                className="text-gray-700 dark:text-gray-300"
+              >
                 Current Password
               </Label>
               <Input
@@ -388,7 +401,10 @@ export default function TeacherLayout() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="newPassword" className="text-gray-700 dark:text-gray-300">
+              <Label
+                htmlFor="newPassword"
+                className="text-gray-700 dark:text-gray-300"
+              >
                 New Password
               </Label>
               <Input
@@ -406,7 +422,10 @@ export default function TeacherLayout() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">
+              <Label
+                htmlFor="confirmPassword"
+                className="text-gray-700 dark:text-gray-300"
+              >
                 Confirm New Password
               </Label>
               <Input

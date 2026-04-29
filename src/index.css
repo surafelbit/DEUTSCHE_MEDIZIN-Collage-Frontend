@@ -272,6 +272,40 @@
   transform: translateY(50px);
 }
 
+/* Mobile responsive utilities for layout */
+@media (max-width: 1023px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+
+  .show-only-icon .name-text {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-on-desktop-when-sidebar-open {
+    display: flex !important;
+  }
+
+  .sidebar-open .hide-on-desktop-when-sidebar-open {
+    display: none !important;
+  }
+}
+
+/* Show refresh button text on desktop only */
+@media (min-width: 1024px) {
+  .refresh-button-text {
+    display: inline !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .refresh-button-text {
+    display: none !important;
+  }
+}
+
 /* ==========Transcript tab styles============= */
 /* Custom Scrollbar for Tabs */
 .tabs-container {
