@@ -60,6 +60,9 @@ export default function SignInPage() {
       
       setResponse(responses.message);
       localStorage.setItem("xy9a7b", responses.jwt);
+      if (responses.role) {
+        localStorage.setItem("userRole", responses.role);
+      }
       
       // Show success toast at bottom
       toast.success("Login successful! Redirecting...", {

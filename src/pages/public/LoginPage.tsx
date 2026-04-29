@@ -50,7 +50,7 @@ export default function LoginPage() {
                 <GraduationCap className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-2xl">{t("welcomeBack")}</CardTitle>
-              <CardDescription>{t("signInToAccount")}</CardDescription>
+              <CardDescription>{t("signInToFuckingAccount")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
