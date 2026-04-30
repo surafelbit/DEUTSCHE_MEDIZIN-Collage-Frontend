@@ -74,9 +74,10 @@ export default function StudentGradeReport() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [openYears, setOpenYears] = useState<{ [key: number]: boolean }>({});
-  const [openSemesters, setOpenSemesters] = useState<{    [key: string]: boolean;  }>({});
-  const [openYears, setOpenYears] = useState<{ [key: string]: boolean }>({});
-  const [openSemesters, setOpenSemesters] = useState<{  [key: string]: boolean;}>({});
+  const [openSemesters, setOpenSemesters] = useState<{
+    [key: string]: boolean;
+  }>({});
+  
 
   useEffect(() => {
     fetchGradeReport();
@@ -161,20 +162,9 @@ export default function StudentGradeReport() {
           setStudentData(student);
           saveToCache(student);
 
-          // Group by year and auto-open first year and its first semester
-          const groupedByYear: { [key: string]: StudentCopy[] } = {};
-          student.studentCopies.forEach((copy) => {
-            const yearName = copy.classyear.name;
-            if (!groupedByYear[yearName]) groupedByYear[yearName] = [];
-            groupedByYear[yearName].push(copy);
-          });
-          
-          const sortedYearNames = Object.keys(groupedByYear).sort();
-          if (sortedYearNames.length > 0) {
-            const firstYear = sortedYearNames[0];
-            setOpenYears({ [firstYear]: true });
-            setOpenSemesters({ [`${firstYear}-0`]: true });
-          }
+          // Auto-open first year and first semester
+          setOpenYears({ 0: true });
+          setOpenSemesters({ "0-0": true });
         } else {
           setError("No semester grade data available for this student.");
         }
@@ -332,10 +322,6 @@ export default function StudentGradeReport() {
               )}
               {refreshing ? "Refreshing..." : "Refresh Data"}
             </Button>
-            {/* <Button className="bg-blue-600 hover:bg-blue-700">
-              <Download className="mr-2 h-4 w-4" />
-              Download Report
-            </Button> */}
           </div>
         </div>
 
@@ -547,7 +533,7 @@ export default function StudentGradeReport() {
                   </button>
 
                   {openYears[yearName] && (
-                    <div className="mt-4 space-y-4">
+                    <div className="mt-4 mr-[2rem] space-y-4">
                       {semesters.map((copy, semIndex) => (
                         <div key={semIndex}>
                           {/* Semester Button */}
