@@ -372,3 +372,15 @@
 .animate-slide-down {
   animation: slideDown 0.3s ease-out;
 }
+
+/* Disable print dialog completely */
+@media print {
+  body {
+    display: none !important;
+  }
+}
+
+/* Override any print button attempts */
+.print-button, [onclick*="print"], .print-hide {
+  display: none !important;
+}
