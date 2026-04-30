@@ -74,9 +74,9 @@ export default function StudentGradeReport() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [openYears, setOpenYears] = useState<{ [key: number]: boolean }>({});
-  const [openSemesters, setOpenSemesters] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const [openSemesters, setOpenSemesters] = useState<{    [key: string]: boolean;  }>({});
+  const [openYears, setOpenYears] = useState<{ [key: string]: boolean }>({});
+  const [openSemesters, setOpenSemesters] = useState<{  [key: string]: boolean;}>({});
 
   useEffect(() => {
     fetchGradeReport();
@@ -161,9 +161,20 @@ export default function StudentGradeReport() {
           setStudentData(student);
           saveToCache(student);
 
-          // Auto-open first year and first semester
-          setOpenYears({ 0: true });
-          setOpenSemesters({ "0-0": true });
+          // Group by year and auto-open first year and its first semester
+          const groupedByYear: { [key: string]: StudentCopy[] } = {};
+          student.studentCopies.forEach((copy) => {
+            const yearName = copy.classyear.name;
+            if (!groupedByYear[yearName]) groupedByYear[yearName] = [];
+            groupedByYear[yearName].push(copy);
+          });
+          
+          const sortedYearNames = Object.keys(groupedByYear).sort();
+          if (sortedYearNames.length > 0) {
+            const firstYear = sortedYearNames[0];
+            setOpenYears({ [firstYear]: true });
+            setOpenSemesters({ [`${firstYear}-0`]: true });
+          }
         } else {
           setError("No semester grade data available for this student.");
         }
@@ -438,84 +449,70 @@ export default function StudentGradeReport() {
           </Card>
         </div>
 
-        {/* Detailed Results */}
-        <Card className="border-blue-200 dark:border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-xl text-blue-700 dark:text-blue-400 flex items-center">
-              <School className="mr-2 h-5 w-5" />
-              Detailed Academic Results
-            </CardTitle>
-            <CardDescription>
-              Course grades by year and semester
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {studentData.studentCopies.map((copy, idx) => (
-              <div key={idx} className="mb-8 last:mb-0">
-                {/* Year */}
-                <button
-                  onClick={() =>
-                    setOpenYears((prev) => ({ ...prev, [idx]: !prev[idx] }))
-                  }
-                  className={`w-full flex items-center justify-between p-4 rounded-lg font-semibold transition-colors border ${
-                    openYears[idx]
-                      ? "bg-blue-600 text-white border-blue-700"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  <span className="flex items-center">
-                    {openYears[idx] ? (
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    )}
-                    Year {copy.classyear.name}
-                  </span>
-                </button>
+      {/* Detailed Results */}
+      <Card className="border-blue-200 dark:border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-xl text-blue-700 dark:text-blue-400 flex items-center">
+            <School className="mr-2 h-5 w-5" />
+            Detailed Academic Results
+          </CardTitle>
+          <CardDescription>
+            Course grades by year and semester
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Group copies by classyear */}
+          {(() => {
+            // Group studentCopies by classyear name
+            const groupedByYear = studentData.studentCopies.reduce((groups, copy) => {
+              const yearName = copy.classyear.name;
+              if (!groups[yearName]) {
+                groups[yearName] = [];
+              }
+              groups[yearName].push(copy);
+              return groups;
+            }, {} as Record<string, StudentCopy[]>);
 
-                {openYears[idx] && (
-                  <div className="mt-4">
-                    {/* Semester */}
-                    <button
-                      onClick={() =>
-                        setOpenSemesters((prev) => ({
-                          ...prev,
-                          [`${idx}-0`]: !prev[`${idx}-0`],
-                        }))
-                      }
-                      className={`w-full flex items-center p-3 rounded-lg font-medium text-left transition-colors border ml-4 sm:ml-8 ${
-                        openSemesters[`${idx}-0`]
-                          ? "bg-blue-500 text-white border-blue-600"
-                          : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600"
-                      }`}
-                    >
-                      {openSemesters[`${idx}-0`] ? (
+            // Sort years based on custom order (1, PC1, PC2, C1, C2, C3)
+            const getYearOrder = (yearName: string): number => {
+              const orderMap: { [key: string]: number } = {
+                "1": 1,
+                "PC1": 2,
+                "PC2": 3,
+                "C1": 4,
+                "C2": 5,
+                "C3": 6,
+              };
+              return orderMap[yearName] || 999;
+            };
+
+            const sortedYears = Object.keys(groupedByYear).sort((a, b) => {
+              const orderA = getYearOrder(a);
+              const orderB = getYearOrder(b);
+              if (orderA !== orderB) return orderA - orderB;
+              return a.localeCompare(b);
+            });
+
+            return sortedYears.map((yearName, yearIndex) => {
+              const semesters = groupedByYear[yearName];
+              
+              return (
+                <div key={yearName} className="mb-8 last:mb-0">
+                  {/* Year Button */}
+                  <button
+                    onClick={() =>
+                      setOpenYears((prev) => ({ ...prev, [yearName]: !prev[yearName] }))
+                    }
+                    className={`w-full flex items-center justify-between p-4 rounded-lg font-semibold transition-colors border ${
+                      openYears[yearName]
+                        ? "bg-blue-600 text-white border-blue-700"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    <span className="flex items-center">
+                      {openYears[yearName] ? (
                         <svg
-                          className="w-4 h-4 mr-2"
+                          className="w-5 h-5 mr-2"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -529,7 +526,7 @@ export default function StudentGradeReport() {
                         </svg>
                       ) : (
                         <svg
-                          className="w-4 h-4 mr-2"
+                          className="w-5 h-5 mr-2"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -542,71 +539,128 @@ export default function StudentGradeReport() {
                           />
                         </svg>
                       )}
-                      {copy.semester.name} (GPA: {copy.semesterGPA.toFixed(4)} |
-                      CGPA: {copy.semesterCGPA.toFixed(4)})
-                    </button>
+                      Year {yearName}
+                    </span>
+                    <Badge variant="outline" className={openYears[yearName] ? "border-white text-white" : ""}>
+                      {semesters.length} Semester{semesters.length !== 1 ? "s" : ""}
+                    </Badge>
+                  </button>
 
-                    {openSemesters[`${idx}-0`] && (
-                      <div className="mt-4 overflow-x-auto">
-                        <table className="w-full min-w-full divide-y divide-gray-300 dark:divide-gray-700">
-                          <thead className="bg-blue-50 dark:bg-gray-800">
-                            <tr>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                Course Code
-                              </th>
-                              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                Course Title
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                Cr. Hrs
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                Grade
-                              </th>
-                              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                Points
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-                            {copy.courses.map((course, cIdx) => (
-                              <tr
-                                key={cIdx}
-                                className="hover:bg-blue-50 dark:hover:bg-gray-800"
+                  {openYears[yearName] && (
+                    <div className="mt-4 space-y-4">
+                      {semesters.map((copy, semIndex) => (
+                        <div key={semIndex}>
+                          {/* Semester Button */}
+                          <button
+                            onClick={() =>
+                              setOpenSemesters((prev) => ({
+                                ...prev,
+                                [`${yearName}-${semIndex}`]: !prev[`${yearName}-${semIndex}`],
+                              }))
+                            }
+                            className={`w-full flex items-center p-3 rounded-lg font-medium text-left transition-colors border ml-4 sm:ml-8 ${
+                              openSemesters[`${yearName}-${semIndex}`]
+                                ? "bg-blue-500 text-white border-blue-600"
+                                : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-600"
+                            }`}
+                          >
+                            {openSemesters[`${yearName}-${semIndex}`] ? (
+                              <svg
+                                className="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                               >
-                                <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {course.courseCode}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                  {course.courseTitle}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
-                                  {course.totalCrHrs}
-                                </td>
-                                <td className="px-4 py-3 text-sm text-center">
-                                  <Badge
-                                    className={getGradeColor(
-                                      course.letterGrade,
-                                    )}
-                                  >
-                                    {course.letterGrade}
-                                  </Badge>
-                                </td>
-                                <td className="px-4 py-3 text-sm text-center font-mono text-gray-900 dark:text-gray-100">
-                                  {course.gradePoint.toFixed(1)}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                className="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            )}
+                            {copy.semester.name} (GPA: {copy.semesterGPA.toFixed(4)} | CGPA: {copy.semesterCGPA.toFixed(4)})
+                          </button>
+
+                          {openSemesters[`${yearName}-${semIndex}`] && (
+                            <div className="mt-4 overflow-x-auto">
+                              <table className="w-full min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                                <thead className="bg-blue-50 dark:bg-gray-800">
+                                  <tr>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                      Course Code
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                      Course Title
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                      Cr. Hrs
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                      Grade
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                      Points
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+                                  {copy.courses.map((course, cIdx) => (
+                                    <tr
+                                      key={cIdx}
+                                      className="hover:bg-blue-50 dark:hover:bg-gray-800"
+                                    >
+                                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {course.courseCode}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                        {course.courseTitle}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
+                                        {course.totalCrHrs}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-center">
+                                        <Badge
+                                          className={getGradeColor(
+                                            course.letterGrade,
+                                          )}
+                                        >
+                                          {course.letterGrade}
+                                        </Badge>
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-center font-mono text-gray-900 dark:text-gray-100">
+                                        {course.gradePoint.toFixed(1)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            });
+          })()}
+        </CardContent>
+      </Card>
       </div>
     </div>
   );
