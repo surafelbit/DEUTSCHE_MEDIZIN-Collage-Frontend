@@ -38,6 +38,7 @@ interface FormTemplate {
   forRoles: string[];
   createdAt: string;
   updatedAt: string;
+  isDownloadable?: boolean; 
 }
 
 // Academic policies 
@@ -206,6 +207,50 @@ export default function FormsCenter() {
       .join(" ");
   };
 
+  const handleDownloadForm = async (form: FormTemplate) => {
+  try {
+    const response = await apiClient.get(
+      endPoints.downloadFormTemplate(form.id),
+      {
+        responseType: "blob",
+      },
+    );
+
+    const blob = new Blob([response.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${formatFormName(form.name)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Download Started",
+      description: "Your form is being downloaded.",
+    });
+  } catch (error: any) {
+    console.error("Error downloading form:", error);
+    toast({
+      title: "Download Failed",
+      description: "An error occurred while downloading the form.",
+      variant: "destructive",
+    });
+  }
+};
+
+const handlePrintForm = () => {
+  if (previewUrl) {
+    const printWindow = window.open(previewUrl, '_blank');
+    printWindow?.focus();
+    toast({
+      title: "Print Window Opened",
+      description: "Please use the print dialog in the new window.",
+    });
+  }
+};
+
   // Disable keyboard shortcuts for print and save
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Disable Ctrl+P, Cmd+P (Print)
@@ -268,10 +313,13 @@ export default function FormsCenter() {
         <Card>
           <CardHeader>
             <CardTitle>Academic Policies</CardTitle>
-            <CardDescription>
-              Official college policies regarding readmission, course add/drop,
-              and repeats
-            </CardDescription>
+              <CardDescription>
+                {loading
+                  ? "Loading your available forms..."
+                  : forms.length === 0
+                    ? "No forms are currently available"
+                    : "Click Preview to view the form"}
+              </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
@@ -326,19 +374,22 @@ export default function FormsCenter() {
                   key={form.id}
                   className="rounded-lg border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{formatFormName(form.name)}</h3>
-                      <Badge variant="default">Available</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {form.description || "No description"}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      For: {form.forRoles.join(", ")} • Updated:{" "}
-                      {new Date(form.updatedAt).toLocaleDateString()}
-                    </p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold">{formatFormName(form.name)}</h3>
+                    <Badge variant="default">Available</Badge>
+                    <Badge variant={form.isDownloadable ? "secondary" : "outline"} className="text-xs">
+                      {form.isDownloadable ? "📥 Downloadable" : "🔒 Read Only"}
+                    </Badge>
                   </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {form.description || "No description"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    For: {form.forRoles.join(", ")} • Updated:{" "}
+                    {new Date(form.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
 
                   <Button
                     className="w-full sm:w-auto"
@@ -364,8 +415,8 @@ export default function FormsCenter() {
       <Dialog open={!!previewForm} onOpenChange={(open) => !open && closePreview()}>
         <DialogContent
           className="max-w-[95vw] w-full h-[95vh] p-0 sm:p-6"
-          onKeyDown={handleKeyDown}
-          onContextMenu={handleContextMenu}
+          onKeyDown={previewForm?.isDownloadable ? undefined : handleKeyDown}
+          onContextMenu={previewForm?.isDownloadable ? undefined : handleContextMenu}
           aria-describedby="preview-description"
         >
           <DialogHeader className="px-4 pt-4 sm:px-6 sm:pt-0">
@@ -373,9 +424,9 @@ export default function FormsCenter() {
               Preview: {previewForm ? formatFormName(previewForm.name) : ""}
             </DialogTitle>
             <DialogDescription id="preview-description" className="flex items-center gap-2">
-              <span>Read-only mode. No downloads or printing allowed.</span>
-              <Badge variant="destructive" className="text-xs">
-                Read Only
+              <span>{previewForm?.isDownloadable ? "You can download and print this form." : "Read-only mode. No downloads or printing allowed."}</span>
+              <Badge variant={previewForm?.isDownloadable ? "default" : "destructive"} className="text-xs">
+                {previewForm?.isDownloadable ? "Downloadable" : "Read Only"}
               </Badge>
             </DialogDescription>
           </DialogHeader>
@@ -386,20 +437,19 @@ export default function FormsCenter() {
                 <p className="mt-2 text-muted-foreground">Loading preview...</p>
               </div>
             ) : previewUrl ? (
-<iframe
-  src={`${previewUrl}#toolbar=0&navpanes=0&statusbar=0`}
-  className="w-full h-full rounded-lg"
-  style={{ 
-    minHeight: "calc(95vh - 140px)",
-    userSelect: "none",
-    WebkitUserSelect: "none",
-  }}
-  title={previewForm?.name}
->
-  <p className="text-muted-foreground text-center p-4">
-    Your browser cannot display PDFs. Please contact support for assistance.
-  </p>
-</iframe>
+              <iframe
+                src={`${previewUrl}${previewForm?.isDownloadable ? '' : '#toolbar=0&navpanes=0&statusbar=0'}`}
+                className="w-full h-full rounded-lg"
+                style={{ 
+                  minHeight: "calc(95vh - 140px)",
+                  ...(previewForm?.isDownloadable ? {} : { userSelect: "none", WebkitUserSelect: "none" })
+                }}
+                title={previewForm?.name}
+              >
+                <p className="text-muted-foreground text-center p-4">
+                  Your browser cannot display PDFs. Please contact support for assistance.
+                </p>
+              </iframe>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
@@ -407,7 +457,29 @@ export default function FormsCenter() {
               </div>
             )}
           </div>
-          <div className="flex justify-end gap-2 p-4 sm:p-6 pt-2">
+          <div className="flex justify-between items-center gap-2 p-4 sm:p-6 pt-2">
+            <div className="flex gap-2">
+              {previewForm?.isDownloadable && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => previewForm && handleDownloadForm(previewForm)}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handlePrintForm}
+                    className="flex items-center gap-2"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print
+                  </Button>
+                </>
+              )}
+            </div>
             <Button variant="default" onClick={closePreview}>
               Close
             </Button>
