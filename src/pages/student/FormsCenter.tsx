@@ -386,20 +386,20 @@ export default function FormsCenter() {
                 <p className="mt-2 text-muted-foreground">Loading preview...</p>
               </div>
             ) : previewUrl ? (
-              <iframe
-                src={`${previewUrl}#toolbar=0&navpanes=0&statusbar=0&view=FitH`}
-                className="w-full h-full rounded-lg pointer-events-none"
-                style={{ 
-                  minHeight: "calc(95vh - 140px)",
-                  userSelect: "none",
-                  WebkitUserSelect: "none",
-                }}
-                title={previewForm?.name}
-              >
-                <p className="text-muted-foreground text-center p-4">
-                  Your browser cannot display PDFs. Please contact support for assistance.
-                </p>
-              </iframe>
+<iframe
+  src={`${previewUrl}#toolbar=0&navpanes=0&statusbar=0`}
+  className="w-full h-full rounded-lg"
+  style={{ 
+    minHeight: "calc(95vh - 140px)",
+    userSelect: "none",
+    WebkitUserSelect: "none",
+  }}
+  title={previewForm?.name}
+>
+  <p className="text-muted-foreground text-center p-4">
+    Your browser cannot display PDFs. Please contact support for assistance.
+  </p>
+</iframe>
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
                 <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
