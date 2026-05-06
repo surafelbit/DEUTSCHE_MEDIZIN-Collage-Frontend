@@ -26,6 +26,7 @@ type FormTemplate = {
   name: string;
   description: string;
   forRoles: string[];
+  isDownloadable: boolean; // ADD THIS LINE
   createdAt: string;
   updatedAt: string;
 };
@@ -39,7 +40,7 @@ const ALL_ROLES = [
   "FINANCIAL_STAFF",
   "VICE_DEAN",
   "DEAN",
-  "GENERAL_MANAGER"
+  "GENERAL_MANAGER",
 ];
 
 const TemplatesAndForms = () => {
@@ -53,12 +54,14 @@ const TemplatesAndForms = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiService.get(endPoints.formTemplates || "/registrar/form-templates");
+      const response = await apiService.get(
+        endPoints.formTemplates || "/registrar/form-templates",
+      );
       setTemplates(response);
     } catch (err: any) {
       console.error("Failed to fetch templates:", err);
       setError("Failed to load templates. Please try again later.");
-      
+
       // For demo purposes, use mock data if API fails
       const mockData: FormTemplate[] = [
         {
@@ -66,32 +69,40 @@ const TemplatesAndForms = () => {
           name: "withdrawal-request",
           description: "Official student withdrawal application form",
           forRoles: ["STUDENT"],
+          isDownloadable: true, // ADD THIS
+
           createdAt: "2025-02-07T16:45:23.123",
-          updatedAt: "2025-02-07T17:12:45.789"
+          updatedAt: "2025-02-07T17:12:45.789",
         },
         {
           id: 2,
           name: "grade-change-request",
           description: "Request to change a student's grade",
           forRoles: ["TEACHER", "DEPARTMENT_HEAD"],
+          isDownloadable: true, // ADD THIS
+
           createdAt: "2025-01-15T09:30:00.000",
-          updatedAt: "2025-01-15T09:30:00.000"
+          updatedAt: "2025-01-15T09:30:00.000",
         },
         {
           id: 3,
           name: "leave-of-absence",
           description: "Application for temporary leave of absence",
           forRoles: ["STUDENT", "TEACHER"],
+          isDownloadable: true, // ADD THIS
+
           createdAt: "2025-02-09T10:15:00.000",
-          updatedAt: "2025-02-09T10:15:00.000"
+          updatedAt: "2025-02-09T10:15:00.000",
         },
         {
           id: 4,
           name: "transcript-request",
           description: "Request for official academic transcript",
           forRoles: ["STUDENT", "REGISTRAR"],
+          isDownloadable: true, // ADD THIS
+
           createdAt: "2024-12-10T08:20:00.000",
-          updatedAt: "2024-12-10T08:20:00.000"
+          updatedAt: "2024-12-10T08:20:00.000",
         },
         {
           id: 5,
@@ -99,8 +110,10 @@ const TemplatesAndForms = () => {
           description: "Standard template for course syllabus",
           forRoles: ["TEACHER", "DEPARTMENT_HEAD"],
           createdAt: "2025-02-01T14:30:00.000",
-          updatedAt: "2025-02-05T11:20:00.000"
-        }
+          isDownloadable: true, // ADD THIS
+
+          updatedAt: "2025-02-05T11:20:00.000",
+        },
       ];
       setTemplates(mockData);
     } finally {
@@ -116,7 +129,8 @@ const TemplatesAndForms = () => {
   const InstructionsReminder = () => (
     <div className="mb-10 p-8 rounded-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-blue-800/50 shadow-lg">
       <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-4 flex items-center gap-3">
-        <span className="text-3xl">📋</span> Templates & Forms Management Instructions
+        <span className="text-3xl">📋</span> Templates & Forms Management
+        Instructions
       </h3>
       <div className="space-y-4 text-gray-700 dark:text-gray-300">
         <div className="flex items-start gap-3">
@@ -124,7 +138,9 @@ const TemplatesAndForms = () => {
             1
           </span>
           <div>
-            <span className="font-semibold text-gray-900 dark:text-white">Purpose:</span>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              Purpose:
+            </span>
             <p>View, download, edit, delete, and create new form templates.</p>
           </div>
         </div>
@@ -133,8 +149,13 @@ const TemplatesAndForms = () => {
             2
           </span>
           <div>
-            <span className="font-semibold text-gray-900 dark:text-white">Add New Template:</span>
-            <p>Click the "Add Template" button to create a new form. Name and PDF file are required.</p>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              Add New Template:
+            </span>
+            <p>
+              Click the "Add Template" button to create a new form. Name and PDF
+              file are required.
+            </p>
           </div>
         </div>
         <div className="flex items-start gap-3">
@@ -142,7 +163,9 @@ const TemplatesAndForms = () => {
             3
           </span>
           <div>
-            <span className="font-semibold text-gray-900 dark:text-white">File Upload:</span>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              File Upload:
+            </span>
             <p>Only PDF files are allowed. Maximum file size is 5MB.</p>
           </div>
         </div>
@@ -151,8 +174,13 @@ const TemplatesAndForms = () => {
             4
           </span>
           <div>
-            <span className="font-semibold text-gray-900 dark:text-white">Role Selection:</span>
-            <p>Select which user roles can access each template. Multiple roles can be selected.</p>
+            <span className="font-semibold text-gray-900 dark:text-white">
+              Role Selection:
+            </span>
+            <p>
+              Select which user roles can access each template. Multiple roles
+              can be selected.
+            </p>
           </div>
         </div>
       </div>
@@ -164,7 +192,7 @@ const TemplatesAndForms = () => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
+
     const intervals = {
       year: 31536000,
       month: 2592000,
@@ -174,16 +202,16 @@ const TemplatesAndForms = () => {
       minute: 60,
     };
 
-    if (diffInSeconds < 60) return 'just now';
-    
+    if (diffInSeconds < 60) return "just now";
+
     for (const [unit, seconds] of Object.entries(intervals)) {
       const interval = Math.floor(diffInSeconds / seconds);
       if (interval >= 1) {
-        return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+        return `${interval} ${unit}${interval > 1 ? "s" : ""} ago`;
       }
     }
-    
-    return 'just now';
+
+    return "just now";
   };
 
   // Loading State
@@ -226,7 +254,7 @@ const TemplatesAndForms = () => {
           </p>
         </div>
       </header>
-      
+
       <main>
         <CrudSection
           title="Form Templates"
@@ -243,18 +271,21 @@ const TemplatesAndForms = () => {
 // Helper function to get file icon based on template name
 const getFileIcon = (templateName: string) => {
   const name = templateName.toLowerCase();
-  if (name.includes('pdf') || name.includes('form')) return <FaFilePdf className="text-red-500" />;
-  if (name.includes('doc') || name.includes('word')) return <FaFileWord className="text-blue-500" />;
-  if (name.includes('xls') || name.includes('excel')) return <FaFileExcel className="text-green-500" />;
+  if (name.includes("pdf") || name.includes("form"))
+    return <FaFilePdf className="text-red-500" />;
+  if (name.includes("doc") || name.includes("word"))
+    return <FaFileWord className="text-blue-500" />;
+  if (name.includes("xls") || name.includes("excel"))
+    return <FaFileExcel className="text-green-500" />;
   return <FaRegFile className="text-gray-500" />;
 };
 
 // Helper to format date
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 };
 
@@ -269,13 +300,19 @@ const TemplateModal = ({
   isOpen: boolean;
   onClose: () => void;
   template?: FormTemplate | null;
-  onSave: (formData: { name: string; description: string; forRoles: string[]; file: File | null }) => Promise<void>;
+  onSave: (formData: {
+    name: string;
+    description: string;
+    forRoles: string[];
+    file: File | null;
+  }) => Promise<void>;
   saving: boolean;
 }) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     forRoles: [] as string[],
+    isDownloadable: true, // ADD THIS - default to true
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
@@ -289,6 +326,10 @@ const TemplateModal = ({
           name: template.name,
           description: template.description || "",
           forRoles: [...template.forRoles],
+          isDownloadable:
+            template.isDownloadable !== undefined
+              ? template.isDownloadable
+              : true,
         });
       } else {
         // Add mode
@@ -296,6 +337,7 @@ const TemplateModal = ({
           name: "",
           description: "",
           forRoles: [],
+          isDownloadable: true, // ADD THIS
         });
       }
       setSelectedFile(null);
@@ -303,13 +345,13 @@ const TemplateModal = ({
   }, [isOpen, template]);
 
   const handleRoleToggle = (role: string) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const isSelected = prev.forRoles.includes(role);
       return {
         ...prev,
-        forRoles: isSelected 
-          ? prev.forRoles.filter(r => r !== role)
-          : [...prev.forRoles, role]
+        forRoles: isSelected
+          ? prev.forRoles.filter((r) => r !== role)
+          : [...prev.forRoles, role],
       };
     });
   };
@@ -319,13 +361,13 @@ const TemplateModal = ({
     if (!file) return;
 
     // Validate file type
-    if (file.type !== 'application/pdf') {
+    if (file.type !== "application/pdf") {
       toast({
         variant: "destructive",
         title: "Invalid File Type",
         description: "Only PDF files are allowed.",
       });
-      e.target.value = '';
+      e.target.value = "";
       return;
     }
 
@@ -336,7 +378,7 @@ const TemplateModal = ({
         title: "File Too Large",
         description: "File size exceeds 5MB limit.",
       });
-      e.target.value = '';
+      e.target.value = "";
       return;
     }
 
@@ -402,8 +444,12 @@ const TemplateModal = ({
           {/* Template ID Display (only for edit mode) */}
           {template && (
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Template ID:</span>
-              <span className="ml-2 font-mono text-lg font-bold">#{template.id}</span>
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Template ID:
+              </span>
+              <span className="ml-2 font-mono text-lg font-bold">
+                #{template.id}
+              </span>
             </div>
           )}
 
@@ -415,7 +461,9 @@ const TemplateModal = ({
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
               className="w-full p-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700"
               placeholder="Enter template name"
             />
@@ -428,7 +476,12 @@ const TemplateModal = ({
             </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               rows={3}
               className="w-full p-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700"
               placeholder="Enter template description"
@@ -436,6 +489,40 @@ const TemplateModal = ({
           </div>
 
           {/* Roles Selection */}
+          {/* Downloadable Toggle */}
+          <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  Allow Download
+                </span>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  If enabled, users with appropriate roles can download this
+                  template
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isDownloadable: !prev.isDownloadable,
+                  }))
+                }
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  formData.isDownloadable
+                    ? "bg-blue-600"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    formData.isDownloadable ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </label>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Allowed Roles * (Select at least one)
@@ -452,7 +539,7 @@ const TemplateModal = ({
                     onChange={() => handleRoleToggle(role)}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm">{role.replace('_', ' ')}</span>
+                  <span className="text-sm">{role.replace("_", " ")}</span>
                   {formData.forRoles.includes(role) && (
                     <FaCheck className="w-3 h-3 text-green-500 ml-auto" />
                   )}
@@ -480,7 +567,11 @@ const TemplateModal = ({
               >
                 <FaUpload className="w-8 h-8 text-gray-400 mb-2" />
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {selectedFile ? selectedFile.name : (template ? 'Click to select a new PDF file (optional)' : 'Click to select a PDF file')}
+                  {selectedFile
+                    ? selectedFile.name
+                    : template
+                      ? "Click to select a new PDF file (optional)"
+                      : "Click to select a PDF file"}
                 </span>
                 {selectedFile && (
                   <span className="text-xs text-gray-400 mt-1">
@@ -513,8 +604,10 @@ const TemplateModal = ({
                   <FaSpinner className="animate-spin w-5 h-5" />
                   Saving...
                 </>
+              ) : template ? (
+                "Save Changes"
               ) : (
-                template ? "Save Changes" : "Create Template"
+                "Create Template"
               )}
             </button>
           </div>
@@ -543,17 +636,19 @@ const CrudSection = ({
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const [editingTemplate, setEditingTemplate] = useState<FormTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<FormTemplate | null>(
+    null,
+  );
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const { toast } = useToast();
-  
+
   const itemsPerPage = showAll ? data.length : 10;
 
   // Get unique roles from all templates
   const allRoles = Array.from(
-    new Set(data.flatMap(template => template.forRoles))
+    new Set(data.flatMap((template) => template.forRoles)),
   ).sort();
 
   // Filter by search term and role
@@ -562,16 +657,16 @@ const CrudSection = ({
       (item) =>
         item.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+        item.description.toLowerCase().includes(searchTerm.toLowerCase()),
     )
     .filter((item) =>
-      selectedRole ? item.forRoles.includes(selectedRole) : true
+      selectedRole ? item.forRoles.includes(selectedRole) : true,
     );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   // Reset page when filters change
@@ -591,28 +686,33 @@ const CrudSection = ({
   const handleDownload = async (template: FormTemplate) => {
     try {
       setDownloadingId(template.id);
-      
+
       // Use apiClient for download
-      const response = await apiClient.get(`/auth/form-templates/${template.id}/download`, {
-        responseType: 'blob',
-      });
+      const response = await apiClient.get(
+        `/auth/form-templates/${template.id}/download`,
+        {
+          responseType: "blob",
+        },
+      );
 
       // Get filename from Content-Disposition header or use template name
-      const contentDisposition = response.headers['content-disposition'];
+      const contentDisposition = response.headers["content-disposition"];
       let filename = `${template.name}.pdf`;
-      
+
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        const filenameMatch = contentDisposition.match(
+          /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
+        );
         if (filenameMatch && filenameMatch[1]) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
+          filename = filenameMatch[1].replace(/['"]/g, "");
         }
       }
 
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', filename);
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -622,17 +722,18 @@ const CrudSection = ({
         title: "Success",
         description: `Downloading ${template.name}...`,
       });
-
     } catch (err: any) {
       console.error("Download failed:", err);
-      
+
       // Handle error response
       if (err.response) {
         if (err.response.status === 403) {
           toast({
             variant: "destructive",
             title: "Permission Denied",
-            description: err.response.data?.error || "You don't have permission to download this form.",
+            description:
+              err.response.data?.error ||
+              "You don't have permission to download this form.",
           });
         } else if (err.response.status === 404) {
           toast({
@@ -644,7 +745,8 @@ const CrudSection = ({
           toast({
             variant: "destructive",
             title: "Download Failed",
-            description: err.response.data?.error || "Failed to download the form.",
+            description:
+              err.response.data?.error || "Failed to download the form.",
           });
         }
       } else {
@@ -670,37 +772,42 @@ const CrudSection = ({
   };
 
   const handleDelete = async (id: number) => {
-    const template = data.find(t => t.id === id);
+    const template = data.find((t) => t.id === id);
     if (!template) return;
-    
-    if (!window.confirm(`Are you sure you want to delete "${template.name}"? This action cannot be undone.`)) {
+
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${template.name}"? This action cannot be undone.`,
+      )
+    ) {
       return;
     }
 
     try {
       setDeletingId(id);
-      
+
       // Use apiService for delete
       await apiService.delete(`/registrar/form-templates/${id}`);
-      
+
       // Refresh data
       await onRefresh();
-      
+
       toast({
         title: "Success",
         description: "Form template deleted successfully.",
       });
-
     } catch (err: any) {
       console.error("Delete failed:", err);
-      
+
       // Handle error response
       if (err.response) {
         if (err.response.status === 403) {
           toast({
             variant: "destructive",
             title: "Permission Denied",
-            description: err.response.data?.error || "You don't have permission to delete this form.",
+            description:
+              err.response.data?.error ||
+              "You don't have permission to delete this form.",
           });
         } else if (err.response.status === 404) {
           toast({
@@ -712,7 +819,8 @@ const CrudSection = ({
           toast({
             variant: "destructive",
             title: "Delete Failed",
-            description: err.response.data?.error || "Failed to delete the form.",
+            description:
+              err.response.data?.error || "Failed to delete the form.",
           });
         }
       } else {
@@ -727,21 +835,47 @@ const CrudSection = ({
     }
   };
 
-  const handleSave = async (formData: { name: string; description: string; forRoles: string[]; file: File | null }) => {
+  const handleSave = async (formData: {
+    isDownloadable: any;
+    name: string;
+    description: string;
+    forRoles: string[];
+    file: File | null;
+  }) => {
     try {
       setSaving(true);
 
       const data = new FormData();
-      
+
       // Add file if present (required for new, optional for edit)
       if (formData.file) {
-        data.append('file', formData.file);
+        data.append("file", formData.file);
       }
-      
+
       // Add JSON parts with explicit Content-Type
-      data.append('name', new Blob([JSON.stringify(formData.name)], { type: 'application/json' }));
-      data.append('description', new Blob([JSON.stringify(formData.description)], { type: 'application/json' }));
-      data.append('forRoles', new Blob([JSON.stringify(formData.forRoles)], { type: 'application/json' }));
+      data.append(
+        "name",
+        new Blob([JSON.stringify(formData.name)], { type: "application/json" }),
+      );
+      data.append(
+        "description",
+        new Blob([JSON.stringify(formData.description)], {
+          type: "application/json",
+        }),
+      );
+      data.append(
+        "forRoles",
+        new Blob([JSON.stringify(formData.forRoles)], {
+          type: "application/json",
+        }),
+      );
+      // In the FormData append section, add:
+      data.append(
+        "isDownloadable",
+        new Blob([JSON.stringify(formData.isDownloadable)], {
+          type: "application/json",
+        }),
+      );
 
       if (editingTemplate) {
         // UPDATE
@@ -750,14 +884,15 @@ const CrudSection = ({
           data,
           {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
 
         toast({
           title: "Success",
-          description: response.data?.message || "Template updated successfully.",
+          description:
+            response.data?.message || "Template updated successfully.",
         });
       } else {
         // CREATE NEW
@@ -766,24 +901,24 @@ const CrudSection = ({
           data,
           {
             headers: {
-              'Content-Type': 'multipart/form-data',
+              "Content-Type": "multipart/form-data",
             },
-          }
+          },
         );
 
         toast({
           title: "Success",
-          description: response.data?.message || "Template created successfully.",
+          description:
+            response.data?.message || "Template created successfully.",
         });
       }
 
       // Refresh data
       await onRefresh();
       setShowModal(false);
-
     } catch (err: any) {
       console.error("Save failed:", err);
-      
+
       // Handle error response
       if (err.response) {
         if (err.response.status === 400) {
@@ -796,13 +931,16 @@ const CrudSection = ({
           toast({
             variant: "destructive",
             title: "Permission Denied",
-            description: err.response.data?.error || "You don't have permission to perform this action.",
+            description:
+              err.response.data?.error ||
+              "You don't have permission to perform this action.",
           });
         } else {
           toast({
             variant: "destructive",
             title: "Save Failed",
-            description: err.response.data?.error || "Failed to save the template.",
+            description:
+              err.response.data?.error || "Failed to save the template.",
           });
         }
       } else {
@@ -854,7 +992,7 @@ const CrudSection = ({
           onChange={(e) => setSearchTerm(e.target.value)}
           className="flex-1 p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700"
         />
-        
+
         <select
           value={selectedRole}
           onChange={(e) => setSelectedRole(e.target.value)}
@@ -863,7 +1001,7 @@ const CrudSection = ({
           <option value="">All Roles</option>
           {allRoles.map((role) => (
             <option key={role} value={role}>
-              {role.replace('_', ' ')}
+              {role.replace("_", " ")}
             </option>
           ))}
         </select>
@@ -880,6 +1018,7 @@ const CrudSection = ({
                 <th className="p-4 text-left font-semibold">For Roles</th>
                 <th className="p-4 text-left font-semibold">Created</th>
                 <th className="p-4 text-left font-semibold">Updated</th>
+                <th className="p-4 text-left font-semibold">Downloadable</th>
                 <th className="p-4 text-center font-semibold">Actions</th>
               </tr>
             </thead>
@@ -888,7 +1027,9 @@ const CrudSection = ({
                 <tr
                   key={item.id}
                   className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200 border-b border-gray-100 dark:border-gray-700 ${
-                    index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/50 dark:bg-gray-800/50'
+                    index % 2 === 0
+                      ? "bg-white dark:bg-gray-800"
+                      : "bg-gray-50/50 dark:bg-gray-800/50"
                   }`}
                 >
                   <td className="p-4">
@@ -903,7 +1044,10 @@ const CrudSection = ({
                     </div>
                   </td>
                   <td className="p-4 max-w-xs">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2" title={item.description}>
+                    <p
+                      className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2"
+                      title={item.description}
+                    >
                       {item.description}
                     </p>
                   </td>
@@ -914,13 +1058,16 @@ const CrudSection = ({
                           key={role}
                           className="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800"
                         >
-                          {role.replace('_', ' ')}
+                          {role.replace("_", " ")}
                         </span>
                       ))}
                     </div>
                   </td>
                   <td className="p-4">
-                    <div className="flex items-center gap-1 text-sm" title={formatDate(item.createdAt)}>
+                    <div
+                      className="flex items-center gap-1 text-sm"
+                      title={formatDate(item.createdAt)}
+                    >
                       <FaCalendarAlt className="text-gray-400 text-xs" />
                       <span className="text-gray-600 dark:text-gray-400">
                         {getRelativeTime(item.createdAt)}
@@ -928,12 +1075,26 @@ const CrudSection = ({
                     </div>
                   </td>
                   <td className="p-4">
-                    <div className="flex items-center gap-1 text-sm" title={formatDate(item.updatedAt)}>
+                    <div
+                      className="flex items-center gap-1 text-sm"
+                      title={formatDate(item.updatedAt)}
+                    >
                       <FaCalendarAlt className="text-gray-400 text-xs" />
                       <span className="text-gray-600 dark:text-gray-400">
                         {getRelativeTime(item.updatedAt)}
                       </span>
                     </div>
+                  </td>
+                  <td className="p-4">
+                    {item.isDownloadable ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                        <FaCheck className="w-3 h-3" /> Yes
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-full text-xs font-medium">
+                        <FaTimes className="w-3 h-3" /> No
+                      </span>
+                    )}
                   </td>
                   <td className="p-4">
                     <div className="flex justify-center gap-2">
@@ -947,7 +1108,7 @@ const CrudSection = ({
                           Edit template
                         </span>
                       </button>
-                      
+
                       <button
                         onClick={() => handleDownload(item)}
                         disabled={downloadingId === item.id}
@@ -1001,12 +1162,12 @@ const CrudSection = ({
                   </span>
                 </div>
               </div>
-              
+
               <h3 className="font-bold text-lg mb-2">{item.name}</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                 {item.description}
               </p>
-              
+
               <div className="space-y-3 mb-4">
                 <div>
                   <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
@@ -1018,18 +1179,41 @@ const CrudSection = ({
                         key={role}
                         className="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium border border-blue-200 dark:border-blue-800"
                       >
-                        {role.replace('_', ' ')}
+                        {role.replace("_", " ")}
                       </span>
                     ))}
                   </div>
                 </div>
-                
+
+                {/* START: ADD THIS ISDOWNLOADABLE SECTION */}
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    Downloadable:
+                  </span>
+                  {item.isDownloadable ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
+                      <FaCheck className="w-3 h-3" /> Yes
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 rounded-full text-xs font-medium">
+                      <FaTimes className="w-3 h-3" /> No
+                    </span>
+                  )}
+                </div>
+                {/* END: ADD THIS ISDOWNLOADABLE SECTION */}
+
                 <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t dark:border-gray-700">
-                  <div className="flex items-center gap-1" title={formatDate(item.createdAt)}>
+                  <div
+                    className="flex items-center gap-1"
+                    title={formatDate(item.createdAt)}
+                  >
                     <FaCalendarAlt className="text-xs" />
                     <span>Created: {getRelativeTime(item.createdAt)}</span>
                   </div>
-                  <div className="flex items-center gap-1" title={formatDate(item.updatedAt)}>
+                  <div
+                    className="flex items-center gap-1"
+                    title={formatDate(item.updatedAt)}
+                  >
                     <FaCalendarAlt className="text-xs" />
                     <span>Updated: {getRelativeTime(item.updatedAt)}</span>
                   </div>
@@ -1050,9 +1234,17 @@ const CrudSection = ({
 
                 <button
                   onClick={() => handleDownload(item)}
-                  disabled={downloadingId === item.id}
-                  className="p-2.5 rounded-lg text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all group relative disabled:opacity-50"
-                  title="Download this template or form"
+                  disabled={downloadingId === item.id || !item.isDownloadable}
+                  className={`p-2.5 rounded-lg transition-all group relative disabled:opacity-50 ${
+                    item.isDownloadable
+                      ? "text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30"
+                      : "text-gray-400 cursor-not-allowed"
+                  }`}
+                  title={
+                    item.isDownloadable
+                      ? "Download this template or form"
+                      : "Download not allowed for this template"
+                  }
                 >
                   {downloadingId === item.id ? (
                     <FaSpinner className="w-4 h-4 animate-spin" />
@@ -1060,7 +1252,9 @@ const CrudSection = ({
                     <FaDownload className="w-4 h-4" />
                   )}
                   <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                    Download this template or form
+                    {item.isDownloadable
+                      ? "Download this template or form"
+                      : "Download not allowed"}
                   </span>
                 </button>
 

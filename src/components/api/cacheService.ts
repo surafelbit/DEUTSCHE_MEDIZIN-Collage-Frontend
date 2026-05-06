@@ -227,14 +227,16 @@ export const clearCacheForUrl = async (url: string): Promise<void> => {
   }
 };
 
-// NEW: Clear all cached responses for a specific base path (useful for clearing all variations)
-export const clearCacheByBasePath = async (basePath: string): Promise<void> => {
+export const clearCacheByPattern = async (
+  basePattern: string,
+): Promise<void> => {
   if (typeof caches === "undefined") return;
 
   try {
     const cache = await caches.open(CACHE_STORE_NAME);
     const keys = await cache.keys();
     let deletedCount = 0;
+    const deletedUrls: string[] = [];
 
     for (const request of keys) {
       const cacheUrl = request.url;
@@ -242,20 +244,54 @@ export const clearCacheByBasePath = async (basePath: string): Promise<void> => {
       const decodedUrl = decodeURIComponent(
         cacheUrl.replace("https://app-cache.local/", ""),
       );
-      const decodedBasePath = getBasePath(decodedUrl);
 
-      if (decodedBasePath === basePath) {
+      // Check if the decoded URL starts with the base pattern
+      // This will match:
+      // - Exact match: /courses
+      // - With query params: /courses?anything
+      // - With path params: /courses/123, /courses/123/students
+      if (
+        decodedUrl === basePattern ||
+        decodedUrl.startsWith(`${basePattern}/`) ||
+        decodedUrl.startsWith(`${basePattern}?`)
+      ) {
         await cache.delete(request);
+
+        // Also delete the corresponding meta key
+        const metaKey = request.url.replace(/\/[^\/]+$/, "/meta");
+        await cache.delete(metaKey);
+
         deletedCount++;
+        deletedUrls.push(decodedUrl);
       }
     }
 
+    // Also handle dependencies for lookupsDropdown
+    if (LOOKUPS_DROPDOWN_DEPENDENCIES.has(basePattern)) {
+      const lookupsKey = generateCacheKey(endPoints.lookupsDropdown);
+      const lookupsMetaKey = `${lookupsKey}/meta`;
+      await cache.delete(lookupsKey);
+      await cache.delete(lookupsMetaKey);
+      console.log(
+        `🗑️ lookupsDropdown cache also cleared due to dependency invalidation for pattern: ${basePattern}`,
+      );
+    }
+
     console.log(
-      `🗑️ Cleared ${deletedCount} cache entries for base path: ${basePath}`,
+      `🗑️ [PATTERN CLEAR] Cleared ${deletedCount} cache entries for pattern "${basePattern}":`,
+      deletedUrls.length > 0 ? deletedUrls : ["No matches found"],
     );
   } catch (error) {
-    console.warn(`Failed to clear cache by base path ${basePath}:`, error);
+    console.warn(`Failed to clear cache by pattern ${basePattern}:`, error);
   }
+};
+
+/**
+ * Enhanced version of clearCacheByBasePath that handles both query and path parameters
+ * This is an alias for clearCacheByPattern for backward compatibility
+ */
+export const clearCacheByBasePath = async (basePath: string): Promise<void> => {
+  return clearCacheByPattern(basePath);
 };
 
 export const clearAllApiCache = async (): Promise<void> => {
