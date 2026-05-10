@@ -588,7 +588,7 @@ export default function CustomizableStudentTable() {
       if (
         batchClassYearSemesterFilter !== "all" &&
         getEntityId(student.batchClassYearSemester) !==
-          batchClassYearSemesterFilter
+        batchClassYearSemesterFilter
       ) {
         return false;
       }
@@ -1094,11 +1094,10 @@ export default function CustomizableStudentTable() {
                 {fields.map((field) => (
                   <div
                     key={field}
-                    className={`flex items-center gap-2 p-1.5 rounded-md transition-colors ${
-                      visibleColumns.includes(field)
+                    className={`flex items-center gap-2 p-1.5 rounded-md transition-colors ${visibleColumns.includes(field)
                         ? "bg-primary/10"
                         : "hover:bg-muted/50"
-                    }`}
+                      }`}
                   >
                     <Checkbox
                       id={`col-${field}`}
@@ -1113,11 +1112,10 @@ export default function CustomizableStudentTable() {
                     />
                     <Label
                       htmlFor={`col-${field}`}
-                      className={`cursor-pointer text-sm font-normal capitalize ${
-                        visibleColumns.includes(field)
+                      className={`cursor-pointer text-sm font-normal capitalize ${visibleColumns.includes(field)
                           ? "text-primary font-medium"
                           : ""
-                      }`}
+                        }`}
                     >
                       {field.replace(/([A-Z])/g, " $1")}
                     </Label>
@@ -1173,19 +1171,16 @@ export default function CustomizableStudentTable() {
                   }}
                 >
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      showPersonalFilters ? "rotate-0" : "-rotate-90"
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-200 ${showPersonalFilters ? "rotate-0" : "-rotate-90"
+                      }`}
                   />
                 </Button>
               </div>
 
               <div
-                className={`transition-all duration-300 ease-out overflow-hidden ${
-                  showPersonalFilters
-                    ? "max-h-[500px] opacity-100 mt-3"
-                    : "max-h-0 opacity-0"
-                }`}
+                className={`transition-all duration-300 ease-out overflow-hidden ${showPersonalFilters
+                    ? "max-h-[2000px] opacity-100 mt-3" : "max-h-0 opacity-0"
+                  }`}
               >
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                   {" "}
@@ -1335,19 +1330,16 @@ export default function CustomizableStudentTable() {
                   }}
                 >
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      showAcademicFilters ? "rotate-0" : "-rotate-90"
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-200 ${showAcademicFilters ? "rotate-0" : "-rotate-90"
+                      }`}
                   />
                 </Button>
               </div>
 
               <div
-                className={`transition-all duration-300 ease-out overflow-hidden ${
-                  showAcademicFilters
-                    ? "max-h-[500px] opacity-100 mt-3"
-                    : "max-h-0 opacity-0"
-                }`}
+                className={`transition-all duration-300 ease-out overflow-hidden ${showAcademicFilters
+                    ? "max-h-[2000px] opacity-100 mt-3" : "max-h-0 opacity-0"
+                  }`}
               >
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                   {" "}
@@ -1553,19 +1545,17 @@ export default function CustomizableStudentTable() {
                   }}
                 >
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      showPerformanceFilters ? "rotate-0" : "-rotate-90"
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-200 ${showPerformanceFilters ? "rotate-0" : "-rotate-90"
+                      }`}
                   />
                 </Button>
               </div>
 
               <div
-                className={`transition-all duration-300 ease-out overflow-hidden ${
-                  showPerformanceFilters
+                className={`transition-all duration-300 ease-out overflow-hidden ${showPerformanceFilters
                     ? "max-h-[500px] opacity-100 mt-3"
                     : "max-h-0 opacity-0"
-                }`}
+                  }`}
               >
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                   {" "}
@@ -1840,19 +1830,17 @@ export default function CustomizableStudentTable() {
                   }}
                 >
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      showAdministrativeFilters ? "rotate-0" : "-rotate-90"
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-200 ${showAdministrativeFilters ? "rotate-0" : "-rotate-90"
+                      }`}
                   />
                 </Button>
               </div>
 
               <div
-                className={`transition-all duration-300 ease-out overflow-hidden ${
-                  showAdministrativeFilters
+                className={`transition-all duration-300 ease-out overflow-hidden ${showAdministrativeFilters
                     ? "max-h-[500px] opacity-100 mt-3"
                     : "max-h-0 opacity-0"
-                }`}
+                  }`}
               >
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                   {" "}
