@@ -21,6 +21,9 @@ export interface StudentSummary {
 
 export interface ReportHeaderData {
   departmentBcysDisplay: string;
+  batchName: string;
+  departmentName: string;
+  departmentCode: string;
   classYearName: string;
   semesterName: string;
   academicYear: {
