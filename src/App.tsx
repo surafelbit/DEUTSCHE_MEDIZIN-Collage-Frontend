@@ -258,6 +258,9 @@ const AttritionCausesEditor = React.lazy(
 const Transcript_Generate = React.lazy(
   () => import("./pages/registrar/Transcript_Generate"),
 );
+const AcademicSummary = React.lazy(
+  () => import("./pages/registrar/AcademicSummary"),
+);
 const SemestersEditor = React.lazy(
   () => import("./pages/registrar/settings/SemestersEditor"),
 );
@@ -383,6 +386,7 @@ function App() {
                   element={<RegistrarAssessmentDetail />}
                 />
                 <Route path="transcripts" element={<Transcript_Generate />} />
+                <Route path="academic-summary" element={<AcademicSummary />} />
                 <Route path="settings/location" element={<LocationEditor />} />
                 <Route
                   path="settings/academic-years"

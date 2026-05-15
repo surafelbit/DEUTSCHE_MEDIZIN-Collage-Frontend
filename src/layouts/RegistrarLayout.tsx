@@ -104,6 +104,11 @@ export default function RegistrarLayout() {
       href: "/registrar/transcripts",
       icon: FileText,
     },
+    {
+      name: "Academic Summary",
+      href: "/registrar/academic-summary",
+      icon: FileText,
+    },
     { name: "Customizable Tables", href: "/registrar/tables", icon: Calendar },
     {
       name: "Assessments",

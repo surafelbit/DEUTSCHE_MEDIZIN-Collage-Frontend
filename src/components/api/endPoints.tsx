@@ -193,6 +193,7 @@ const endPoints = {
   getRegistrarProfile: "/registrar/profile",
   updateRegistrarProfile: "/registrar/update",
   getRegistrarPhoto: (id: number) => `/registrar/photo/${id}`,
+  academicSummaryBulk: "/registrar/reports/academic-summary",
 
   /* =======================     Vice Deans  ======================== */
   createViceDean: "/auth/register/vice-dean",
