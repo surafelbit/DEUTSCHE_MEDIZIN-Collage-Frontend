@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  XCircle, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
   Clock,
   Loader2,
   AlertCircle,
@@ -21,13 +21,33 @@ import {
   ShieldAlert,
   Award,
   Building,
-  GraduationCap
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import apiClient from "@/components/api/apiClient";
 import endPoints from "@/components/api/endPoints";
@@ -50,10 +70,10 @@ interface Assessment {
   title: string;
   maxScore: number;
   dueDate: string;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  headApproval: 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  deanApproval: 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  registrarApproval: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  headApproval: "PENDING" | "ACCEPTED" | "REJECTED";
+  deanApproval: "PENDING" | "ACCEPTED" | "REJECTED";
+  registrarApproval: "PENDING" | "ACCEPTED" | "REJECTED";
 }
 
 interface StudentScore {
@@ -72,7 +92,7 @@ interface Score {
 interface BulkApproveResponse {
   message: string;
   count: number;
-  statusApplied: 'ACCEPTED' | 'REJECTED';
+  statusApplied: "ACCEPTED" | "REJECTED";
 }
 
 interface AssessmentStatusCounts {
@@ -85,7 +105,7 @@ interface AssessmentStatusCounts {
 const DeanAssessmentDetail: React.FC = () => {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [courseData, setCourseData] = useState<DeanAssessment | null>(null);
@@ -105,13 +125,14 @@ const DeanAssessmentDetail: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await apiClient.get<DeanAssessment[]>(
-        endPoints.getDeanHeadApprovedScores
+        endPoints.getDeanHeadApprovedScores,
       );
-      
+
       const course = response.data.find(
-        (item: DeanAssessment) => item.teacherCourseAssignmentId.toString() === assignmentId
+        (item: DeanAssessment) =>
+          item.teacherCourseAssignmentId.toString() === assignmentId,
       );
-      
+
       if (course) {
         setCourseData(course);
       } else {
@@ -121,9 +142,9 @@ const DeanAssessmentDetail: React.FC = () => {
     } catch (err: any) {
       console.error("Error fetching assessment details:", err);
       setError(
-        err.response?.data?.error || 
-        err.message || 
-        "Failed to load assessment details. Please try again later."
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to load assessment details. Please try again later.",
       );
       toast.error("Failed to load assessment details");
     } finally {
@@ -131,45 +152,59 @@ const DeanAssessmentDetail: React.FC = () => {
     }
   };
 
-  const handleDeanApproveReject = async (status: 'ACCEPTED' | 'REJECTED'): Promise<void> => {
+  const handleDeanApproveReject = async (
+    status: "ACCEPTED" | "REJECTED",
+  ): Promise<void> => {
     if (!courseData) return;
 
     try {
-      if (status === 'ACCEPTED') {
+      if (status === "ACCEPTED") {
         setApproving(true);
       } else {
         setRejecting(true);
       }
-      
-      const endpoint = endPoints.deanBulkApproveAll
-        .replace(":teacherCourseAssignmentId", courseData.teacherCourseAssignmentId.toString());
-      
+
+      const endpoint = endPoints.deanBulkApproveAll.replace(
+        ":teacherCourseAssignmentId",
+        courseData.teacherCourseAssignmentId.toString(),
+      );
+
       const response = await apiClient.put<BulkApproveResponse>(
         `${endpoint}?status=${status}`,
-        {}
+        {},
       );
-      
-      toast.success(response.data.message || `Course ${status === 'ACCEPTED' ? 'approved' : 'rejected'} successfully!`);
-      
-      if (status === 'ACCEPTED') {
+
+      toast.success(
+        response.data.message ||
+          `Course ${status === "ACCEPTED" ? "approved" : "rejected"} successfully!`,
+      );
+
+      if (status === "ACCEPTED") {
         setShowApproveDialog(false);
       } else {
         setShowRejectDialog(false);
       }
-      
+
       fetchAssessmentDetails();
     } catch (err: any) {
-      console.error(`Error ${status === 'ACCEPTED' ? 'approving' : 'rejecting'} course:`, err);
-      
+      console.error(
+        `Error ${status === "ACCEPTED" ? "approving" : "rejecting"} course:`,
+        err,
+      );
+
       if (err.response?.status === 403) {
-        toast.error("Access denied. You don't have permission to approve/reject assessments for this course.");
+        toast.error(
+          "Access denied. You don't have permission to approve/reject assessments for this course.",
+        );
       } else if (err.response?.data?.error) {
         toast.error(err.response.data.error);
       } else {
-        toast.error(`Failed to ${status === 'ACCEPTED' ? 'approve' : 'reject'} course. Please try again.`);
+        toast.error(
+          `Failed to ${status === "ACCEPTED" ? "approve" : "reject"} course. Please try again.`,
+        );
       }
     } finally {
-      if (status === 'ACCEPTED') {
+      if (status === "ACCEPTED") {
         setApproving(false);
       } else {
         setRejecting(false);
@@ -178,39 +213,43 @@ const DeanAssessmentDetail: React.FC = () => {
   };
 
   const getCourseStatus = (): string => {
-    if (!courseData || !courseData.assessments) return 'PENDING';
-    
+    if (!courseData || !courseData.assessments) return "PENDING";
+
     const assessments = courseData.assessments;
-    
-    if (assessments.every((a: Assessment) => a.deanApproval === 'ACCEPTED')) {
-      return 'ACCEPTED';
+
+    if (assessments.every((a: Assessment) => a.deanApproval === "ACCEPTED")) {
+      return "ACCEPTED";
     }
-    
-    if (assessments.some((a: Assessment) => a.deanApproval === 'REJECTED')) {
-      return 'REJECTED';
+
+    if (assessments.some((a: Assessment) => a.deanApproval === "REJECTED")) {
+      return "REJECTED";
     }
-    
-    const allHeadApproved = assessments.every((a: Assessment) => a.headApproval === 'ACCEPTED');
-    const hasPendingDean = assessments.some((a: Assessment) => a.deanApproval === 'PENDING');
-    
+
+    const allHeadApproved = assessments.every(
+      (a: Assessment) => a.headApproval === "ACCEPTED",
+    );
+    const hasPendingDean = assessments.some(
+      (a: Assessment) => a.deanApproval === "PENDING",
+    );
+
     if (allHeadApproved && hasPendingDean) {
-      return 'PENDING';
+      return "PENDING";
     }
-    
-    return 'PENDING';
+
+    return "PENDING";
   };
 
   const getCourseStatusBadge = (): JSX.Element => {
     const status = getCourseStatus();
     switch (status) {
-      case 'ACCEPTED':
+      case "ACCEPTED":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
             <CheckCircle className="h-4 w-4 mr-1" />
             Dean Approved
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
             <XCircle className="h-4 w-4 mr-1" />
@@ -229,14 +268,14 @@ const DeanAssessmentDetail: React.FC = () => {
 
   const getAssessmentStatusBadge = (assessment: Assessment): JSX.Element => {
     switch (assessment.deanApproval) {
-      case 'ACCEPTED':
+      case "ACCEPTED":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
             <CheckCircle className="h-3 w-3 mr-1" />
             Dean Approved
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
             <XCircle className="h-3 w-3 mr-1" />
@@ -255,14 +294,14 @@ const DeanAssessmentDetail: React.FC = () => {
 
   const getHeadApprovalBadge = (assessment: Assessment): JSX.Element => {
     switch (assessment.headApproval) {
-      case 'ACCEPTED':
+      case "ACCEPTED":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
             <ShieldCheck className="h-3 w-3 mr-1" />
             Head Approved
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
             <ShieldAlert className="h-3 w-3 mr-1" />
@@ -281,14 +320,14 @@ const DeanAssessmentDetail: React.FC = () => {
 
   const getRegistrarApprovalBadge = (assessment: Assessment): JSX.Element => {
     switch (assessment.registrarApproval) {
-      case 'ACCEPTED':
+      case "ACCEPTED":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
             <ShieldCheck className="h-3 w-3 mr-1" />
             Registrar Approved
           </Badge>
         );
-      case 'REJECTED':
+      case "REJECTED":
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
             <ShieldAlert className="h-3 w-3 mr-1" />
@@ -307,23 +346,28 @@ const DeanAssessmentDetail: React.FC = () => {
 
   const formatDate = (dateString: string): string => {
     if (!dateString) return "";
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const getStudentScore = (student: StudentScore, assessmentId: number): number | null => {
-    const score = student.scores?.find((s: Score) => s.assessmentId === assessmentId);
+  const getStudentScore = (
+    student: StudentScore,
+    assessmentId: number,
+  ): number | null => {
+    const score = student.scores?.find(
+      (s: Score) => s.assessmentId === assessmentId,
+    );
     return score?.score || null;
   };
 
   const getStudentTotalScore = (student: StudentScore): string => {
     if (!courseData?.assessments) return "0.0";
-    
+
     let total = 0;
     courseData.assessments.forEach((assessment: Assessment) => {
       const score = getStudentScore(student, assessment.assessmentId);
@@ -336,30 +380,47 @@ const DeanAssessmentDetail: React.FC = () => {
 
   const getTotalPossibleScore = (): number => {
     if (!courseData?.assessments) return 0;
-    
-    return courseData.assessments.reduce((total: number, assessment: Assessment) => {
-      return total + (assessment.maxScore || 0);
-    }, 0);
+
+    return courseData.assessments.reduce(
+      (total: number, assessment: Assessment) => {
+        return total + (assessment.maxScore || 0);
+      },
+      0,
+    );
   };
 
   const canTakeAction = (): boolean => {
     const status = getCourseStatus();
-    
-    const allHeadApproved = courseData?.assessments?.every((a: Assessment) => a.headApproval === 'ACCEPTED');
-    
-    const registrarPending = courseData?.assessments?.every((a: Assessment) => a.registrarApproval === 'PENDING');
-    
-    return status === 'PENDING' && !!allHeadApproved && !!registrarPending;
+
+    const allHeadApproved = courseData?.assessments?.every(
+      (a: Assessment) => a.headApproval === "ACCEPTED",
+    );
+
+    const registrarPendingOrRejected = courseData?.assessments?.every(
+      (a: Assessment) =>
+        a.registrarApproval === "PENDING" || a.registrarApproval === "REJECTED",
+    );
+
+    return (
+      status === "PENDING" && !!allHeadApproved && !!registrarPendingOrRejected
+    );
   };
 
   const getAssessmentCountByStatus = (): AssessmentStatusCounts => {
-    if (!courseData?.assessments) return { pending: 0, approved: 0, rejected: 0 };
-    
+    if (!courseData?.assessments)
+      return { pending: 0, approved: 0, rejected: 0 };
+
     const assessments = courseData.assessments;
     return {
-      pending: assessments.filter((a: Assessment) => a.deanApproval === 'PENDING').length,
-      approved: assessments.filter((a: Assessment) => a.deanApproval === 'ACCEPTED').length,
-      rejected: assessments.filter((a: Assessment) => a.deanApproval === 'REJECTED').length
+      pending: assessments.filter(
+        (a: Assessment) => a.deanApproval === "PENDING",
+      ).length,
+      approved: assessments.filter(
+        (a: Assessment) => a.deanApproval === "ACCEPTED",
+      ).length,
+      rejected: assessments.filter(
+        (a: Assessment) => a.deanApproval === "REJECTED",
+      ).length,
     };
   };
 
@@ -387,10 +448,7 @@ const DeanAssessmentDetail: React.FC = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Assessments
           </Button>
-          <Button
-            variant="default"
-            onClick={fetchAssessmentDetails}
-          >
+          <Button variant="default" onClick={fetchAssessmentDetails}>
             Try Again
           </Button>
         </div>
@@ -404,13 +462,22 @@ const DeanAssessmentDetail: React.FC = () => {
 
   const courseStatus = getCourseStatus();
   const totalPossibleScore = getTotalPossibleScore();
-  const allHeadApproved = courseData?.assessments?.every((a: Assessment) => a.headApproval === 'ACCEPTED');
-  const registrarNotActed = courseData?.assessments?.every((a: Assessment) => a.registrarApproval === 'PENDING');
+  const allHeadApproved = courseData?.assessments?.every(
+    (a: Assessment) => a.headApproval === "ACCEPTED",
+  );
+  const registrarNotActed = courseData?.assessments?.every(
+    (a: Assessment) => a.registrarApproval === "PENDING",
+  );
   const assessmentCounts = getAssessmentCountByStatus();
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/dean/assessments")} className="p-0" >
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate("/dean/assessments")}
+        className="p-0"
+      >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Assessments
       </Button>
@@ -466,7 +533,10 @@ const DeanAssessmentDetail: React.FC = () => {
             </Button>
           </div>
         ) : !allHeadApproved ? (
-          <Badge variant="outline" className="text-yellow-600 border-yellow-300">
+          <Badge
+            variant="outline"
+            className="text-yellow-600 border-yellow-300"
+          >
             <Clock className="h-3 w-3 mr-1" />
             Waiting for department head approval
           </Badge>
@@ -476,12 +546,15 @@ const DeanAssessmentDetail: React.FC = () => {
             Registrar has already acted
           </Badge>
         ) : (
-          <Badge variant="outline" className={
-            courseStatus === 'ACCEPTED' 
-              ? "text-green-600 border-green-300" 
-              : "text-red-600 border-red-300"
-          }>
-            {courseStatus === 'ACCEPTED' ? (
+          <Badge
+            variant="outline"
+            className={
+              courseStatus === "ACCEPTED"
+                ? "text-green-600 border-green-300"
+                : "text-red-600 border-red-300"
+            }
+          >
+            {courseStatus === "ACCEPTED" ? (
               <>
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Dean Approved
@@ -506,11 +579,15 @@ const DeanAssessmentDetail: React.FC = () => {
           <CardContent>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Course Title</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Course Title
+                </p>
                 <p className="font-medium">{courseData.courseTitle}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Course Code</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Course Code
+                </p>
                 <p className="font-medium">{courseData.courseCode}</p>
               </div>
             </div>
@@ -526,12 +603,16 @@ const DeanAssessmentDetail: React.FC = () => {
           <CardContent>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Teacher Name</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Teacher Name
+                </p>
                 <p className="font-medium">{courseData.teacherName || "N/A"}</p>
               </div>
               {courseData.departmentName && (
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Department</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Department
+                  </p>
                   <p className="font-medium">{courseData.departmentName}</p>
                 </div>
               )}
@@ -548,12 +629,20 @@ const DeanAssessmentDetail: React.FC = () => {
           <CardContent>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Batch/Semester</p>
-                <p className="font-medium">{courseData.batchClassYearSemester}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Batch/Semester
+                </p>
+                <p className="font-medium">
+                  {courseData.batchClassYearSemester}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Students</p>
-                <p className="font-medium">{courseData.students?.length || 0}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total Students
+                </p>
+                <p className="font-medium">
+                  {courseData.students?.length || 0}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -568,11 +657,17 @@ const DeanAssessmentDetail: React.FC = () => {
           <CardContent>
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Assessments</p>
-                <p className="font-medium">{courseData.assessments?.length || 0}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total Assessments
+                </p>
+                <p className="font-medium">
+                  {courseData.assessments?.length || 0}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Possible Score</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Total Possible Score
+                </p>
                 <p className="font-medium">{totalPossibleScore}</p>
               </div>
             </div>
@@ -614,7 +709,8 @@ const DeanAssessmentDetail: React.FC = () => {
         <CardHeader>
           <CardTitle>Assessment Details</CardTitle>
           <CardDescription>
-            All assessments in this course that have been approved by the department head
+            All assessments in this course that have been approved by the
+            department head
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -643,12 +739,8 @@ const DeanAssessmentDetail: React.FC = () => {
                       <TableCell className="font-medium">
                         {assessment.maxScore}
                       </TableCell>
-                      <TableCell>
-                        {formatDate(assessment.dueDate)}
-                      </TableCell>
-                      <TableCell>
-                        {getHeadApprovalBadge(assessment)}
-                      </TableCell>
+                      <TableCell>{formatDate(assessment.dueDate)}</TableCell>
+                      <TableCell>{getHeadApprovalBadge(assessment)}</TableCell>
                       <TableCell>
                         {getAssessmentStatusBadge(assessment)}
                       </TableCell>
@@ -675,16 +767,15 @@ const DeanAssessmentDetail: React.FC = () => {
         <CardHeader>
           <CardTitle>Student Scores (Read Only)</CardTitle>
           <CardDescription>
-            {courseStatus === 'ACCEPTED' 
-              ? "Course has been approved by dean. Waiting for registrar approval." 
-              : courseStatus === 'REJECTED'
-              ? "Course has been rejected by dean. Department head needs to make corrections."
-              : allHeadApproved && registrarNotActed
-              ? "All assessments approved by department head. Review scores before dean approval."
-              : !registrarNotActed
-              ? "Registrar has already acted on these assessments."
-              : "Waiting for department head to approve all assessments."
-            }
+            {courseStatus === "ACCEPTED"
+              ? "Course has been approved by dean. Waiting for registrar approval."
+              : courseStatus === "REJECTED"
+                ? "Course has been rejected by dean. Department head needs to make corrections."
+                : allHeadApproved && registrarNotActed
+                  ? "All assessments approved by department head. Review scores before dean approval."
+                  : !registrarNotActed
+                    ? "Registrar has already acted on these assessments."
+                    : "Waiting for department head to approve all assessments."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -698,9 +789,15 @@ const DeanAssessmentDetail: React.FC = () => {
                         Student
                       </TableHead>
                       {courseData.assessments?.map((assessment: Assessment) => (
-                        <TableHead key={assessment.assessmentId} className="min-w-[180px]">
+                        <TableHead
+                          key={assessment.assessmentId}
+                          className="min-w-[180px]"
+                        >
                           <div className="space-y-1">
-                            <div className="font-medium truncate" title={assessment.title}>
+                            <div
+                              className="font-medium truncate"
+                              title={assessment.title}
+                            >
                               {assessment.title}
                             </div>
                             <div className="flex items-center justify-between">
@@ -726,10 +823,15 @@ const DeanAssessmentDetail: React.FC = () => {
                     {courseData.students.map((student: StudentScore) => {
                       const totalScore = getStudentTotalScore(student);
                       return (
-                        <TableRow key={student.studentId} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <TableRow
+                          key={student.studentId}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                        >
                           <TableCell className="sticky left-0 bg-white dark:bg-gray-900 z-10 min-w-[200px]">
                             <div className="space-y-1">
-                              <div className="font-medium">{student.fullNameENG}</div>
+                              <div className="font-medium">
+                                {student.fullNameENG}
+                              </div>
                               <div className="text-sm text-gray-500 dark:text-gray-400">
                                 {student.studentIdNumber}
                               </div>
@@ -740,19 +842,31 @@ const DeanAssessmentDetail: React.FC = () => {
                               )}
                             </div>
                           </TableCell>
-                          {courseData.assessments?.map((assessment: Assessment) => {
-                            const score = getStudentScore(student, assessment.assessmentId);
-                            const displayScore = score !== null ? score.toFixed(1) : "-";
-                            return (
-                              <TableCell key={`${student.studentId}-${assessment.assessmentId}`}>
-                                <div className={`w-20 h-8 px-3 py-1.5 rounded-md border text-center ${displayScore === "-" ? "bg-gray-100 dark:bg-gray-800 text-gray-500" : "bg-gray-50 dark:bg-gray-800"}`}>
-                                  {displayScore}
-                                </div>
-                              </TableCell>
-                            );
-                          })}
+                          {courseData.assessments?.map(
+                            (assessment: Assessment) => {
+                              const score = getStudentScore(
+                                student,
+                                assessment.assessmentId,
+                              );
+                              const displayScore =
+                                score !== null ? score.toFixed(1) : "-";
+                              return (
+                                <TableCell
+                                  key={`${student.studentId}-${assessment.assessmentId}`}
+                                >
+                                  <div
+                                    className={`w-20 h-8 px-3 py-1.5 rounded-md border text-center ${displayScore === "-" ? "bg-gray-100 dark:bg-gray-800 text-gray-500" : "bg-gray-50 dark:bg-gray-800"}`}
+                                  >
+                                    {displayScore}
+                                  </div>
+                                </TableCell>
+                              );
+                            },
+                          )}
                           <TableCell className="sticky right-0 bg-white dark:bg-gray-900 z-10 min-w-[120px]">
-                            <div className={`w-full h-8 px-3 py-1.5 rounded-md border text-center font-medium ${parseFloat(totalScore) > 0 ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}>
+                            <div
+                              className={`w-full h-8 px-3 py-1.5 rounded-md border text-center font-medium ${parseFloat(totalScore) > 0 ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "bg-gray-100 dark:bg-gray-800 text-gray-500"}`}
+                            >
                               {totalScore}
                             </div>
                           </TableCell>
@@ -791,12 +905,13 @@ const DeanAssessmentDetail: React.FC = () => {
                         Approve All Assessments
                       </p>
                       <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                        This will approve ALL assessments as Dean. Registrar will be notified for final approval.
+                        This will approve ALL assessments as Dean. Registrar
+                        will be notified for final approval.
                       </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <p className="font-medium">Requirements Check:</p>
                   <ul className="list-disc pl-4 space-y-1 text-sm">
@@ -824,18 +939,21 @@ const DeanAssessmentDetail: React.FC = () => {
                     <li>Dean approval cannot be undone</li>
                   </ul>
                 </div>
-                
+
                 <div className="text-sm p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
                   <p className="font-medium mb-1">Course Summary:</p>
-                  <p>Course: {courseData.courseTitle} ({courseData.courseCode})</p>
+                  <p>
+                    Course: {courseData.courseTitle} ({courseData.courseCode})
+                  </p>
                   <p>Teacher: {courseData.teacherName}</p>
                   <p>Batch: {courseData.batchClassYearSemester}</p>
                   <p>Assessments: {courseData.assessments?.length || 0}</p>
                   <p>Students: {courseData.students?.length || 0}</p>
                 </div>
-                
+
                 <p className="font-medium text-red-600 dark:text-red-400">
-                  ⚠️ Warning: This action will approve all assessments. Make sure all scores are correct before proceeding.
+                  ⚠️ Warning: This action will approve all assessments. Make
+                  sure all scores are correct before proceeding.
                 </p>
               </div>
             </DialogDescription>
@@ -850,7 +968,7 @@ const DeanAssessmentDetail: React.FC = () => {
             </Button>
             <Button
               className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => handleDeanApproveReject('ACCEPTED')}
+              onClick={() => handleDeanApproveReject("ACCEPTED")}
               disabled={approving}
             >
               {approving ? (
@@ -886,12 +1004,13 @@ const DeanAssessmentDetail: React.FC = () => {
                         Reject All Assessments
                       </p>
                       <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-                        This will reject ALL assessments as Dean and return the course to the department head.
+                        This will reject ALL assessments as Dean and return the
+                        course to the department head.
                       </p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <p className="font-medium">What happens when you reject:</p>
                   <ul className="list-disc pl-4 space-y-1 text-sm">
@@ -899,26 +1018,36 @@ const DeanAssessmentDetail: React.FC = () => {
                     <li>Department head will be notified</li>
                     <li>Department head will need to review and resubmit</li>
                     <li>Course will go back to department head's queue</li>
-                    <li>You will need to review the course again after resubmission</li>
+                    <li>
+                      You will need to review the course again after
+                      resubmission
+                    </li>
                   </ul>
                 </div>
-                
+
                 <div className="text-sm p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
                   <p className="font-medium mb-1">Course Summary:</p>
-                  <p>Course: {courseData.courseTitle} ({courseData.courseCode})</p>
+                  <p>
+                    Course: {courseData.courseTitle} ({courseData.courseCode})
+                  </p>
                   <p>Teacher: {courseData.teacherName}</p>
                   <p>Batch: {courseData.batchClassYearSemester}</p>
                   <p>Assessments: {courseData.assessments?.length || 0}</p>
                   <p>Students: {courseData.students?.length || 0}</p>
                 </div>
-                
+
                 <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                  <p className="font-medium mb-1">Please specify reason for rejection:</p>
-                  <p className="text-sm">(This will be communicated to the department head)</p>
+                  <p className="font-medium mb-1">
+                    Please specify reason for rejection:
+                  </p>
+                  <p className="text-sm">
+                    (This will be communicated to the department head)
+                  </p>
                 </div>
-                
+
                 <p className="font-medium">
-                  Are you sure you want to reject all assessments in this course?
+                  Are you sure you want to reject all assessments in this
+                  course?
                 </p>
               </div>
             </DialogDescription>
@@ -933,7 +1062,7 @@ const DeanAssessmentDetail: React.FC = () => {
             </Button>
             <Button
               variant="destructive"
-              onClick={() => handleDeanApproveReject('REJECTED')}
+              onClick={() => handleDeanApproveReject("REJECTED")}
               disabled={rejecting}
             >
               {rejecting ? (
